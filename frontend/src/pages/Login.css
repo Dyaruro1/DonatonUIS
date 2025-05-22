@@ -1,0 +1,242 @@
+/* Fondo y overlay */
+.login-bg-container {
+  min-height: 100vh;
+  width: 100vw;
+  background: url('/fondo-uis.jpg') no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  overflow: auto;
+}
+.login-bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(24,25,43,0.58); /* Azul oscuro un poco más fuerte */
+  z-index: 0;
+  pointer-events: none;
+}
+.login-header-title {
+  color: #21E058;
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-top: 2.2rem;
+  margin-bottom: 0.7rem;
+  margin-right: 4.5rem;
+  text-align: right;
+  position: absolute;
+  top: 32px;
+  right: 60px;
+  z-index: 2;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Form container */
+.login-form-container {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 2px 24px 0 #0003;
+  padding: 2.5rem 2.5rem 1.7rem 2.5rem;
+  margin: 2.5rem auto 2.5rem auto;
+  width: 100%;
+  max-width: 410px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.login-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  z-index: 2;
+}
+.login-avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px 0 #0002;
+}
+
+.login-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  color: #222;
+  font-family: 'Poppins', sans-serif;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.login-label {
+  font-size: 0.95rem;
+  color: #21E058;
+  font-weight: 500;
+  margin-bottom: 0.1rem;
+  margin-top: 0.5rem;
+}
+.login-input {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 1rem;
+  outline: none;
+  margin-bottom: 0.2rem;
+  transition: border 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+.login-input:focus {
+  border: 1.5px solid #21E058;
+}
+
+.login-captcha-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.7rem 0 0.5rem 0;
+}
+.login-captcha-label {
+  font-size: 0.98rem;
+  color: #333;
+  font-weight: 400;
+  margin-right: 0.5rem;
+}
+.login-captcha-img {
+  height: 28px;
+  margin-left: 0.5rem;
+}
+
+.login-btn {
+  width: 100%;
+  background: #21E058;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.08rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 0;
+  margin-top: 0.5rem;
+  margin-bottom: 0.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+.login-btn:disabled {
+  background: #b6e7c7;
+  cursor: not-allowed;
+}
+
+.login-links {
+  width: 100%;
+  text-align: right;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+.login-link {
+  color: #21E058;
+  text-decoration: none;
+  font-size: 0.98rem;
+  font-weight: 500;
+  transition: text-decoration 0.2s;
+}
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.login-register-row {
+  width: 100%;
+  text-align: center;
+  margin: 0.5rem 0 0.5rem 0;
+  font-size: 0.98rem;
+  color: #333;
+}
+.login-register-row .login-link {
+  margin-left: 0.3rem;
+}
+
+.login-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.7rem 0 0.7rem 0;
+}
+.login-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0 0.5rem;
+}
+.login-divider-text {
+  color: #888;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.login-microsoft-btn {
+  width: 100%;
+  background: #fff;
+  color: #333;
+  font-weight: 600;
+  font-size: 1.08rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0.7rem 0;
+  margin-bottom: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  transition: border 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+.login-microsoft-btn:hover {
+  border: 1.5px solid #21E058;
+}
+.login-microsoft-logo {
+  height: 22px;
+  width: 22px;
+}
+
+.login-back-row {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.login-terms-row {
+  width: 100%;
+  text-align: center;
+  font-size: 0.93rem;
+  color: #888;
+  margin-top: 0.2rem;
+  margin-bottom: 0.1rem;
+}
+.login-terms-row span {
+  margin: 0 0.3rem;
+  color: #bbb;
+}
+
+@media (max-width: 600px) {
+  .login-form-container {
+    padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+    max-width: 98vw;
+  }
+  .login-header-title {
+    margin-right: 0;
+    text-align: center;
+  }
+}

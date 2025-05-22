@@ -1,0 +1,128 @@
+.home-container {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.home-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('/fondo-uis.jpg') no-repeat center center/cover;
+  z-index: 1;
+}
+
+.home-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 44, 99, 0.75); /* azul UIS semitransparente */
+  z-index: 2;
+}
+
+.home-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  width: 100%;
+}
+
+.home-left-panel, .home-right-panel {
+  background: none;
+}
+
+.home-left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 2rem 3rem 4rem;
+  color: #fff;
+}
+
+.logo-main {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #6ED257;
+  letter-spacing: 1px;
+}
+.logo-main span {
+  color: #fff;
+}
+.subtitle-logo {
+  font-size: 0.9rem;
+  color: #b6ffb6;
+  margin-bottom: 2rem;
+}
+.home-left-panel h1 {
+  font-size: 2rem;
+  margin: 1.5rem 0 0.5rem 0;
+  font-weight: 700;
+}
+.main-cta {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+}
+.highlight {
+  color: #6ED257;
+  font-weight: 700;
+}
+
+.home-right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  padding: 3rem 2rem;
+}
+.home-right-panel h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+.auth-buttons {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+.footer-links {
+  margin-top: 2rem;
+  text-align: center;
+}
+.footer-links img.small-logo-footer {
+  width: 40px;
+  margin-bottom: 0.5rem;
+}
+.footer-links p {
+  font-size: 0.9rem;
+  color: #b6ffb6;
+}
+.footer-links a {
+  color: #b6ffb6;
+  text-decoration: underline;
+  margin: 0 0.5rem;
+}
+.footer-links a:hover {
+  color: #6ED257;
+}
+
+@media (max-width: 900px) {
+  .home-container {
+    flex-direction: column;
+  }
+  .home-left-panel, .home-right-panel {
+    flex: unset;
+    width: 100%;
+    padding: 2rem 1rem;
+    align-items: center;
+    text-align: center;
+  }
+}

@@ -1,0 +1,247 @@
+/* Estilos modernos y oscuros para el feed de prendas */
+.feed-root {
+  display: flex;
+  min-height: 100vh;
+  background: #18192b;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+.feed-sidebar {
+  width: 90px;
+  background: #18192b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 2.5rem;
+  border-right: 1.5px solid #23244a;
+  min-height: 100vh;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  gap: 2.2rem;
+}
+.sidebar-logo {
+  margin-bottom: 1.5rem;
+}
+.sidebar-logo img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #18192b;
+  border: 3px solid #21E058;
+  display: block;
+}
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2.1rem;
+  width: 100%;
+  align-items: center;
+}
+.sidebar-btn {
+  background: none;
+  border: none;
+  color: #7e7ee7;
+  font-size: 2.1rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 0;
+}
+.sidebar-btn.active, .sidebar-btn:hover {
+  color: #a78bfa;
+}
+.feed-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 0 2rem 0; /* sin padding lateral */
+  min-width: 0;
+  margin-left: 90px;
+  width: calc(100vw - 90px);
+  align-items: center; /* centra el grid */
+  box-sizing: border-box;
+}
+.feed-header {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.feed-search {
+  flex: 1;
+  background: #23244a;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.1rem;
+}
+.feed-filter {
+  background: #23244a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.1rem;
+}
+.feed-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.feed-bell {
+  color: #7ee787;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.feed-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #21E058;
+}
+.feed-publicaciones-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.feed-publicaciones-title {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.feed-publicaciones-tabs {
+  display: flex;
+  gap: 1.2rem;
+}
+.feed-tab {
+  color: #b3b3b3;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.2rem 1.1rem;
+  border-radius: 16px;
+  background: none;
+  transition: background 0.2s, color 0.2s;
+}
+.feed-tab-active {
+  background: #23244a;
+  color: #7ee787;
+}
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  justify-items: stretch;
+}
+@media (max-width: 1200px) {
+  .feed-grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    max-width: 740px;
+  }
+}
+@media (max-width: 900px) {
+  .feed-main {
+    padding: 1rem;
+  }
+  .feed-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    max-width: 400px;
+  }
+}
+@media (max-width: 600px) {
+  .feed-grid {
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+    max-width: 98vw;
+  }
+}
+.feed-card {
+  background: #23244a;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px 0 #0002;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  min-width: 180px;
+  max-width: 320px;
+}
+.feed-card-img {
+  width: 100%;
+  height: 140px;
+  background: #18192b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.feed-card-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.feed-card-body {
+  padding: 1.1rem 1.2rem 1.2rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.feed-card-title {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+.feed-card-info {
+  color: #b3b3b3;
+  font-size: 0.98rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.feed-card-info span {
+  color: #7ee787;
+  font-weight: 600;
+  margin-left: 0.3rem;
+}
+.feed-card-btn {
+  background: #21E058;
+  color: #18192b;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 0;
+  margin-top: 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.feed-card-btn:hover {
+  background: #7ee787;
+}
+.feed-loading {
+  color: #7ee787;
+  text-align: center;
+  margin: 1.5rem 0;
+  font-size: 1.1rem;
+}
+.feed-empty {
+  color: #ff6b6b;
+  text-align: center;
+  margin: 2rem 0;
+  font-size: 1.1rem;
+}
