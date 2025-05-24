@@ -11,9 +11,23 @@ function FeedPrendas() {
   const limit = 12;
   const loader = useRef(null);
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true); 
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+  const [filterValue, setFilterValue] = useState("");
+  const [tab, setTab] = useState("disponibles");
+  const [userId, setUserId] = useState(null);
+
   const handleSidebarNav = (route) => {
     navigate(route);
   };
+
+  // Obtener el usuario actual para "Mis publicaciones"
+  useEffect(() => {
+    donatonService.getCurrentUser?.().then(res => {
+      setUserId(res?.data?.id);
+    }).catch(() => {});
+  }, []);
 
   // Scroll infinito
   const loadMore = useCallback(async () => {
@@ -48,54 +62,103 @@ function FeedPrendas() {
     return () => observer.disconnect();
   }, [loader, loadMore, hasMore, loading]);
 
+  useEffect(() => {
+    console.log("sidebarOpen es:", sidebarOpen);
+  }, [sidebarOpen]);
+
+  // Filtros y búsqueda
+  const prendasFiltradas = prendas.filter(prenda => {
+    if (tab === "mis") {
+      if (!userId || prenda.usuario_id !== userId) return false;
+    }
+    if (search && !prenda.nombre.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filter && filterValue) {
+      if (filter === "talla" && prenda.talla !== filterValue) return false;
+      if (filter === "sexo" && prenda.sexo !== filterValue) return false;
+      if (filter === "uso" && prenda.uso !== filterValue) return false;
+    }
+    return true;
+  });
+
   return (
-    <div className="feed-root">
-      <aside className="feed-sidebar">
-        <div className="sidebar-logo"><img src="/logo-pequeno.svg" alt="logo" /></div>
-        <nav className="sidebar-nav">
-          <button className="sidebar-btn active" title="Inicio" onClick={() => handleSidebarNav('/feed')}>
-            <i className="fa-solid fa-house"></i>
-          </button>
-          <button className="sidebar-btn" title="Donaciones" onClick={() => handleSidebarNav('/donar')}>
-            <i className="fa-solid fa-hand-holding-heart"></i>
-          </button>
-          <button className="sidebar-btn" title="Favoritos" onClick={() => handleSidebarNav('/favoritos')}>
-            <i className="fa-solid fa-heart"></i>
-          </button>
-          <button className="sidebar-btn" title="Estadísticas" onClick={() => handleSidebarNav('/estadisticas')}>
-            <i className="fa-solid fa-chart-column"></i>
-          </button>
-          <button className="sidebar-btn" title="Perfil" onClick={() => handleSidebarNav('/perfil')}>
-            <i className="fa-solid fa-user"></i>
-          </button>
-          <button className="sidebar-btn" title="Ajustes" onClick={() => handleSidebarNav('/ajustes')}>
-            <i className="fa-solid fa-gear"></i>
-          </button>
-        </nav>
-      </aside>
-      <main className="feed-main">
-        <header className="feed-header">
-          <input className="feed-search" placeholder="¿Qué estás buscando?" />
-          <select className="feed-filter">
-            <option>Filtrar por...</option>
-            <option value="talla">Talla</option>
-            <option value="sexo">Sexo</option>
-            <option value="uso">Uso</option>
+   <div className={`feed-root ${sidebarOpen ? 'sidebar-open' : ''}`}>
+    <div className={`custom-sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <div className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <span className="sidebar-toggle-bar"></span>
+        <span className="sidebar-toggle-bar"></span>
+      </div>
+      <nav className="custom-sidebar-nav sidebar-tabs">
+        <button className="custom-sidebar-tab">
+          <span className="custom-sidebar-icon">🧺</span>
+          <span className={`custom-sidebar-label ${sidebarOpen ? 'visible' : 'hidden'}`}>Prendas</span>
+        </button>
+        <button className={`custom-sidebar-tab${window.location.pathname === '/donar' ? ' custom-sidebar-tab-active' : ''}`} onClick={() => handleSidebarNav('/donar')}>
+          <span className="custom-sidebar-icon">🤲</span>
+          <span className={`custom-sidebar-label ${sidebarOpen ? 'visible' : 'hidden'}`}>Donar</span>
+        </button>
+        <button className={`custom-sidebar-tab${window.location.pathname === '/perfil' ? ' custom-sidebar-tab-active' : ''}`} onClick={() => handleSidebarNav('/perfil')}>
+          <span className="custom-sidebar-icon">👤</span>
+          <span className={`custom-sidebar-label ${sidebarOpen ? 'visible' : 'hidden'}`}>Perfil</span>
+        </button>
+        <button className={`custom-sidebar-tab${window.location.pathname === '/ajustes' ? ' custom-sidebar-tab-active' : ''}`} onClick={() => handleSidebarNav('/ajustes')}>
+          <span className="custom-sidebar-icon">⚙️</span>
+          <span className={`custom-sidebar-label ${sidebarOpen ? 'visible' : 'hidden'}`}>Configuración</span>
+        </button>
+      </nav>
+    </div>
+
+    {/* CONTENIDO PRINCIPAL */}
+    <main className="feed-main">
+      <header className="feed-header">
+        <input className="feed-search" placeholder="¿Qué estás buscando?" value={search} onChange={e => setSearch(e.target.value)} />
+        <select className="feed-filter" value={filter} onChange={e => { setFilter(e.target.value); setFilterValue(""); }}>
+          <option value="">Filtrar por...</option>
+          <option value="talla">Talla</option>
+          <option value="sexo">Sexo</option>
+          <option value="uso">Uso</option>
+        </select>
+        {filter === "talla" && (
+          <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+            <option value="">Todas las tallas</option>
+            <option value="38">38</option>
+            <option value="40">40</option>
+            <option value="42">42</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
           </select>
-          <div className="feed-user-actions">
-            <span className="feed-bell"><i className="fa fa-bell"></i></span>
-            <span className="feed-avatar"><img src="/logo-pequeno.svg" alt="avatar" /></span>
-          </div>
-        </header>
-        <div className="feed-publicaciones-row">
-          <span className="feed-publicaciones-title">Publicaciones recientes</span>
-          <div className="feed-publicaciones-tabs">
-            <span className="feed-tab feed-tab-active">General</span>
-            <span className="feed-tab">Mis publicaciones</span>
-          </div>
+        )}
+        {filter === "sexo" && (
+          <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+            <option value="">Ambos</option>
+            <option value="M">M</option>
+            <option value="F">F</option>
+          </select>
+        )}
+        {filter === "uso" && (
+          <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
+            <option value="">Todos</option>
+            <option value="0d">Nuevo</option>
+            <option value="20d">Poco uso</option>
+            <option value="30d">Usado</option>
+            <option value="60d">Muy usado</option>
+          </select>
+        )}
+        <div className="feed-user-actions">
+          <span className="feed-bell"><i className="fa fa-bell"></i></span>
+          <span className="feed-avatar"><img src="/logo-pequeno.svg" alt="avatar" /></span>
         </div>
-        <section className="feed-grid">
-          {prendas.map((prenda, idx) => (
+      </header>
+      <div className="feed-publicaciones-row" style={{ justifyContent: 'flex-start', gap: '2.5rem' }}>
+        <span className="feed-publicaciones-title" style={{ marginRight: '2.5rem' }}>Prendas disponibles</span>
+        <div className="feed-publicaciones-tabs">
+          <span className={`feed-tab${tab === 'disponibles' ? ' feed-tab-active' : ''}`} onClick={() => setTab('disponibles')}>Disponibles</span>
+          <span className={`feed-tab${tab === 'mis' ? ' feed-tab-active' : ''}`} onClick={() => setTab('mis')}>Mis publicaciones</span>
+        </div>
+      </div>
+      <section className="feed-grid">
+        {prendasFiltradas.length > 0 ? (
+          prendasFiltradas.map((prenda, idx) => (
             <div className="feed-card" key={prenda.id || idx}>
               <div className="feed-card-img">
                 <img src={prenda.imagen_url || '/fondo-uis.jpg'} alt={prenda.nombre} />
@@ -107,16 +170,18 @@ function FeedPrendas() {
                   <div>Sexo <span>{prenda.sexo}</span></div>
                   <div>Uso <span>{prenda.uso}</span></div>
                 </div>
-                <button className="feed-card-btn">Detalles de la prenda</button>
+                <button className="feed-card-btn" onClick={() => navigate(`/prenda/${prenda.id}`)}>Detalles de la prenda</button>
               </div>
             </div>
-          ))}
-        </section>
-        <div ref={loader} style={{ height: 40 }}></div>
-        {loading && <div className="feed-loading">Cargando...</div>}
-        {!hasMore && prendas.length === 0 && <div className="feed-empty">No hay prendas disponibles.</div>}
-      </main>
-    </div>
+          ))
+        ) : (
+          !loading && <div className="feed-empty">No hay prendas disponibles.</div>
+        )}
+      </section>
+      <div ref={loader} style={{ height: 40 }}></div>
+      {loading && <div className="feed-loading">Cargando...</div>}
+    </main>
+  </div>
   );
 }
 

@@ -21,7 +21,9 @@ function Home() {
             <Link to="/register" className="btn btn-secondary btn-lg">Registrarse</Link>
           </div>
           <div className="footer-links">
-            <img src="/logo-pequeno.svg" alt="Logo Pequeño" className="small-logo-footer"/>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <img src="/logo-pequeno.svg" alt="Logo Pequeño" className="small-logo-footer" style={{ display: 'block', margin: '0 auto' }} />
+            </div>
             <p>
               <Link to="/terminos">Términos de uso</Link> | <Link to="/privacidad">Política de privacidad</Link>
             </p>
