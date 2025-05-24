@@ -24,7 +24,10 @@ api.interceptors.request.use(
 
 // Funciones para interactuar con el API
 export const authService = {
-  login: (correo, contrasena) => api.post('/login', { correo, contrasena }),
+  login: (correo, contrasena) => 
+    api.post('/login', new URLSearchParams({ username: correo, password: contrasena }), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }),
   register: (userData) => api.post('/usuarios/registrar', userData),
   getCurrentUser: () => api.get('/usuarios/me'),
   restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }),

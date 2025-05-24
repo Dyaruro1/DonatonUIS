@@ -15,8 +15,6 @@ function RegistroDatosExtra() {
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [telefono, setTelefono] = useState('');
   const [correo, setCorreo] = useState(email || '');
-  const [contacto1, setContacto1] = useState('');
-  const [contacto2, setContacto2] = useState('');
   const [foto, setFoto] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,8 +39,6 @@ function RegistroDatosExtra() {
         sexo,
         fecha_nacimiento: fechaNacimiento,
         telefono,
-        contacto1,
-        contacto2,
         universidad: '',
         facultad: '',
         programa: '',
@@ -70,7 +66,7 @@ function RegistroDatosExtra() {
   };
 
   return (
-    <div className="registro-bg-img">
+    <div className="registro-bg-img" style={{height: '100vh', overflowY: 'auto'}}>
       <div className="registro-sidebar-img">
         <img src="/logo-pequeno.svg" alt="logo" className="registro-sidebar-logo-img" />
       </div>
@@ -124,10 +120,6 @@ function RegistroDatosExtra() {
             <div className="registro-contact-fields-img">
               <input placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} />
               <input placeholder="Correo electrónico" value={correo} onChange={e => setCorreo(e.target.value)} required />
-            </div>
-            <div className="registro-contact-fields-img">
-              <input placeholder="Otra forma de contacto" value={contacto1} onChange={e => setContacto1(e.target.value)} />
-              <input placeholder="Otra forma de contacto" value={contacto2} onChange={e => setContacto2(e.target.value)} />
             </div>
           </div>
           <div className="registro-btn-row-img">

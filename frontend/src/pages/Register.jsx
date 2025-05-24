@@ -52,12 +52,7 @@ function Register() {
       <div className="login-header-title">DONATON UIS</div>
       <div className="login-form-container">
         <div className="login-avatar">
-          <svg height="80" width="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="40" cy="40" r="40" fill="#21E058" />
-            <path d="M40 44c-8.837 0-16 7.163-16 16h32c0-8.837-7.163-16-16-16z" fill="#fff" />
-            <circle cx="40" cy="32" r="12" fill="#fff" />
-            <circle cx="40" cy="32" r="8" fill="#21E058" />
-          </svg>
+          <img src="/logo-pequeno.svg" alt="Donaton UIS" style={{ width: 90, height: 90, borderRadius: '60%', background: '#fffcfc' }} />
         </div>
         <h2 className="login-title">Crea una cuenta</h2>
         <form className="login-form" onSubmit={handleSubmit}>
