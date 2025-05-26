@@ -16,7 +16,9 @@ function AppContent() {
   const isHome = location.pathname === '/';
   const isLogin = location.pathname === '/login';
   const isRegister = location.pathname === '/register';
-  const isAuthenticated = false; // Cambia según lógica de autenticación
+  // const isAuthenticated = false; // Cambia según lógica de autenticación
+  // Para pruebas académicas, permitir acceso libre a /donar
+  const isAuthenticated = true;
   return (
     <>
       {/* Solo muestra el Navbar si no es Home, Login ni Register */}
@@ -26,7 +28,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/donar" element={isAuthenticated ? <DonarRopa /> : <Navigate to="/login" />} />
+          <Route path="/donar" element={<DonarRopa />} />
           <Route path="/solicitar" element={isAuthenticated ? <SolicitarRopa /> : <Navigate to="/login" />} />
           <Route path="/perfil" element={isAuthenticated ? <PerfilUsuario /> : <Navigate to="/login" />} />
           <Route path="/registro-datos-extra" element={<RegistroDatosExtra />} />
