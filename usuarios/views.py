@@ -106,3 +106,9 @@ class UsuarioRegistroAPIView(generics.CreateAPIView):
     serializer_class = UsuarioSerializer
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     permission_classes = [AllowAny]
+
+@api_view(['GET'])
+def verificar_correo(request):
+    correo = request.GET.get('correo', '').strip().lower()
+    exists = Usuario.objects.filter(correo=correo).exists()
+    return Response({'exists': exists})

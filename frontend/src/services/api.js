@@ -30,6 +30,7 @@ export const authService = {
     const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
     return api.post('/api/registrar/', userData, config);
   },
+  checkEmail: (correo) => api.get(`/api/verificar-correo/?correo=${encodeURIComponent(correo)}`),
   getCurrentUser: () => api.get('/usuarios/me'),
   restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }, { headers: { 'Content-Type': 'application/json' } }),
 };

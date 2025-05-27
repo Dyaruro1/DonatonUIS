@@ -23,13 +23,18 @@ function Register() {
       setError('Debes confirmar el captcha');
       return;
     }
-
     setLoading(true);
     try {
-      // Solo navega a la siguiente pantalla, el registro real se hace en RegistroDatosExtra.jsx
+      // Chequeo de correo duplicado usando el endpoint de verificación
+      const resp = await authService.checkEmail(email.trim().toLowerCase());
+      if (resp.data.exists) {
+        setError('Ya existe una cuenta registrada con ese correo.');
+        setLoading(false);
+        return;
+      }
       navigate('/registro-datos-extra', { state: { email, password } });
     } catch (err) {
-      setError('Error al continuar con el registro.');
+      setError('Error al verificar el correo.');
     } finally {
       setLoading(false);
     }
