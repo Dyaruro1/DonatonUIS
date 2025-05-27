@@ -68,6 +68,19 @@ function FeedPrendas() {
   }, [sidebarOpen]);
 
   // Filtros y búsqueda
+  const parseUso = uso => {
+    if (!uso) return 0;
+    // Ejemplo: '60d', '2m', '1a'
+    const match = uso.match(/(\d+)([dma])/i);
+    if (!match) return 0;
+    const value = parseInt(match[1], 10);
+    const unit = match[2].toLowerCase();
+    if (unit === 'd') return value;
+    if (unit === 'm') return value * 30;
+    if (unit === 'a') return value * 365;
+    return value;
+  };
+
   const prendasFiltradas = prendas.filter(prenda => {
     if (tab === "mis") {
       if (!userId || prenda.usuario_id !== userId) return false;
@@ -76,7 +89,18 @@ function FeedPrendas() {
     if (filter && filterValue) {
       if (filter === "talla" && prenda.talla !== filterValue) return false;
       if (filter === "sexo" && prenda.sexo !== filterValue) return false;
-      if (filter === "uso" && prenda.uso !== filterValue) return false;
+      if (filter === "uso" && filterValue) {
+        const dias = parseUso(prenda.uso);
+        if (filterValue === "0-7" && !(dias >= 0 && dias <= 7)) return false;
+        if (filterValue === "8-15" && !(dias > 7 && dias <= 15)) return false;
+        if (filterValue === "16-30" && !(dias > 15 && dias <= 30)) return false;
+        if (filterValue === "31-60" && !(dias > 30 && dias <= 60)) return false;
+        if (filterValue === "61-90" && !(dias > 60 && dias <= 90)) return false;
+        if (filterValue === "91-180" && !(dias > 90 && dias <= 180)) return false;
+        if (filterValue === "181-365" && !(dias > 180 && dias <= 365)) return false;
+        if (filterValue === "366-730" && !(dias > 365 && dias <= 730)) return false;
+        if (filterValue === "731+" && !(dias > 730)) return false;
+      }
     }
     return true;
   });
@@ -225,10 +249,15 @@ function FeedPrendas() {
           {filter === "uso" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
               <option value="">Todos</option>
-              <option value="0d">Nuevo</option>
-              <option value="20d">Poco uso</option>
-              <option value="30d">Usado</option>
-              <option value="60d">Muy usado</option>
+              <option value="0-7">0-7 días</option>
+              <option value="8-15">8-15 días</option>
+              <option value="16-30">16-30 días</option>
+              <option value="31-60">31-60 días</option>
+              <option value="61-90">61-90 días</option>
+              <option value="91-180">91-180 días</option>
+              <option value="181-365">181-365 días</option>
+              <option value="366-730">1-2 años</option>
+              <option value="731+">Más de 2 años</option>
             </select>
           )}
           <div className="feed-user-actions">
@@ -257,7 +286,7 @@ function FeedPrendas() {
                     <div>Sexo <span>{prenda.sexo}</span></div>
                     <div>Uso <span>{prenda.uso}</span></div>
                   </div>
-                  <button className="feed-card-btn" onClick={() => navigate(`/prenda/${prenda.id}`)}>Detalles de la prenda</button>
+                  <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
                 </div>
               </div>
             ))

@@ -13,6 +13,7 @@ import FeedPrendas from '../pages/FeedPrendas';
 import PrendaDetalle from '../pages/PrendaDetalle';
 import EditarPublicacion from '../pages/EditarPublicacion';
 import Ajustes from '../pages/Ajustes';
+import PrendaPublicaDetalle from '../pages/PrendaPublicaDetalle';
 
 function AppContent() {
   const location = useLocation();
@@ -28,7 +29,7 @@ function AppContent() {
       {!isHome && !isLogin && !isRegister && <Navbar />}
       <div className={!isLogin && !isRegister && !isHome ? "container" : undefined}>
         <Routes>
-          <Route path="/" element={<Ajustes />} />
+          <Route path="/" element={<Home />} />
           <Route path="/ajustes" element={<Ajustes />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="/registro-datos-extra" element={<RegistroDatosExtra />} />
           <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
           <Route path="/feed" element={<FeedPrendas />} />
+          <Route path="/prenda-publica" element={<PrendaPublicaDetalle />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
