@@ -11,6 +11,8 @@ function Ajustes() {
   const [deleteMsg, setDeleteMsg] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showChangeUsernameModal, setShowChangeUsernameModal] = useState(false);
+  const [pendingUsername, setPendingUsername] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,9 +37,22 @@ function Ajustes() {
     e.preventDefault();
     setUsernameMsg('');
     setErrorMsg('');
+    // Validación: debe empezar con arroba y tener al menos 2 caracteres
+    if (!usernameInput.startsWith('@') || usernameInput.length < 2) {
+      setErrorMsg('El nombre de usuario debe empezar con "@" y tener al menos 2 caracteres.');
+      return;
+    }
+    setPendingUsername(usernameInput);
+    setShowChangeUsernameModal(true);
+  };
+
+  const confirmChangeUsername = async () => {
+    setShowChangeUsernameModal(false);
+    setUsernameMsg('');
+    setErrorMsg('');
     try {
-      await authService.updateUsername(usernameInput);
-      setUsername(usernameInput);
+      await authService.updateUsername(pendingUsername);
+      setUsername(pendingUsername);
       setUsernameMsg('Nombre de usuario actualizado correctamente.');
     } catch (err) {
       setErrorMsg('No se pudo actualizar el nombre de usuario.');
@@ -126,7 +141,8 @@ function Ajustes() {
         </>
       )}
       {/* NAVBAR HORIZONTAL SUPERIOR */}
-      <div className="feed-navbar" style={{ position: 'sticky', top: 0, zIndex: 200, background: '#191a2e', borderBottom: '2px solid #23244a', padding: '1.1rem 0', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2.5rem' }}>
+      {/* BOTONES DE NAVEGACIÓN SUPERIOR */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '2.5rem', marginBottom: '2.5rem', width: '100%' }}>
         <button className={`feed-navbar-btn${window.location.pathname === '/feed' || window.location.pathname === '/' ? ' feed-navbar-btn-active' : ''}`} onClick={() => handleNav('/feed')}>
           <span className="feed-navbar-icon">🧺</span>
           <span className="feed-navbar-label">Prendas</span>
@@ -200,27 +216,25 @@ function Ajustes() {
                 placeholder="@danielesteban46"
                 autoComplete="off"
               />
+              <button
+                style={{
+                  background: '#183a53',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '1.13rem',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '0.9rem 2.2rem',
+                  cursor: 'pointer',
+                  marginTop: 18,
+                  transition: 'background 0.18s',
+                  display: 'block',
+                }}
+                type="submit"
+              >
+                Cambiar nombre de usuario
+              </button>
             </form>
-            <button
-              onClick={handleUsernameSubmit}
-              style={{
-                background: '#183a53',
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '1.13rem',
-                border: 'none',
-                borderRadius: 8,
-                padding: '0.9rem 2.2rem',
-                cursor: 'pointer',
-                marginBottom: 18,
-                marginTop: 0,
-                transition: 'background 0.18s',
-                display: 'block',
-              }}
-              type="button"
-            >
-              Cambiar nombre de usuario
-            </button>
             {usernameMsg && <div style={{ color: '#21e058', marginTop: 8 }}>{usernameMsg}</div>}
             {errorMsg && <div style={{ color: '#ff3b3b', marginTop: 8 }}>{errorMsg}</div>}
           </div>
@@ -305,6 +319,67 @@ function Ajustes() {
               </div>
             </div>
           </div>
+        )}
+        {/* MODAL DE CONFIRMACIÓN CAMBIO DE USUARIO */}
+        {showChangeUsernameModal && (
+          <>
+            <div style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(24,25,43,0.55)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 200,
+            }}></div>
+            <div style={{
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              width: '100vw',
+              height: '100vh',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 201,
+            }}>
+              <div style={{
+                background: '#23233a',
+                borderRadius: 18,
+                boxShadow: '0 2px 32px 0 #0004',
+                padding: '2.2rem 2.5rem 2rem 2.5rem',
+                minWidth: 340,
+                maxWidth: 400,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+              }}>
+                <div style={{ color: '#ffb300', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                  ¿Seguro que deseas cambiar tu nombre de usuario?
+                </div>
+                <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                  Este cambio es permanente y tu usuario será <span style={{ color: '#7ee787', fontWeight: 600 }}>{pendingUsername}</span>.<br />¿Deseas continuar?
+                </div>
+                <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                  <button
+                    style={{ flex: 1, background: '#183a53', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                    onClick={confirmChangeUsername}
+                  >
+                    Sí, cambiar
+                  </button>
+                  <button
+                    style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                    onClick={() => setShowChangeUsernameModal(false)}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>
