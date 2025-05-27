@@ -12,6 +12,7 @@ import RestablecerContrasena from '../pages/RestablecerContrasena';
 import FeedPrendas from '../pages/FeedPrendas';
 import PrendaDetalle from '../pages/PrendaDetalle';
 import EditarPublicacion from '../pages/EditarPublicacion';
+import Ajustes from '../pages/Ajustes';
 
 function AppContent() {
   const location = useLocation();
@@ -27,7 +28,8 @@ function AppContent() {
       {!isHome && !isLogin && !isRegister && <Navbar />}
       <div className={!isLogin && !isRegister && !isHome ? "container" : undefined}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Ajustes />} />
+          <Route path="/ajustes" element={<Ajustes />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/donar" element={<DonarRopa />} />

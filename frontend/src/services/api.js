@@ -31,6 +31,8 @@ export const authService = {
   register: (userData) => api.post('/usuarios/registrar', userData),
   getCurrentUser: () => api.get('/usuarios/me'),
   restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }),
+  updateUsername: (username) => api.put('/usuarios/actualizar-username', { username }),
+  deleteAccount: () => api.delete('/usuarios/eliminar-cuenta'),
 };
 
 export const donatonService = {
