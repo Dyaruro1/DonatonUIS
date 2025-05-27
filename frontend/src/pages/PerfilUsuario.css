@@ -1,0 +1,264 @@
+.perfil-root {
+  min-height: 100vh;
+  background: #18192b;
+  padding-bottom: 80px;
+}
+
+.perfil-titulo {
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  margin-left: 2.8rem;
+  margin-top: 1.8rem;
+}
+
+.perfil-espaciado {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2.5rem;
+  margin-left: 2.8rem;
+  margin-bottom: 1.7rem;
+}
+
+.perfil-foto-col {
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.perfil-foto-wrapper {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin-bottom: 1.2rem;
+}
+
+.perfil-foto {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  background: #eee;
+}
+
+.perfil-editar-foto {
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  color: #3151cf;
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.perfil-user-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.perfil-seccion-titulo {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+}
+
+.perfil-user-cards-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1.8rem;
+}
+
+.perfil-card {
+  background: #23233a;
+  border-radius: 16px;
+  padding: 1.5rem 1.6rem 1.3rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 340px;
+  box-shadow: 0 2px 16px #00000018;
+}
+
+.perfil-card-lg {
+  flex: 2;
+  min-width: 390px;
+}
+
+.perfil-card-md {
+  flex: 1.1;
+  min-width: 240px;
+  max-width: 300px;
+}
+
+.perfil-label {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 0.15rem;
+}
+
+.perfil-input {
+  background: #18192b;
+  color: #babcc4;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.05rem;
+  font-size: 1rem;
+  margin-bottom: 0.18rem;
+  font-weight: 500;
+  outline: none;
+  box-shadow: 0 1px 4px #0001;
+  transition: background 0.2s, color 0.2s;
+}
+
+.perfil-readonly,
+.perfil-input[disabled] {
+  background: #23233a !important;
+  color: #babcc4 !important;
+  opacity: 1 !important;
+}
+
+.perfil-charcount {
+  color: #babcc4;
+  font-size: 0.92rem;
+  align-self: flex-end;
+  margin-top: -10px;
+}
+
+.perfil-fecha-row {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.perfil-fecha {
+  width: 61px;
+  background: #23233a !important;
+  color: #babcc4 !important;
+  border-radius: 8px;
+  padding: 0.7rem 0.5rem;
+  font-size: 1rem;
+  border: none;
+}
+
+.perfil-fecha-anio {
+  width: 90px;
+  min-width: 70px;
+  max-width: 110px;
+}
+
+.perfil-fecha-sep {
+  color: #fff;
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.perfil-contacto-section {
+  margin-left: 2.8rem;
+  margin-top: 0.9rem;
+}
+
+.perfil-contacto-cards-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1.3rem;
+}
+
+.perfil-card-contacto {
+  min-width: 370px;
+  flex: 1;
+}
+
+.perfil-botones-barra {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100vw;
+  background: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 3.6rem 2rem 3.6rem;
+  z-index: 10;
+}
+
+.perfil-btn-cambiar {
+  background: #142742;
+  color: #d3ecfc;
+  border: none;
+  border-radius: 9px;
+  padding: 1rem 2.6rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.17s;
+}
+
+.perfil-btn-cambiar:hover {
+  background: #253863;
+  color: #fff;
+}
+
+.perfil-btn-guardar {
+  background: #21e058;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 1.12rem 4.3rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s;
+  box-shadow: 0 2px 12px #21e05830;
+}
+
+.perfil-btn-guardar:hover {
+  background: #1bc94a;
+}
+
+@media (max-width: 1150px) {
+  .perfil-user-cards-row,
+  .perfil-contacto-cards-row {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  .perfil-card,
+  .perfil-card-contacto,
+  .perfil-card-lg,
+  .perfil-card-md {
+    min-width: 220px;
+    max-width: 100%;
+    padding: 1.1rem 1rem 0.9rem 1rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .perfil-espaciado {
+    flex-direction: column;
+    align-items: center;
+    margin-left: 0;
+    gap: 1rem;
+  }
+  .perfil-contacto-section {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .perfil-titulo {
+    margin-left: 1rem;
+  }
+  .perfil-botones-barra {
+    flex-direction: column;
+    gap: 1.3rem;
+    align-items: stretch;
+    padding: 0 1.3rem 2.2rem 1.3rem;
+  }
+}

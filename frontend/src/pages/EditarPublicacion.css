@@ -1,0 +1,132 @@
+.editar-publicacion-container {
+  min-height: 100vh;
+  background: #18192b;
+}
+.editar-publicacion-form {
+  display: flex;
+  flex-direction: row;
+  gap: 3.5rem;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+}
+.editar-col-izq {
+  flex: 1;
+  min-width: 320px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+.editar-col-der {
+  flex: 1;
+  min-width: 320px;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+.editar-label {
+  color: #fff;
+  font-weight: 500;
+}
+.editar-input, .editar-select, .editar-textarea {
+  background: #fff;
+  color: #23244a;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  margin-bottom: 0;
+  box-shadow: 0 1px 4px #0001;
+}
+.editar-ejemplo {
+  color: #b3b3b3;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+.editar-fotos-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.editar-foto-btn {
+  background: #21E058;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0002;
+  transition: background 0.18s;
+}
+.editar-fotos-miniaturas {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.editar-foto-miniatura {
+  position: relative;
+  display: inline-block;
+}
+.editar-foto-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid #7ee787;
+  background: #fff;
+}
+.editar-foto-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff2d2d;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.editar-botones {
+  display: flex;
+  gap: 16px;
+  margin-top: 18px;
+}
+.editar-cancelar {
+  flex: 1;
+  background: transparent;
+  color: #23244a;
+  border: 1.5px solid #23244a;
+  border-radius: 8px;
+  padding: 0.8rem 0;
+  font-weight: 600;
+  font-size: 1.08rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.editar-guardar {
+  flex: 1;
+  font-size: 1.08rem;
+  padding: 0.8rem 0;
+}
+.editar-titulo {
+  color: #fff;
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
