@@ -4,8 +4,8 @@ import { AuthContext } from '../context/AuthContext';
 import './PerfilUsuario.css';
 
 const initialUser = {
-  nombres: '',
-  apellidos: '',
+  nombre: '',
+  apellido: '',
   descripcion: '',
   sexo: '',
   fechaNacimiento: { dia: '', mes: '', anio: '' },
@@ -48,16 +48,27 @@ function PerfilUsuario() {
   // Sincronizar datos del usuario del contexto al estado local
   useEffect(() => {
     if (currentUser) {
+      // Normaliza sexo a mayúscula inicial para el select
+      let sexo = currentUser.sexo || '';
+      if (sexo) {
+        sexo = sexo.charAt(0).toUpperCase() + sexo.slice(1).toLowerCase();
+      }
+      // Normaliza año a string (por si acaso)
+      let fechaNacimiento = { dia: '', mes: '', anio: '' };
+      if (currentUser.fecha_nacimiento) {
+        const partes = currentUser.fecha_nacimiento.split('-');
+        fechaNacimiento = {
+          dia: partes.length > 2 ? partes[2] : '',
+          mes: partes.length > 1 ? partes[1] : '',
+          anio: partes.length > 0 ? String(partes[0]) : '',
+        };
+      }
       setUser({
-        nombres: currentUser.nombres || '',
-        apellidos: currentUser.apellidos || '',
+        nombre: currentUser.nombre || '',
+        apellido: currentUser.apellido || '',
         descripcion: currentUser.descripcion || '',
-        sexo: currentUser.sexo || '',
-        fechaNacimiento: currentUser.fecha_nacimiento ? {
-          dia: currentUser.fecha_nacimiento.split('-')[2],
-          mes: currentUser.fecha_nacimiento.split('-')[1],
-          anio: currentUser.fecha_nacimiento.split('-')[0],
-        } : { dia: '', mes: '', anio: '' },
+        sexo: sexo,
+        fechaNacimiento: fechaNacimiento,
         telefono: currentUser.telefono || '',
         correo: currentUser.correo || '',
         contacto1: currentUser.contacto1 || '',
@@ -94,8 +105,8 @@ function PerfilUsuario() {
   const handleCancel = () => {
     if (currentUser) {
       setUser({
-        nombres: currentUser.nombres || '',
-        apellidos: currentUser.apellidos || '',
+        nombre: currentUser.nombre || '',
+        apellido: currentUser.apellido || '',
         descripcion: currentUser.descripcion || '',
         sexo: currentUser.sexo || '',
         fechaNacimiento: currentUser.fecha_nacimiento ? {
@@ -118,8 +129,8 @@ function PerfilUsuario() {
   const handleSave = async () => {
     try {
       let formData = new FormData();
-      formData.append('nombres', user.nombres);
-      formData.append('apellidos', user.apellidos);
+      formData.append('nombre', user.nombre);
+      formData.append('apellido', user.apellido);
       formData.append('descripcion', user.descripcion);
       formData.append('sexo', user.sexo);
       formData.append('fecha_nacimiento', `${user.fechaNacimiento.anio}-${user.fechaNacimiento.mes}-${user.fechaNacimiento.dia}`);
@@ -163,6 +174,7 @@ function PerfilUsuario() {
   };
 
   // Se mantiene navegación arriba
+  const currentYear = new Date().getFullYear();
   return (
     <div className="perfil-root">
       {/* MODAL DE CONFIRMACIÓN LOGOUT */}
@@ -333,36 +345,40 @@ function PerfilUsuario() {
           <div className="perfil-user-cards-row">
             <div className="perfil-card perfil-card-lg">
               <label className="perfil-label">Nombres</label>
-              <input className="perfil-input" name="nombres" value={user.nombres} placeholder="Nombres" disabled={!editable} onChange={handleInputChange} />
+              <input className="perfil-input" name="nombre" value={user.nombre || ''} placeholder="Nombres" disabled={!editable} onChange={handleInputChange} />
               <label className="perfil-label">Apellidos</label>
-              <input className="perfil-input" name="apellidos" value={user.apellidos} placeholder="Apellidos" disabled={!editable} onChange={handleInputChange} />
+              <input className="perfil-input" name="apellido" value={user.apellido || ''} placeholder="Apellidos" disabled={!editable} onChange={handleInputChange} />
               <label className="perfil-label">Descripción</label>
-              <input className="perfil-input" name="descripcion" value={user.descripcion} placeholder="Descripción" maxLength={60} disabled={!editable} onChange={handleInputChange} />
-              <span className="perfil-charcount">{user.descripcion.length} / 60 caracteres</span>
+              <input className="perfil-input" name="descripcion" value={user.descripcion || ''} placeholder="Descripción" maxLength={60} disabled={!editable} onChange={handleInputChange} />
+              <span className="perfil-charcount">{(user.descripcion || '').length} / 60 caracteres</span>
             </div>
             <div className="perfil-card perfil-card-md">
               <label className="perfil-label">Sexo</label>
-              <select className="perfil-input" name="sexo" value={user.sexo} disabled={!editable} onChange={handleInputChange}>
+              <select className="perfil-input" name="sexo" value={user.sexo || ''} disabled={!editable} onChange={handleInputChange}>
+                <option value="">Selecciona sexo</option>
                 <option value="Masculino">Masculino</option>
                 <option value="Femenino">Femenino</option>
                 <option value="Otro">Otro</option>
               </select>
               <label className="perfil-label">Fecha de nacimiento</label>
               <div className="perfil-fecha-row">
-                <select className="perfil-input perfil-fecha" name="fechaNacimiento.dia" value={user.fechaNacimiento.dia} disabled={!editable} onChange={handleInputChange}>
+                <select className="perfil-input perfil-fecha" name="fechaNacimiento.dia" value={user.fechaNacimiento.dia || ''} disabled={!editable} onChange={handleInputChange}>
+                  <option value="">Día</option>
                   {[...Array(31)].map((_, i) => (
                     <option key={i+1} value={String(i+1).padStart(2, '0')}>{String(i+1).padStart(2, '0')}</option>
                   ))}
                 </select>
                 <span className="perfil-fecha-sep">-</span>
-                <select className="perfil-input perfil-fecha" name="fechaNacimiento.mes" value={user.fechaNacimiento.mes} disabled={!editable} onChange={handleInputChange}>
+                <select className="perfil-input perfil-fecha" name="fechaNacimiento.mes" value={user.fechaNacimiento.mes || ''} disabled={!editable} onChange={handleInputChange}>
+                  <option value="">Mes</option>
                   {[...Array(12)].map((_, i) => (
                     <option key={i+1} value={String(i+1).padStart(2, '0')}>{String(i+1).padStart(2, '0')}</option>
                   ))}
                 </select>
                 <span className="perfil-fecha-sep">-</span>
-                <select className="perfil-input perfil-fecha perfil-fecha-anio" name="fechaNacimiento.anio" value={user.fechaNacimiento.anio} disabled={!editable} onChange={handleInputChange}>
-                  {Array.from({length: 80}, (_, i) => 2024 - i).map(anio => (
+                <select className="perfil-input perfil-fecha perfil-fecha-anio" name="fechaNacimiento.anio" value={user.fechaNacimiento.anio || ''} disabled={!editable} onChange={handleInputChange}>
+                  <option value="">Año</option>
+                  {Array.from({length: 80}, (_, i) => String(currentYear - i)).map(anio => (
                     <option key={anio} value={anio}>{anio}</option>
                   ))}
                 </select>
@@ -378,15 +394,15 @@ function PerfilUsuario() {
         <div className="perfil-contacto-cards-row">
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Teléfono</label>
-            <input className="perfil-input" name="telefono" value={user.telefono} placeholder="3183749230" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="telefono" value={user.telefono || ''} placeholder="3183749230" disabled={!editable} onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
-            <input className="perfil-input" name="contacto1" value={user.contacto1} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="contacto1" value={user.contacto1 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
           </div>
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Correo electrónico</label>
-            <input className="perfil-input" name="correo" value={user.correo} placeholder="danielestebanyaruro@gmail.com" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="correo" value={user.correo || ''} placeholder="danielestebanyaruro@gmail.com" disabled={!editable} onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
-            <input className="perfil-input" name="contacto2" value={user.contacto2} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="contacto2" value={user.contacto2 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
           </div>
         </div>
       </div>

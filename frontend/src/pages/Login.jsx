@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
-import { authService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import './Login.css';
 
 function Login() {
@@ -13,6 +13,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { instance } = useMsal();
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,18 +22,14 @@ function Login() {
     try {
       // Normaliza el correo antes de enviarlo
       const correo = email.trim().toLowerCase();
-      const response = await authService.login(correo, password);
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
-      // Redirigir al feed
-      navigate('/feed');
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setLoginError(err.response.data.detail);
+      const success = await login(correo, password);
+      if (success) {
+        navigate('/feed');
       } else {
-        setLoginError('Error al iniciar sesión. Intenta de nuevo.');
+        setLoginError('Correo o contraseña incorrectos.');
       }
+    } catch (err) {
+      setLoginError('Error al iniciar sesión. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import './RegistroDatosExtra.css';
 
 function RegistroDatosExtra() {
   const navigate = useNavigate();
   const location = useLocation();
   const { email, password } = location.state || {};
+  const { refreshUser } = useContext(AuthContext);
 
   const [nombres, setNombres] = useState('');
   const [apellidos, setApellidos] = useState('');
@@ -58,6 +60,7 @@ function RegistroDatosExtra() {
       } else {
         const loginResp = await authService.login(correo, password);
         localStorage.setItem('token', loginResp.data.token);
+        await refreshUser();
         navigate('/feed');
       }
     } catch (err) {

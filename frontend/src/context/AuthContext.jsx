@@ -31,7 +31,9 @@ export function AuthProvider({ children }) {
     try {
       const response = await authService.login(correo, contrasena);
       localStorage.setItem('token', response.data.token);
-      setCurrentUser(response.data.usuario);
+      // Fetch the current user from backend to ensure fresh data
+      const userRes = await authService.getCurrentUser();
+      setCurrentUser(userRes.data);
       return true;
     } catch (error) {
       return false;
