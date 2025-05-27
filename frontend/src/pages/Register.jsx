@@ -52,7 +52,13 @@ function Register() {
       const email = loginResponse.account.username;
       if (!email.endsWith('@correo.uis.edu.co')) {
         setMsalError('Solo se permite registrar cuentas @correo.uis.edu.co');
-        await instance.logoutPopup();
+        setLoading(false);
+        return;
+      }
+      // Verifica si ya existe una cuenta con ese correo
+      const resp = await authService.checkEmail(email.trim().toLowerCase());
+      if (resp.data.exists) {
+        setMsalError('Ya existe una cuenta registrada con ese correo.');
         setLoading(false);
         return;
       }
@@ -60,6 +66,8 @@ function Register() {
       navigate('/registro-datos-extra', { state: { email, password: 'MICROSOFT_AUTH' } });
     } catch (err) {
       setMsalError('Error al registrar con Microsoft');
+      // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
+      await instance.logoutPopup();
     } finally {
       setLoading(false);
     }

@@ -56,6 +56,10 @@ function RegistroDatosExtra() {
       await authService.register(formData); // No pongas headers aquí, axios lo hace solo con FormData
 
       if (password === 'MICROSOFT_AUTH') {
+        // Login automático tras registro con Microsoft
+        const loginResp = await authService.login(correo, 'MICROSOFT_AUTH');
+        localStorage.setItem('token', loginResp.data.token);
+        await refreshUser();
         navigate('/feed');
       } else {
         const loginResp = await authService.login(correo, password);

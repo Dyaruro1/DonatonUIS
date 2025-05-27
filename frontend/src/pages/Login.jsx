@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { AuthContext } from '../context/AuthContext';
 import './Login.css';
+import { authService } from '../services/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -38,6 +39,7 @@ function Login() {
 
   const handleMicrosoftLogin = async () => {
     setMsalError('');
+    setLoading(true);
     try {
       const loginResponse = await instance.loginPopup({
         scopes: ['openid', 'profile', 'email'],
@@ -46,13 +48,29 @@ function Login() {
       const email = loginResponse.account.username;
       if (!email.endsWith('@correo.uis.edu.co')) {
         setMsalError('Solo se permite iniciar sesión con cuentas @correo.uis.edu.co');
-        await instance.logoutPopup();
+        setLoading(false);
         return;
       }
-      // Redirigir al feed tras login Microsoft
-      navigate('/feed');
+      // Verifica si el usuario existe en la base de datos
+      const resp = await authService.checkEmail(email);
+      if (!resp.data.exists) {
+        setMsalError('No existe una cuenta con ese correo. Regístrate primero.');
+        setLoading(false);
+        return;
+      }
+      // Realiza login con backend usando correo y una contraseña especial
+      const success = await login(email, 'MICROSOFT_AUTH');
+      if (success) {
+        navigate('/feed');
+      } else {
+        setMsalError('Error al iniciar sesión con Microsoft.');
+        // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
+        await instance.logoutPopup();
+      }
     } catch (err) {
       setMsalError('Error al iniciar sesión con Microsoft');
+    } finally {
+      setLoading(false);
     }
   };
 

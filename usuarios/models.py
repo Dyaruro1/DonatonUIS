@@ -17,6 +17,7 @@ class Usuario(AbstractUser):
     descripcion = models.CharField(max_length=255, blank=True, null=True)
     contacto1 = models.CharField(max_length=100, blank=True, null=True)
     contacto2 = models.CharField(max_length=100, blank=True, null=True)
+    tipoUsuario = models.CharField(max_length=50, blank=True, null=True)
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'correo'
