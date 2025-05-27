@@ -18,7 +18,7 @@ class Usuario(AbstractUser):
     programa = models.CharField(max_length=100, blank=True, null=True)
     tipo_usuario = models.CharField(max_length=50, blank=True, null=True)
     direccion = models.CharField(max_length=255, blank=True, null=True)
-    foto_url = models.URLField(blank=True, null=True)
+    foto = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'correo'

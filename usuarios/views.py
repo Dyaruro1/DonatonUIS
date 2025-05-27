@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 
@@ -29,6 +30,7 @@ class LoginView(APIView):
             return Response({'detail': 'Correo o contraseña incorrectos.'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
 def registrar_usuario(request):
     data = request.data
     try:
@@ -46,7 +48,7 @@ def registrar_usuario(request):
             programa=data.get('programa', ''),
             tipo_usuario=data.get('tipo_usuario', ''),
             direccion=data.get('direccion', ''),
-            foto_url=data.get('foto_url', ''),
+            foto=request.FILES.get('foto')  # Changed from foto_url to foto and using request.FILES
         )
         return Response({'detail': 'Usuario registrado correctamente.'}, status=status.HTTP_201_CREATED)
     except Exception as e:
