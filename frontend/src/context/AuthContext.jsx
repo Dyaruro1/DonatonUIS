@@ -77,6 +77,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Función para cambiar la contraseña del usuario autenticado
+  const cambiarContrasena = async (contrasena_anterior, contrasena_nueva) => {
+    try {
+      const response = await authService.cambiarContrasena(contrasena_anterior, contrasena_nueva);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Error al cambiar la contraseña.' };
+    }
+  };
+
   const value = {
     currentUser,
     loading,
@@ -84,7 +94,8 @@ export function AuthProvider({ children }) {
     logout,
     register,
     updateProfile,
-    refreshUser
+    refreshUser,
+    cambiarContrasena
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

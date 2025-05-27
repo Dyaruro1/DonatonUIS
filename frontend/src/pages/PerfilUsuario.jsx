@@ -17,7 +17,7 @@ const initialUser = {
 };
 
 function PerfilUsuario() {
-  const { currentUser, loading, error, updateProfile } = useContext(AuthContext);
+  const { currentUser, loading, error, updateProfile, cambiarContrasena } = useContext(AuthContext);
   const [user, setUser] = useState(initialUser);
   const [foto, setFoto] = useState(user.foto);
   const navigate = useNavigate();
@@ -158,7 +158,7 @@ function PerfilUsuario() {
     }
   };
 
-  // Lógica para cambiar la contraseña (simulada, aquí deberías llamar a tu API)
+  // Lógica para cambiar la contraseña (ahora sí llama a la API)
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setPasswordError('');
@@ -171,12 +171,16 @@ function PerfilUsuario() {
       setPasswordError('Las contraseñas no coinciden.');
       return;
     }
-    // Aquí deberías llamar a tu API para cambiar la contraseña
-    setPasswordSuccess('¡Contraseña cambiada exitosamente!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setTimeout(() => setShowPasswordForm(false), 1200);
+    const result = await cambiarContrasena(currentPassword, newPassword);
+    if (result.success) {
+      setPasswordSuccess('¡Contraseña cambiada exitosamente!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setShowPasswordForm(false), 1200);
+    } else {
+      setPasswordError(result.error || 'No se pudo cambiar la contraseña.');
+    }
   };
 
   // Se mantiene navegación arriba
@@ -413,20 +417,46 @@ function PerfilUsuario() {
         </div>
       </div>
 
+      {/* BOTÓN CAMBIAR CONTRASEÑA FIJO (si NO está en edición) */}
+      {!editable && (
+        <button
+          className="perfil-btn-cambiar-fijo"
+          style={{
+            position: 'fixed',
+            left: 32,
+            bottom: 32,
+            background: '#0d1b36',
+            color: '#fff',
+            fontWeight: 600,
+            fontSize: '1.08rem',
+            border: 'none',
+            borderRadius: 8,
+            padding: '0.7rem 2.5rem',
+            zIndex: 120,
+            boxShadow: '0 2px 12px #0003',
+            cursor: 'pointer',
+          }}
+          onClick={() => setShowPasswordForm(true)}
+          type="button"
+        >
+          Cambiar contraseña
+        </button>
+      )}
+
       {/* BOTONES FLOTANTES SOLO EN EDICIÓN */}
       {editable && (
-        <div className="perfil-botones-barra-fija" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#18192b', padding: '1.2rem 2.5rem 1.2rem 2.5rem', position: 'fixed', left: 0, bottom: 0, width: '100vw', zIndex: 100 }}>
+        <div className="perfil-botones-barra-fija" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', background: '#18192b', padding: '1.2rem 2.5rem 1.2rem 2.5rem', position: 'fixed', left: 0, bottom: 0, width: '100vw', zIndex: 100 }}>
           <button
-            className="perfil-btn-cambiar"
-            style={{ background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginRight: 16, cursor: 'pointer' }}
-            onClick={() => setShowPasswordForm((v) => !v)}
+            className="perfil-btn-cancelar"
+            style={{ background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginRight: 16, cursor: 'pointer' }}
+            onClick={handleCancel}
             type="button"
           >
-            Cambiar contraseña
+            Cancelar
           </button>
           <button
             className="perfil-btn-guardar"
-            style={{ background: '#21E058', color: '#fff', fontWeight: 700, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginLeft: 16, cursor: 'pointer' }}
+            style={{ background: '#21E058', color: '#fff', fontWeight: 700, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginLeft: 0, cursor: 'pointer' }}
             onClick={handleSave}
             type="button"
           >

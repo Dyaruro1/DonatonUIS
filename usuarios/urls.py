@@ -9,6 +9,7 @@ urlpatterns = [
     path('registro-drf/', UsuarioRegistroAPIView.as_view(), name='registro_drf'),
     path('usuarios/perfil/', perfil_usuario_actual, name='perfil_usuario_actual'),
     path('usuarios/me/', UsuarioViewSet.as_view({'get': 'me', 'patch': 'me'}), name='usuario_me'),
+    path('usuarios/cambiar_contrasena/', UsuarioViewSet.as_view({'post': 'cambiar_contrasena'}), name='cambiar_contrasena'),
 ]
 
 # Incluye las rutas del router (ViewSet)

@@ -38,6 +38,8 @@ export const authService = {
     const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
     return api.patch('/api/usuarios/me/', userData, config);
   },
+  cambiarContrasena: (contrasena_anterior, contrasena_nueva) =>
+    api.post('/api/usuarios/cambiar_contrasena/', { contrasena_anterior, contrasena_nueva }, { headers: { 'Content-Type': 'application/json' } }),
 };
 
 export const donatonService = {

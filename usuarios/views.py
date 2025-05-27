@@ -12,6 +12,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
+from django.contrib.auth.hashers import check_password
 
 # Create your views here.
 
@@ -41,6 +42,19 @@ class UsuarioViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser, FormParser, JSONParser])
+    def cambiar_contrasena(self, request):
+        user = request.user
+        contrasena_anterior = request.data.get('contrasena_anterior')
+        contrasena_nueva = request.data.get('contrasena_nueva')
+        if not contrasena_anterior or not contrasena_nueva:
+            return Response({'detail': 'Debes ingresar la contraseña anterior y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not check_password(contrasena_anterior, user.password):
+            return Response({'detail': 'La contraseña anterior es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(contrasena_nueva)
+        user.save()
+        return Response({'detail': 'Contraseña cambiada exitosamente.'})
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
