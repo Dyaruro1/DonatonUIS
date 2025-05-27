@@ -132,8 +132,12 @@ function PerfilUsuario() {
       formData.append('nombre', user.nombre);
       formData.append('apellido', user.apellido);
       formData.append('descripcion', user.descripcion);
-      formData.append('sexo', user.sexo);
-      formData.append('fecha_nacimiento', `${user.fechaNacimiento.anio}-${user.fechaNacimiento.mes}-${user.fechaNacimiento.dia}`);
+      formData.append('sexo', user.sexo ? user.sexo.toLowerCase() : '');
+      // Solo enviar fecha_nacimiento si todos los campos están completos
+      const { anio, mes, dia } = user.fechaNacimiento;
+      if (anio && mes && dia) {
+        formData.append('fecha_nacimiento', `${anio}-${mes}-${dia}`);
+      }
       formData.append('telefono', user.telefono);
       formData.append('correo', user.correo);
       formData.append('contacto1', user.contacto1);
@@ -148,7 +152,9 @@ function PerfilUsuario() {
       await updateProfile(formData);
       setEditable(false);
     } catch (err) {
-      alert('No se pudo guardar el perfil.');
+      // Mostrar el error de validación exacto en consola
+      console.error('Perfil save error', err.response?.data);
+      alert('No se pudo guardar el perfil. Revisa la consola para más detalles.');
     }
   };
 

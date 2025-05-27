@@ -30,10 +30,17 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return self.request.user
         return super().get_object()
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated], parser_classes=[MultiPartParser, FormParser, JSONParser])
     def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        elif request.method == 'PATCH':
+            serializer = self.get_serializer(request.user, data=request.data, partial=True, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
     permission_classes = [AllowAny]

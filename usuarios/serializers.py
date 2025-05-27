@@ -10,6 +10,14 @@ class UsuarioSerializer(serializers.ModelSerializer):
     contacto1 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     contacto2 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Si es update (PATCH/PUT), no exigir contrasena ni nombre_usuario
+        request = self.context.get('request') if 'context' in self.__dict__ else None
+        if request and request.method in ['PUT', 'PATCH']:
+            self.fields['contrasena'].required = False
+            self.fields['nombre_usuario'].required = False
+
     class Meta:
         model = Usuario
         fields = [
@@ -37,3 +45,16 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if 'foto' in validated_data and not validated_data['foto']:
             validated_data['foto'] = None
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Mapear nombre_usuario a username si viene en el update
+        if 'nombre_usuario' in validated_data:
+            instance.username = validated_data.pop('nombre_usuario')
+        # Si se actualiza la contraseña, hashearla
+        if 'contrasena' in validated_data:
+            instance.password = make_password(validated_data.pop('contrasena'))
+        # Actualizar el resto de los campos normalmente
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
