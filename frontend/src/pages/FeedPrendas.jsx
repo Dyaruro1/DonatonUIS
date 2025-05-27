@@ -17,6 +17,7 @@ function FeedPrendas() {
   const [filterValue, setFilterValue] = useState("");
   const [tab, setTab] = useState("disponibles");
   const [userId, setUserId] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleSidebarNav = (route) => {
     navigate(route);
@@ -82,6 +83,70 @@ function FeedPrendas() {
 
   return (
     <div className={`feed-root`}>
+      {/* MODAL DE CONFIRMACIÓN LOGOUT */}
+      {showLogoutModal && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(24,25,43,0.55)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 200,
+          }}></div>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 201,
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 18,
+              boxShadow: '0 2px 32px 0 #0004',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 340,
+              maxWidth: 400,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}>
+              <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                ¿Seguro que deseas cerrar sesión?
+              </div>
+              <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                Se cerrará tu sesión y perderás el acceso temporal a tu cuenta. Puedes volver a iniciar sesión cuando lo necesites.
+              </div>
+              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                <button
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                  }}
+                >
+                  Sí
+                </button>
+                <button
+                  style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => setShowLogoutModal(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       <main className="feed-main">
         {/* BOTONES DE NAVEGACIÓN SIMPLES */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2.5rem', marginTop: '1rem' }}>
@@ -100,6 +165,34 @@ function FeedPrendas() {
           <button className={`feed-navbar-btn${window.location.pathname === '/ajustes' ? ' feed-navbar-btn-active' : ''}`} onClick={() => handleSidebarNav('/ajustes')}>
             <span className="feed-navbar-icon">⚙️</span>
             <span className="feed-navbar-label">Configuración</span>
+          </button>
+          <button
+            className="feed-navbar-btn feed-navbar-btn-logout"
+            style={{
+              background: 'transparent',
+              color: '#ff6b6b',
+              border: 'none',
+              borderRadius: '50%',
+              padding: '0.7rem', // Aumenta el padding
+              fontWeight: 600,
+              fontSize: '1.55rem', // Aumenta el tamaño de fuente
+              marginLeft: '2.5rem',
+              marginRight: '0.5rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.18s, color 0.18s',
+              width: 48, // Aumenta el ancho
+              height: 48, // Aumenta el alto
+            }}
+            onMouseOver={e => { e.currentTarget.style.background = '#ff6b6b22'; e.currentTarget.style.color = '#fff'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ff6b6b'; }}
+            onClick={() => setShowLogoutModal(true)}
+            type="button"
+            title="Cerrar sesión"
+          >
+            <i className="fa fa-sign-out-alt" style={{ fontSize: 28 }}></i>
           </button>
         </div>
         {/* CONTENIDO PRINCIPAL */}

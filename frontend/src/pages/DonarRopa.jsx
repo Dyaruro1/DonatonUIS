@@ -11,16 +11,18 @@ function DonarRopa() {
   const [uso, setUso] = useState('');
   const [foto, setFoto] = useState(null);
   const [descripcion, setDescripcion] = useState('');
+  const [sexo, setSexo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleNav = (route) => {
     navigate(route);
   };
 
   const validate = () => {
-    if (!nombre.trim() || !talla || !uso || !foto || !descripcion.trim()) {
+    if (!nombre.trim() || !talla || !uso || !foto || !descripcion.trim() || !sexo) {
       setError('Por favor completa todos los campos.');
       return false;
     }
@@ -34,15 +36,19 @@ function DonarRopa() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await donatonService.donarRopa({
+      const nuevaPrenda = {
         nombre,
         talla,
         uso,
         descripcion,
-        imagen_url: '/fondo-uis.jpg',
-      });
+        sexo,
+        imagen_url: foto ? URL.createObjectURL(foto) : '/fondo-uis.jpg',
+      };
       setSuccess('¡Donación publicada exitosamente!');
-      setNombre(''); setTalla(''); setUso(''); setFoto(null); setDescripcion('');
+      setTimeout(() => {
+        navigate('/prenda-detalle', { state: { prenda: nuevaPrenda } });
+      }, 800);
+      setNombre(''); setTalla(''); setUso(''); setFoto(null); setDescripcion(''); setSexo('');
     } catch (err) {
       setError('Error al publicar la donación. Intenta de nuevo.');
     } finally {
@@ -52,9 +58,73 @@ function DonarRopa() {
 
   return (
     <div className="feed-root">
+      {/* MODAL DE CONFIRMACIÓN LOGOUT */}
+      {showLogoutModal && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(24,25,43,0.55)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 200,
+          }}></div>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 201,
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 18,
+              boxShadow: '0 2px 32px 0 #0004',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 340,
+              maxWidth: 400,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}>
+              <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                ¿Seguro que deseas cerrar sesión?
+              </div>
+              <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                Se cerrará tu sesión y perderás el acceso temporal a tu cuenta. Puedes volver a iniciar sesión cuando lo necesites.
+              </div>
+              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                <button
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                  }}
+                >
+                  Sí
+                </button>
+                <button
+                  style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => setShowLogoutModal(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       <main className="feed-main" style={{padding: 0, minHeight: '100vh', background: '#18192b'}}>
-        {/* NAVBAR HORIZONTAL */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2.5rem', marginTop: '1.5rem' }}>
+        {/* NAVBAR HORIZONTAL COHERENTE */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2.5rem', marginTop: '1.5rem', width: '100%', zIndex: 10 }}>
           <button className={`feed-navbar-btn${window.location.pathname === '/feed' || window.location.pathname === '/' ? ' feed-navbar-btn-active' : ''}`} onClick={() => handleNav('/feed')}>
             <span className="feed-navbar-icon">🧺</span>
             <span className="feed-navbar-label">Prendas</span>
@@ -70,6 +140,34 @@ function DonarRopa() {
           <button className={`feed-navbar-btn${window.location.pathname === '/ajustes' ? ' feed-navbar-btn-active' : ''}`} onClick={() => handleNav('/ajustes')}>
             <span className="feed-navbar-icon">⚙️</span>
             <span className="feed-navbar-label">Configuración</span>
+          </button>
+          <button
+            className="feed-navbar-btn feed-navbar-btn-logout"
+            style={{
+              background: 'transparent',
+              color: '#ff6b6b',
+              border: 'none',
+              borderRadius: '50%',
+              padding: '0.7rem',
+              fontWeight: 600,
+              fontSize: '1.55rem',
+              marginLeft: '2.5rem',
+              marginRight: '0.5rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.18s, color 0.18s',
+              width: 48,
+              height: 48,
+            }}
+            onMouseOver={e => { e.currentTarget.style.background = '#ff6b6b22'; e.currentTarget.style.color = '#fff'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ff6b6b'; }}
+            onClick={() => setShowLogoutModal(true)}
+            type="button"
+            title="Cerrar sesión"
+          >
+            <i className="fa fa-sign-out-alt" style={{ fontSize: 28 }}></i>
           </button>
         </div>
         {/* LAYOUT DOS COLUMNAS */}
@@ -141,8 +239,17 @@ function DonarRopa() {
             <input type="text" value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Ingrese el nombre de la prenda" style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', marginBottom: 0, boxShadow: '0 1px 4px #0001'}} required />
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: Camisa hecha de algodón</span>
 
+            <label style={{color: '#fff', fontWeight: 500}}>Sexo</label>
+            <select value={sexo} onChange={e => setSexo(e.target.value)} style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', marginBottom: 0, boxShadow: '0 1px 4px #0001'}} required>
+              <option value="">Seleccione el sexo</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Unisex">Unisex</option>
+            </select>
+            <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: Masculino, Femenino, Unisex</span>
+
             <div style={{display: 'flex', gap: 16, marginTop: 18}}>
-              <button type="button" onClick={() => { setNombre(''); setTalla(''); setUso(''); setFoto(null); setDescripcion(''); setError(''); setSuccess(''); }} style={{flex: 1, background: 'transparent', color: '#fff', border: '1.5px solid #23244a', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, fontSize: '1.08rem', cursor: 'pointer', transition: 'background 0.2s'}}>Cancelar</button>
+              <button type="button" onClick={() => { setNombre(''); setTalla(''); setUso(''); setFoto(null); setDescripcion(''); setSexo(''); setError(''); setSuccess(''); }} style={{flex: 1, background: 'transparent', color: '#fff', border: '1.5px solid #23244a', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, fontSize: '1.08rem', cursor: 'pointer', transition: 'background 0.2s'}}>Cancelar</button>
               <button type="submit" className="feed-card-btn" style={{flex: 1, fontSize: '1.08rem', padding: '0.8rem 0'}} disabled={loading}>{loading ? 'Publicando...' : 'Publicar'}</button>
             </div>
             {error && <div style={{ color: '#ff6b6b', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{error}</div>}

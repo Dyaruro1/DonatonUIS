@@ -10,6 +10,8 @@ import PerfilUsuario from '../pages/PerfilUsuario';
 import RegistroDatosExtra from '../pages/RegistroDatosExtra';
 import RestablecerContrasena from '../pages/RestablecerContrasena';
 import FeedPrendas from '../pages/FeedPrendas';
+import PrendaDetalle from '../pages/PrendaDetalle';
+import EditarPublicacion from '../pages/EditarPublicacion';
 
 function AppContent() {
   const location = useLocation();
@@ -29,6 +31,8 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/donar" element={<DonarRopa />} />
+          <Route path="/prenda-detalle" element={<PrendaDetalle />} />
+          <Route path="/editar-publicacion" element={<EditarPublicacion />} />
           <Route path="/solicitar" element={isAuthenticated ? <SolicitarRopa /> : <Navigate to="/login" />} />
           <Route path="/perfil" element={isAuthenticated ? <PerfilUsuario /> : <Navigate to="/login" />} />
           <Route path="/registro-datos-extra" element={<RegistroDatosExtra />} />
