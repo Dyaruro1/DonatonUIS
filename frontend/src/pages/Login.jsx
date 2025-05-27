@@ -19,7 +19,9 @@ function Login() {
     setLoginError('');
     setLoading(true);
     try {
-      const response = await authService.login(email, password);
+      // Normaliza el correo antes de enviarlo
+      const correo = email.trim().toLowerCase();
+      const response = await authService.login(correo, password);
       // Guardar usuario en localStorage si quieres
       // localStorage.setItem('token', response.data.token);
       // Redirigir al feed

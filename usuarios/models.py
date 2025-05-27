@@ -13,11 +13,6 @@ class Usuario(AbstractUser):
     sexo = models.CharField(max_length=10, choices=SEXO_CHOICES, blank=True, null=True)
     fecha_nacimiento = models.DateField(blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
-    universidad = models.CharField(max_length=100, blank=True, null=True)
-    facultad = models.CharField(max_length=100, blank=True, null=True)
-    programa = models.CharField(max_length=100, blank=True, null=True)
-    tipo_usuario = models.CharField(max_length=50, blank=True, null=True)
-    direccion = models.CharField(max_length=255, blank=True, null=True)
     foto = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
     USERNAME_FIELD = 'username'

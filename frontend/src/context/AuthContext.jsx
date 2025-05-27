@@ -11,18 +11,8 @@ export function AuthProvider({ children }) {
     // Comprobar si hay un token en localStorage
     const token = localStorage.getItem('token');
     if (token) {
-      // Verificar token con el backend
-      authService.getCurrentUser()
-        .then(response => {
-          setCurrentUser(response.data);
-        })
-        .catch(error => {
-          // Token inválido o expirado
-          localStorage.removeItem('token');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      // Aquí podrías implementar la verificación del usuario actual si tienes endpoint, pero por ahora solo marca loading false
+      setLoading(false);
     } else {
       setLoading(false);
     }

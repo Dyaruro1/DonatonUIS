@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from usuarios.views import UsuarioViewSet, LoginView, registrar_usuario
+from usuarios.views import UsuarioViewSet, LoginView, UsuarioRegistroAPIView
 from prendas.views import PrendaViewSet
 from donaciones.views import DonacionViewSet
 from solicitudes.views import SolicitudViewSet
@@ -16,8 +16,7 @@ router.register(r'solicitudes', SolicitudViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/login', LoginView.as_view(), name='api-login'),
-    path('usuarios/registrar', registrar_usuario, name='registrar-usuario'),
+    path('api/', include('usuarios.urls')),
     path('api/', include(router.urls)),
 ]
 
