@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/api';
 import './RegistroDatosExtra.css';
@@ -18,10 +18,18 @@ function RegistroDatosExtra() {
   const [foto, setFoto] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleFotoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setFoto(e.target.files[0]);
+    }
+  };
+
+  const handleRemoveFoto = () => {
+    setFoto(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -30,33 +38,37 @@ function RegistroDatosExtra() {
     setError('');
     setLoading(true);
     try {
-      await authService.register({
-        nombre: nombres,
-        apellido: apellidos,
-        correo: correo,
-        contrasena: password,
-        nombre_usuario: nombreUsuario,
-        sexo,
-        fecha_nacimiento: fechaNacimiento,
-        telefono,
-        universidad: '',
-        facultad: '',
-        programa: '',
-        tipo_usuario: '',
-        direccion: '',
-      });
+      const formData = new FormData();
+      formData.append('nombre', nombres);
+      formData.append('apellido', apellidos);
+      formData.append('correo', correo);
+      formData.append('contrasena', password);
+      formData.append('nombre_usuario', nombreUsuario);
+      formData.append('sexo', sexo);
+      formData.append('fecha_nacimiento', fechaNacimiento);
+      formData.append('telefono', telefono);
+      if (foto) {
+        formData.append('foto', foto);
+      }
+
+      await authService.register(formData); // No pongas headers aquí, axios lo hace solo con FormData
+
       if (password === 'MICROSOFT_AUTH') {
-        // Si es registro con Microsoft, redirige al feed o muestra mensaje de éxito
         navigate('/feed');
       } else {
-        // Si es registro tradicional, intenta login automático
         const loginResp = await authService.login(correo, password);
         localStorage.setItem('token', loginResp.data.token);
         navigate('/feed');
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setError('Error: ' + JSON.stringify(err.response.data.detail));
+      if (err.response && err.response.data) {
+        // Mostrar solo el mensaje relevante si existe
+        const data = err.response.data;
+        if (data.detail) {
+          setError('Error: ' + data.detail);
+        } else {
+          setError('Error: ' + JSON.stringify(data, null, 2));
+        }
       } else {
         setError('Error al registrar usuario.');
       }
@@ -86,7 +98,23 @@ function RegistroDatosExtra() {
                 )}
               </div>
               <label htmlFor="foto" className="registro-foto-link-img">¡Sube una foto!</label>
-              <input id="foto" type="file" accept="image/*" style={{display:'none'}} onChange={handleFotoChange} />
+              {foto && (
+                <button type="button" onClick={handleRemoveFoto} style={{
+                  marginTop: 8,
+                  background: '#ff6b6b',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '0.3rem 0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  display: 'block',
+                }}>
+                  Quitar foto
+                </button>
+              )}
+              <input id="foto" type="file" accept="image/*" style={{display:'none'}} onChange={handleFotoChange} ref={fileInputRef} />
             </div>
             <div className="registro-user-fields-img">
               <span className="registro-section-title-img">Perfil de usuario</span>
