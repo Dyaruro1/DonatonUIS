@@ -13,13 +13,31 @@ function Register() {
   const navigate = useNavigate();
   const { instance } = useMsal();
   const { login } = authService;
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async e => {
     e.preventDefault();
-    setMsalError('');
+    setError('');
+    if (!captchaChecked) {
+      setError('Debes confirmar el captcha');
+      return;
+    }
     setLoading(true);
-    // Redirige a la página de datos extra pasando email y password
-    navigate('/registro-datos-extra', { state: { email, password } });
+    try {
+      // Chequeo de correo duplicado usando el endpoint de verificación
+      const resp = await authService.checkEmail(email.trim().toLowerCase());
+      if (resp.data.exists) {
+        setError('Ya existe una cuenta registrada con ese correo.');
+        setLoading(false);
+        return;
+      }
+      navigate('/registro-datos-extra', { state: { email, password } });
+    } catch (err) {
+      setError('Error al verificar el correo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleMicrosoftRegister = async () => {
@@ -86,7 +104,15 @@ function Register() {
             <label htmlFor="captcha" className="login-captcha-label">No soy un robot</label>
             <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" className="login-captcha-img" />
           </div>
-          <button className="login-btn" type="submit" disabled={!captchaChecked || loading}>{loading ? 'Cargando...' : 'Continuar'}</button>
+          {/* aquí mostramos el mensaje de error, si lo hay */}
+          {error && (
+            <div className="login-error" style={{ color: 'red', margin: '0.5rem 0', textAlign: 'center' }}>
+              {error}
+            </div>
+          )}
+          <button className="login-btn" type="submit" disabled={!captchaChecked || loading}>
+            {loading ? 'Cargando...' : 'Continuar'}
+          </button>
         </form>
         <div className="login-links">
           <a href="#" className="login-link">¿Necesitas ayuda?</a>

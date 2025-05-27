@@ -5,9 +5,7 @@ const API_URL = 'http://localhost:8000'; // URL de tu backend FastAPI
 
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // No pongas headers aquí, axios los gestiona por request
 });
 
 // Interceptor para añadir token de autenticación si existe
@@ -25,14 +23,19 @@ api.interceptors.request.use(
 // Funciones para interactuar con el API
 export const authService = {
   login: (correo, contrasena) => 
-    api.post('/login', new URLSearchParams({ username: correo, password: contrasena }), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }),
-  register: (userData) => api.post('/usuarios/registrar', userData),
+    api.post('/api/login/', { correo, password: contrasena }, { headers: { 'Content-Type': 'application/json' } }),
+  register: (userData) => {
+    // Si es FormData, no pongas headers, axios lo hace solo
+    const isFormData = (typeof FormData !== 'undefined') && userData instanceof FormData;
+    const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+    return api.post('/api/registrar/', userData, config);
+  },
+  checkEmail: (correo) => api.get(`/api/verificar-correo/?correo=${encodeURIComponent(correo)}`),
   getCurrentUser: () => api.get('/usuarios/me'),
   restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }),
   updateUsername: (username) => api.put('/usuarios/actualizar-username', { username }),
   deleteAccount: () => api.delete('/usuarios/eliminar-cuenta'),
+  restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }, { headers: { 'Content-Type': 'application/json' } }),
 };
 
 export const donatonService = {
