@@ -104,7 +104,7 @@ function Login() {
               onChange={e => setPassword(e.target.value)}
               autoComplete="current-password"
               required
-              style={{ background: '#191a2e', color: '#fff', border: 'none', borderRadius: 10, padding: '1rem 3.2rem 1rem 1.1rem', fontSize: '1.08rem', width: '100%' }}
+              style={{ color: '#fff', border: 'none', borderRadius: 10, padding: '1rem 3.2rem 1rem 1.1rem', fontSize: '1.08rem', width: '100%' }}
             />
             <span
               onClick={() => setShowPassword(v => !v)}
