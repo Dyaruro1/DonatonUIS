@@ -22,8 +22,9 @@ function Login() {
       // Normaliza el correo antes de enviarlo
       const correo = email.trim().toLowerCase();
       const response = await authService.login(correo, password);
-      // Guardar usuario en localStorage si quieres
-      // localStorage.setItem('token', response.data.token);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       // Redirigir al feed
       navigate('/feed');
     } catch (err) {

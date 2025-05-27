@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import './PerfilUsuario.css';
 
 const initialUser = {
-  nombres: 'Daniel Esteban',
-  apellidos: 'Yaruro Contreras',
-  descripcion: 'Persona solidaria que dona ropa para quienes lo necesitan. 🌱',
-  sexo: 'Masculino',
-  fechaNacimiento: { dia: '20', mes: '04', anio: '1999' },
-  telefono: '3183749230',
-  correo: 'danielestebanyaruro@gmail.com',
+  nombres: '',
+  apellidos: '',
+  descripcion: '',
+  sexo: '',
+  fechaNacimiento: { dia: '', mes: '', anio: '' },
+  telefono: '',
+  correo: '',
   contacto1: '',
   contacto2: '',
-  foto: '/fondo-uis.jpg', // Puedes poner aquí la ruta o el default que prefieras
+  foto: '',
 };
 
 function PerfilUsuario() {
+  const { currentUser, loading, error, updateProfile } = useContext(AuthContext);
   const [user, setUser] = useState(initialUser);
   const [foto, setFoto] = useState(user.foto);
   const navigate = useNavigate();
@@ -38,6 +40,33 @@ function PerfilUsuario() {
 
   // Estado para mostrar el modal de confirmación de cierre de sesión
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Estado para carga y error
+  const [loadingState, setLoading] = useState(true);
+  const [errorState, setError] = useState('');
+
+  // Sincronizar datos del usuario del contexto al estado local
+  useEffect(() => {
+    if (currentUser) {
+      setUser({
+        nombres: currentUser.nombres || '',
+        apellidos: currentUser.apellidos || '',
+        descripcion: currentUser.descripcion || '',
+        sexo: currentUser.sexo || '',
+        fechaNacimiento: currentUser.fecha_nacimiento ? {
+          dia: currentUser.fecha_nacimiento.split('-')[2],
+          mes: currentUser.fecha_nacimiento.split('-')[1],
+          anio: currentUser.fecha_nacimiento.split('-')[0],
+        } : { dia: '', mes: '', anio: '' },
+        telefono: currentUser.telefono || '',
+        correo: currentUser.correo || '',
+        contacto1: currentUser.contacto1 || '',
+        contacto2: currentUser.contacto2 || '',
+        foto: currentUser.foto || '/fondo-uis.jpg',
+      });
+      setFoto(currentUser.foto || '/fondo-uis.jpg');
+    }
+  }, [currentUser]);
 
   // Cambia la foto
   const handleFoto = (e) => {
@@ -63,15 +92,53 @@ function PerfilUsuario() {
 
   // Maneja cancelar edición
   const handleCancel = () => {
-    setUser(initialUser);
-    setFoto(initialUser.foto);
+    if (currentUser) {
+      setUser({
+        nombres: currentUser.nombres || '',
+        apellidos: currentUser.apellidos || '',
+        descripcion: currentUser.descripcion || '',
+        sexo: currentUser.sexo || '',
+        fechaNacimiento: currentUser.fecha_nacimiento ? {
+          dia: currentUser.fecha_nacimiento.split('-')[2],
+          mes: currentUser.fecha_nacimiento.split('-')[1],
+          anio: currentUser.fecha_nacimiento.split('-')[0],
+        } : { dia: '', mes: '', anio: '' },
+        telefono: currentUser.telefono || '',
+        correo: currentUser.correo || '',
+        contacto1: currentUser.contacto1 || '',
+        contacto2: currentUser.contacto2 || '',
+        foto: currentUser.foto || '/fondo-uis.jpg',
+      });
+      setFoto(currentUser.foto || '/fondo-uis.jpg');
+    }
     setEditable(false);
   };
 
-  // Maneja guardar cambios (aquí podrías agregar lógica para enviar al backend)
-  const handleSave = () => {
-    setEditable(false);
-    // Aquí podrías agregar lógica para guardar los cambios
+  // Maneja guardar cambios (actualiza el perfil en backend y contexto)
+  const handleSave = async () => {
+    try {
+      let formData = new FormData();
+      formData.append('nombres', user.nombres);
+      formData.append('apellidos', user.apellidos);
+      formData.append('descripcion', user.descripcion);
+      formData.append('sexo', user.sexo);
+      formData.append('fecha_nacimiento', `${user.fechaNacimiento.anio}-${user.fechaNacimiento.mes}-${user.fechaNacimiento.dia}`);
+      formData.append('telefono', user.telefono);
+      formData.append('correo', user.correo);
+      formData.append('contacto1', user.contacto1);
+      formData.append('contacto2', user.contacto2);
+      if (foto && foto !== currentUser.foto && foto.startsWith('blob:')) {
+        // Si la foto es nueva (blob), buscar el input file
+        const fileInput = document.getElementById('foto-input');
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          formData.append('foto', fileInput.files[0]);
+        }
+      }
+      await updateProfile(formData);
+      setEditable(false);
+    } catch (err) {
+      alert('No se pudo guardar el perfil.');
+    }
   };
 
   // Lógica para cambiar la contraseña (simulada, aquí deberías llamar a tu API)
@@ -210,8 +277,7 @@ function PerfilUsuario() {
         </button>
       </div>
 
-      {/* TITULO */}
-      <h1 className="perfil-titulo">Editar perfil</h1>
+      {/* BOTÓN EDITAR PERFIL */}
       <button
         className="perfil-btn-editar"
         style={{
@@ -264,7 +330,6 @@ function PerfilUsuario() {
 
         {/* DATOS PERFIL */}
         <div className="perfil-user-section">
-          <h2 className="perfil-seccion-titulo">Perfil de usuario</h2>
           <div className="perfil-user-cards-row">
             <div className="perfil-card perfil-card-lg">
               <label className="perfil-label">Nombres</label>

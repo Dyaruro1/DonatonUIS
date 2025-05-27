@@ -6,12 +6,16 @@ class UsuarioSerializer(serializers.ModelSerializer):
     foto = serializers.ImageField(max_length=None, use_url=True, required=False, allow_null=True, allow_empty_file=True)
     contrasena = serializers.CharField(write_only=True, required=True)
     nombre_usuario = serializers.CharField(write_only=True, required=True)
+    descripcion = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    contacto1 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    contacto2 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Usuario
         fields = [
             'id', 'username', 'nombre_usuario', 'nombre', 'apellido', 'correo', 'contrasena',
-            'sexo', 'fecha_nacimiento', 'telefono', 'foto', 'first_name', 'last_name', 'email'
+            'sexo', 'fecha_nacimiento', 'telefono', 'foto', 'first_name', 'last_name', 'email',
+            'descripcion', 'contacto1', 'contacto2'
         ]
         extra_kwargs = {
             'username': {'read_only': True},

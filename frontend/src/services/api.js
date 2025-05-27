@@ -31,8 +31,13 @@ export const authService = {
     return api.post('/api/registrar/', userData, config);
   },
   checkEmail: (correo) => api.get(`/api/verificar-correo/?correo=${encodeURIComponent(correo)}`),
-  getCurrentUser: () => api.get('/usuarios/me'),
+  getCurrentUser: () => api.get('/api/usuarios/me'),
   restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }, { headers: { 'Content-Type': 'application/json' } }),
+  updateProfile: (userData) => {
+    const isFormData = (typeof FormData !== 'undefined') && userData instanceof FormData;
+    const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+    return api.patch('/api/usuarios/me/', userData, config);
+  },
 };
 
 export const donatonService = {

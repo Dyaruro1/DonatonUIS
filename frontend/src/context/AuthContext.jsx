@@ -8,12 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Comprobar si hay un token en localStorage
     const token = localStorage.getItem('token');
     if (token) {
-      // Aquí podrías implementar la verificación del usuario actual si tienes endpoint, pero por ahora solo marca loading false
-      setLoading(false);
+      // Cargar usuario actual desde el backend
+      authService.getCurrentUser()
+        .then(res => {
+          setCurrentUser(res.data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setCurrentUser(null);
+          setLoading(false);
+        });
     } else {
+      setCurrentUser(null);
       setLoading(false);
     }
   }, []);
@@ -46,12 +54,35 @@ export function AuthProvider({ children }) {
     }
   };
   
+  // Función para actualizar el perfil del usuario autenticado
+  const updateProfile = async (userData) => {
+    try {
+      const response = await authService.updateProfile(userData);
+      setCurrentUser(response.data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Función para refrescar el usuario desde el backend
+  const refreshUser = async () => {
+    try {
+      const response = await authService.getCurrentUser();
+      setCurrentUser(response.data);
+    } catch (error) {
+      setCurrentUser(null);
+    }
+  };
+
   const value = {
     currentUser,
     loading,
     login,
     logout,
-    register
+    register,
+    updateProfile,
+    refreshUser
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
