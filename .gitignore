@@ -4,6 +4,9 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+**/*.pyc
+**/*.pyo
+**/*.pyd
 
 # Django
 *.sqlite3
