@@ -26,7 +26,14 @@ function Login() {
       const correo = email.trim().toLowerCase();
       const success = await login(correo, password);
       if (success) {
-        navigate('/feed');
+        // Obtener usuario actual para saber tipoUsuario
+        const userResp = await authService.getCurrentUser();
+        const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
+        if (tipoUsuario === 'admin') {
+          navigate('/Home');
+        } else {
+          navigate('/feed');
+        }
       } else {
         setLoginError('Correo o contraseña incorrectos.');
       }
@@ -61,7 +68,14 @@ function Login() {
       // Realiza login con backend usando correo y una contraseña especial
       const success = await login(email, 'MICROSOFT_AUTH');
       if (success) {
-        navigate('/feed');
+        // Obtener usuario actual para saber tipoUsuario
+        const userResp = await authService.getCurrentUser();
+        const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
+        if (tipoUsuario === 'admin') {
+          navigate('/Home');
+        } else {
+          navigate('/feed');
+        }
       } else {
         setMsalError('Error al iniciar sesión con Microsoft.');
         // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
