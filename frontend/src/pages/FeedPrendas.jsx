@@ -81,7 +81,12 @@ function FeedPrendas() {
     return value;
   };
 
-  const prendasFiltradas = prendas.filter(prenda => {
+  // Deduplicate prendas by id before filtering
+  const uniquePrendas = Array.from(
+    new Map(prendas.map(p => [p.id, p])).values()
+  );
+
+  const prendasFiltradas = uniquePrendas.filter(prenda => {
     if (tab === "mis") {
       if (!userId || prenda.usuario_id !== userId) return false;
     }
@@ -277,7 +282,14 @@ function FeedPrendas() {
             prendasFiltradas.map((prenda, idx) => (
               <div className="feed-card" key={prenda.id || idx}>
                 <div className="feed-card-img">
-                  <img src={prenda.imagen_url || '/fondo-uis.jpg'} alt={prenda.nombre} />
+                  <img
+                    src={
+                      prenda.imagenes && prenda.imagenes.length > 0
+                        ? prenda.imagenes[0].imagen
+                        : '/fondo-uis.jpg'
+                    }
+                    alt={prenda.nombre}
+                  />
                 </div>
                 <div className="feed-card-body">
                   <div className="feed-card-title">{prenda.nombre}</div>

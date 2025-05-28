@@ -9,7 +9,7 @@ function DonarRopa() {
   const [nombre, setNombre] = useState('');
   const [talla, setTalla] = useState('');
   const [uso, setUso] = useState('');
-  const [foto, setFoto] = useState(null);
+  const [fotos, setFotos] = useState([]); // ahora es array
   const [descripcion, setDescripcion] = useState('');
   const [sexo, setSexo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,12 +22,29 @@ function DonarRopa() {
   };
 
   const validate = () => {
-    if (!nombre.trim() || !talla || !uso || !foto || !descripcion.trim() || !sexo) {
-      setError('Por favor completa todos los campos.');
+    if (!nombre.trim() || !talla || !uso || fotos.length === 0 || !descripcion.trim() || !sexo) {
+      setError('Por favor completa todos los campos y sube al menos una foto.');
+      return false;
+    }
+    if (fotos.length > 3) {
+      setError('Solo puedes subir hasta 3 fotos.');
       return false;
     }
     setError('');
     return true;
+  };
+
+  const handleFotosChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + fotos.length > 3) {
+      setError('Solo puedes subir hasta 3 fotos.');
+      return;
+    }
+    setFotos(prev => [...prev, ...files].slice(0, 3));
+  };
+
+  const handleRemoveFoto = (idx) => {
+    setFotos(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e) => {
@@ -36,21 +53,30 @@ function DonarRopa() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const nuevaPrenda = {
-        nombre,
-        talla,
-        uso,
-        descripcion,
-        sexo,
-        imagen_url: foto ? URL.createObjectURL(foto) : '/fondo-uis.jpg',
-      };
+      const formData = new FormData();
+      formData.append('nombre', nombre);
+      formData.append('talla', talla);
+      formData.append('uso', uso);
+      formData.append('descripcion', descripcion);
+      formData.append('sexo', sexo);
+      fotos.forEach(foto => formData.append('imagenes', foto));
+      // Llama a la API real
+      await donatonService.crearPrenda(formData);
       setSuccess('¡Donación publicada exitosamente!');
       setTimeout(() => {
-        navigate('/prenda-detalle', { state: { prenda: nuevaPrenda } });
+        navigate('/feed');
       }, 800);
-      setNombre(''); setTalla(''); setUso(''); setFoto(null); setDescripcion(''); setSexo('');
+      setNombre(''); setTalla(''); setUso(''); setFotos([]); setDescripcion(''); setSexo('');
     } catch (err) {
-      setError('Error al publicar la donación. Intenta de nuevo.');
+      if (err.response && err.response.data) {
+        setError(
+          typeof err.response.data === 'string'
+            ? err.response.data
+            : JSON.stringify(err.response.data)
+        );
+      } else {
+        setError('Error al publicar la donación. Intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
     }
@@ -196,20 +222,21 @@ function DonarRopa() {
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: 30 días</span>
 
             <label style={{color: '#fff', fontWeight: 500}}>Adjuntar Fotos</label>
-            <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap'}}>
               <input
                 id="foto-input"
                 type="file"
                 accept="image/*"
-                onChange={e => setFoto(e.target.files[0])}
+                multiple
+                onChange={handleFotosChange}
                 style={{display: 'none'}}
-                required
+                disabled={fotos.length >= 3}
               />
               <button
                 type="button"
                 onClick={() => document.getElementById('foto-input').click()}
                 style={{
-                  background: '#21E058',
+                  background: fotos.length >= 3 ? '#ccc' : '#21E058',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '50%',
@@ -219,20 +246,28 @@ function DonarRopa() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: 24,
-                  cursor: 'pointer',
+                  cursor: fotos.length >= 3 ? 'not-allowed' : 'pointer',
                   boxShadow: '0 1px 4px #0002',
                   transition: 'background 0.18s',
                 }}
                 aria-label="Subir foto"
+                disabled={fotos.length >= 3}
               >
                 <b>+</b>
               </button>
               <span style={{color: '#23244a', background: '#fff', borderRadius: 8, padding: '0.5rem 1rem', fontSize: '1rem', minWidth: 180, border: '1.5px solid #eee', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                {foto ? foto.name : 'Sin archivo seleccionado'}
+                {fotos.length === 0 ? 'Sin archivo seleccionado' : `${fotos.length} archivo(s) seleccionado(s)`}
               </span>
             </div>
-            {foto && (
-              <img src={URL.createObjectURL(foto)} alt="preview" style={{ width: 110, height: 110, objectFit: 'cover', borderRadius: 12, margin: '0.5rem 0', border: '2px solid #21E058' }} />
+            {fotos.length > 0 && (
+              <div style={{ display: 'flex', gap: 10, margin: '0.5rem 0', flexWrap: 'wrap' }}>
+                {fotos.map((foto, idx) => (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <img src={URL.createObjectURL(foto)} alt={`preview-${idx}`} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 12, border: '2px solid #21E058' }} />
+                    <button type="button" onClick={() => handleRemoveFoto(idx)} style={{ position: 'absolute', top: -8, right: -8, background: '#ff3b3b', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                  </div>
+                ))}
+              </div>
             )}
 
             <label style={{color: '#fff', fontWeight: 500}}>Descripción</label>
@@ -242,14 +277,14 @@ function DonarRopa() {
             <label style={{color: '#fff', fontWeight: 500}}>Sexo</label>
             <select value={sexo} onChange={e => setSexo(e.target.value)} style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', marginBottom: 0, boxShadow: '0 1px 4px #0001'}} required>
               <option value="">Seleccione el sexo</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="Unisex">Unisex</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
             </select>
-            <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: Masculino, Femenino, Unisex</span>
+            <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: Masculino, Femenino, Otro</span>
 
             <div style={{display: 'flex', gap: 16, marginTop: 18}}>
-              <button type="button" onClick={() => { setNombre(''); setTalla(''); setUso(''); setFoto(null); setDescripcion(''); setSexo(''); setError(''); setSuccess(''); }} style={{flex: 1, background: 'transparent', color: '#fff', border: '1.5px solid #23244a', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, fontSize: '1.08rem', cursor: 'pointer', transition: 'background 0.2s'}}>Cancelar</button>
+              <button type="button" onClick={() => { setNombre(''); setTalla(''); setUso(''); setFotos([]); setDescripcion(''); setSexo(''); setError(''); setSuccess(''); }} style={{flex: 1, background: 'transparent', color: '#fff', border: '1.5px solid #23244a', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, fontSize: '1.08rem', cursor: 'pointer', transition: 'background 0.2s'}}>Cancelar</button>
               <button type="submit" className="feed-card-btn" style={{flex: 1, fontSize: '1.08rem', padding: '0.8rem 0'}} disabled={loading}>{loading ? 'Publicando...' : 'Publicar'}</button>
             </div>
             {error && <div style={{ color: '#ff6b6b', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{error}</div>}

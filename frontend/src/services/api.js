@@ -46,11 +46,12 @@ export const authService = {
 };
 
 export const donatonService = {
-  donarRopa: (donacion) => api.post('/donaciones', donacion),
-  solicitarRopa: (solicitud) => api.post('/solicitudes', solicitud),
-  getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/prendas?skip=${skip}&limit=${limit}`),
-  getMisSolicitudes: () => api.get('/solicitudes/usuario'),
-  getMisDonaciones: () => api.get('/donaciones/usuario'),
+  crearPrenda: (formData) => api.post('/api/prendas/', formData),
+  donarRopa: (donacion) => api.post('/api/donaciones', donacion),
+  solicitarRopa: (solicitud) => api.post('/api/solicitudes', solicitud),
+  getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/api/prendas/?skip=${skip}&limit=${limit}`),
+  getMisSolicitudes: () => api.get('/api/solicitudes/usuario'),
+  getMisDonaciones: () => api.get('/api/donaciones/usuario'),
 };
 
 // Admin user management
