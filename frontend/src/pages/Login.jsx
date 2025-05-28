@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
-import { authService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import './Login.css';
+import { authService } from '../services/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -11,8 +12,10 @@ function Login() {
   const [msalError, setMsalError] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { instance } = useMsal();
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,17 +24,21 @@ function Login() {
     try {
       // Normaliza el correo antes de enviarlo
       const correo = email.trim().toLowerCase();
-      const response = await authService.login(correo, password);
-      // Guardar usuario en localStorage si quieres
-      // localStorage.setItem('token', response.data.token);
-      // Redirigir al feed
-      navigate('/feed');
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setLoginError(err.response.data.detail);
+      const success = await login(correo, password);
+      if (success) {
+        // Obtener usuario actual para saber tipoUsuario
+        const userResp = await authService.getCurrentUser();
+        const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
+        if (tipoUsuario === 'admin') {
+          navigate('/Home');
+        } else {
+          navigate('/feed');
+        }
       } else {
-        setLoginError('Error al iniciar sesión. Intenta de nuevo.');
+        setLoginError('Correo o contraseña incorrectos.');
       }
+    } catch (err) {
+      setLoginError('Error al iniciar sesión. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -39,6 +46,7 @@ function Login() {
 
   const handleMicrosoftLogin = async () => {
     setMsalError('');
+    setLoading(true);
     try {
       const loginResponse = await instance.loginPopup({
         scopes: ['openid', 'profile', 'email'],
@@ -47,13 +55,36 @@ function Login() {
       const email = loginResponse.account.username;
       if (!email.endsWith('@correo.uis.edu.co')) {
         setMsalError('Solo se permite iniciar sesión con cuentas @correo.uis.edu.co');
-        await instance.logoutPopup();
+        setLoading(false);
         return;
       }
-      // Redirigir al feed tras login Microsoft
-      navigate('/feed');
+      // Verifica si el usuario existe en la base de datos
+      const resp = await authService.checkEmail(email);
+      if (!resp.data.exists) {
+        setMsalError('No existe una cuenta con ese correo. Regístrate primero.');
+        setLoading(false);
+        return;
+      }
+      // Realiza login con backend usando correo y una contraseña especial
+      const success = await login(email, 'MICROSOFT_AUTH');
+      if (success) {
+        // Obtener usuario actual para saber tipoUsuario
+        const userResp = await authService.getCurrentUser();
+        const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
+        if (tipoUsuario === 'admin') {
+          navigate('/Home');
+        } else {
+          navigate('/feed');
+        }
+      } else {
+        setMsalError('Error al iniciar sesión con Microsoft.');
+        // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
+        await instance.logoutPopup();
+      }
     } catch (err) {
       setMsalError('Error al iniciar sesión con Microsoft');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,15 +109,31 @@ function Login() {
             required
           />
           <label className="login-label" htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            className="login-input"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
+          <div style={{ position: 'relative', width: '100%' }}>
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              className="login-input"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              style={{ color: '#fff', border: 'none', borderRadius: 10, padding: '1rem 3.2rem 1rem 1.1rem', fontSize: '1.08rem', width: '100%' }}
+            />
+            <span
+              onClick={() => setShowPassword(v => !v)}
+              style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#babcc4', fontSize: 22 }}
+              tabIndex={0}
+              role="button"
+              aria-label="Mostrar/ocultar contraseña"
+            >
+              {showPassword ? (
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#babcc4" strokeWidth="2"/><circle cx="12" cy="12" r="3.5" stroke="#babcc4" strokeWidth="2"/></svg>
+              ) : (
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.77 21.77 0 0 1 5.06-6.06M1 1l22 22" stroke="#babcc4" strokeWidth="2"/></svg>
+              )}
+            </span>
+          </div>
           <div className="login-captcha-row">
             <input
               type="checkbox"
@@ -100,7 +147,7 @@ function Login() {
           <button className="login-btn" type="submit" disabled={!captchaChecked || loading}>{loading ? 'Cargando...' : 'Continuar'}</button>
         </form>
         {loginError && <div style={{ color: 'red', margin: '0.5rem 0', textAlign: 'center', fontSize: '0.98rem' }}>{loginError}</div>}
-        <div className="login-links">
+        <div className="login-links" style={{ textAlign: 'center', width: '100%' }}>
           <a href="#" className="login-link" onClick={e => { e.preventDefault(); navigate('/restablecer-contrasena'); }}>¿Olvidaste tu contraseña?</a>
         </div>
         <div className="login-register-row">

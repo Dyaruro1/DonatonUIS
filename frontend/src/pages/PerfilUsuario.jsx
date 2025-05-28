@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import './PerfilUsuario.css';
 
 const initialUser = {
-  nombres: 'Daniel Esteban',
-  apellidos: 'Yaruro Contreras',
-  descripcion: 'Persona solidaria que dona ropa para quienes lo necesitan. 🌱',
-  sexo: 'Masculino',
-  fechaNacimiento: { dia: '20', mes: '04', anio: '1999' },
-  telefono: '3183749230',
-  correo: 'danielestebanyaruro@gmail.com',
+  nombre: '',
+  apellido: '',
+  descripcion: '',
+  sexo: '',
+  fechaNacimiento: { dia: '', mes: '', anio: '' },
+  telefono: '',
+  correo: '',
   contacto1: '',
   contacto2: '',
-  foto: '/fondo-uis.jpg', // Puedes poner aquí la ruta o el default que prefieras
+  foto: '',
 };
 
 function PerfilUsuario() {
+  const { currentUser, loading, error, updateProfile, cambiarContrasena } = useContext(AuthContext);
   const [user, setUser] = useState(initialUser);
   const [foto, setFoto] = useState(user.foto);
   const navigate = useNavigate();
@@ -38,6 +40,44 @@ function PerfilUsuario() {
 
   // Estado para mostrar el modal de confirmación de cierre de sesión
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Estado para carga y error
+  const [loadingState, setLoading] = useState(true);
+  const [errorState, setError] = useState('');
+
+  // Sincronizar datos del usuario del contexto al estado local
+  useEffect(() => {
+    if (currentUser) {
+      // Normaliza sexo a mayúscula inicial para el select
+      let sexo = currentUser.sexo || '';
+      if (sexo) {
+        sexo = sexo.charAt(0).toUpperCase() + sexo.slice(1).toLowerCase();
+      }
+      // Normaliza año a string (por si acaso)
+      let fechaNacimiento = { dia: '', mes: '', anio: '' };
+      if (currentUser.fecha_nacimiento) {
+        const partes = currentUser.fecha_nacimiento.split('-');
+        fechaNacimiento = {
+          dia: partes.length > 2 ? partes[2] : '',
+          mes: partes.length > 1 ? partes[1] : '',
+          anio: partes.length > 0 ? String(partes[0]) : '',
+        };
+      }
+      setUser({
+        nombre: currentUser.nombre || '',
+        apellido: currentUser.apellido || '',
+        descripcion: currentUser.descripcion || '',
+        sexo: sexo,
+        fechaNacimiento: fechaNacimiento,
+        telefono: currentUser.telefono || '',
+        correo: currentUser.correo || '',
+        contacto1: currentUser.contacto1 || '',
+        contacto2: currentUser.contacto2 || '',
+        foto: currentUser.foto || '/fondo-uis.jpg',
+      });
+      setFoto(currentUser.foto || '/fondo-uis.jpg');
+    }
+  }, [currentUser]);
 
   // Cambia la foto
   const handleFoto = (e) => {
@@ -63,18 +103,62 @@ function PerfilUsuario() {
 
   // Maneja cancelar edición
   const handleCancel = () => {
-    setUser(initialUser);
-    setFoto(initialUser.foto);
+    if (currentUser) {
+      setUser({
+        nombre: currentUser.nombre || '',
+        apellido: currentUser.apellido || '',
+        descripcion: currentUser.descripcion || '',
+        sexo: currentUser.sexo || '',
+        fechaNacimiento: currentUser.fecha_nacimiento ? {
+          dia: currentUser.fecha_nacimiento.split('-')[2],
+          mes: currentUser.fecha_nacimiento.split('-')[1],
+          anio: currentUser.fecha_nacimiento.split('-')[0],
+        } : { dia: '', mes: '', anio: '' },
+        telefono: currentUser.telefono || '',
+        correo: currentUser.correo || '',
+        contacto1: currentUser.contacto1 || '',
+        contacto2: currentUser.contacto2 || '',
+        foto: currentUser.foto || '/fondo-uis.jpg',
+      });
+      setFoto(currentUser.foto || '/fondo-uis.jpg');
+    }
     setEditable(false);
   };
 
-  // Maneja guardar cambios (aquí podrías agregar lógica para enviar al backend)
-  const handleSave = () => {
-    setEditable(false);
-    // Aquí podrías agregar lógica para guardar los cambios
+  // Maneja guardar cambios (actualiza el perfil en backend y contexto)
+  const handleSave = async () => {
+    try {
+      let formData = new FormData();
+      formData.append('nombre', user.nombre);
+      formData.append('apellido', user.apellido);
+      formData.append('descripcion', user.descripcion);
+      formData.append('sexo', user.sexo ? user.sexo.toLowerCase() : '');
+      // Solo enviar fecha_nacimiento si todos los campos están completos
+      const { anio, mes, dia } = user.fechaNacimiento;
+      if (anio && mes && dia) {
+        formData.append('fecha_nacimiento', `${anio}-${mes}-${dia}`);
+      }
+      formData.append('telefono', user.telefono);
+      formData.append('correo', user.correo);
+      formData.append('contacto1', user.contacto1);
+      formData.append('contacto2', user.contacto2);
+      if (foto && foto !== currentUser.foto && foto.startsWith('blob:')) {
+        // Si la foto es nueva (blob), buscar el input file
+        const fileInput = document.getElementById('foto-input');
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          formData.append('foto', fileInput.files[0]);
+        }
+      }
+      await updateProfile(formData);
+      setEditable(false);
+    } catch (err) {
+      // Mostrar el error de validación exacto en consola
+      console.error('Perfil save error', err.response?.data);
+      alert('No se pudo guardar el perfil. Revisa la consola para más detalles.');
+    }
   };
 
-  // Lógica para cambiar la contraseña (simulada, aquí deberías llamar a tu API)
+  // Lógica para cambiar la contraseña (ahora sí llama a la API)
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setPasswordError('');
@@ -87,15 +171,20 @@ function PerfilUsuario() {
       setPasswordError('Las contraseñas no coinciden.');
       return;
     }
-    // Aquí deberías llamar a tu API para cambiar la contraseña
-    setPasswordSuccess('¡Contraseña cambiada exitosamente!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setTimeout(() => setShowPasswordForm(false), 1200);
+    const result = await cambiarContrasena(currentPassword, newPassword);
+    if (result.success) {
+      setPasswordSuccess('¡Contraseña cambiada exitosamente!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setShowPasswordForm(false), 1200);
+    } else {
+      setPasswordError(result.error || 'No se pudo cambiar la contraseña.');
+    }
   };
 
   // Se mantiene navegación arriba
+  const currentYear = new Date().getFullYear();
   return (
     <div className="perfil-root">
       {/* MODAL DE CONFIRMACIÓN LOGOUT */}
@@ -210,8 +299,7 @@ function PerfilUsuario() {
         </button>
       </div>
 
-      {/* TITULO */}
-      <h1 className="perfil-titulo">Editar perfil</h1>
+      {/* BOTÓN EDITAR PERFIL */}
       <button
         className="perfil-btn-editar"
         style={{
@@ -264,40 +352,43 @@ function PerfilUsuario() {
 
         {/* DATOS PERFIL */}
         <div className="perfil-user-section">
-          <h2 className="perfil-seccion-titulo">Perfil de usuario</h2>
           <div className="perfil-user-cards-row">
             <div className="perfil-card perfil-card-lg">
               <label className="perfil-label">Nombres</label>
-              <input className="perfil-input" name="nombres" value={user.nombres} placeholder="Nombres" disabled={!editable} onChange={handleInputChange} />
+              <input className="perfil-input" name="nombre" value={user.nombre || ''} placeholder="Nombres" disabled={!editable} onChange={handleInputChange} />
               <label className="perfil-label">Apellidos</label>
-              <input className="perfil-input" name="apellidos" value={user.apellidos} placeholder="Apellidos" disabled={!editable} onChange={handleInputChange} />
+              <input className="perfil-input" name="apellido" value={user.apellido || ''} placeholder="Apellidos" disabled={!editable} onChange={handleInputChange} />
               <label className="perfil-label">Descripción</label>
-              <input className="perfil-input" name="descripcion" value={user.descripcion} placeholder="Descripción" maxLength={60} disabled={!editable} onChange={handleInputChange} />
-              <span className="perfil-charcount">{user.descripcion.length} / 60 caracteres</span>
+              <input className="perfil-input" name="descripcion" value={user.descripcion || ''} placeholder="Descripción" maxLength={60} disabled={!editable} onChange={handleInputChange} />
+              <span className="perfil-charcount">{(user.descripcion || '').length} / 60 caracteres</span>
             </div>
             <div className="perfil-card perfil-card-md">
               <label className="perfil-label">Sexo</label>
-              <select className="perfil-input" name="sexo" value={user.sexo} disabled={!editable} onChange={handleInputChange}>
+              <select className="perfil-input" name="sexo" value={user.sexo || ''} disabled={!editable} onChange={handleInputChange}>
+                <option value="">Selecciona sexo</option>
                 <option value="Masculino">Masculino</option>
                 <option value="Femenino">Femenino</option>
                 <option value="Otro">Otro</option>
               </select>
               <label className="perfil-label">Fecha de nacimiento</label>
               <div className="perfil-fecha-row">
-                <select className="perfil-input perfil-fecha" name="fechaNacimiento.dia" value={user.fechaNacimiento.dia} disabled={!editable} onChange={handleInputChange}>
+                <select className="perfil-input perfil-fecha" name="fechaNacimiento.dia" value={user.fechaNacimiento.dia || ''} disabled={!editable} onChange={handleInputChange}>
+                  <option value="">Día</option>
                   {[...Array(31)].map((_, i) => (
                     <option key={i+1} value={String(i+1).padStart(2, '0')}>{String(i+1).padStart(2, '0')}</option>
                   ))}
                 </select>
                 <span className="perfil-fecha-sep">-</span>
-                <select className="perfil-input perfil-fecha" name="fechaNacimiento.mes" value={user.fechaNacimiento.mes} disabled={!editable} onChange={handleInputChange}>
+                <select className="perfil-input perfil-fecha" name="fechaNacimiento.mes" value={user.fechaNacimiento.mes || ''} disabled={!editable} onChange={handleInputChange}>
+                  <option value="">Mes</option>
                   {[...Array(12)].map((_, i) => (
                     <option key={i+1} value={String(i+1).padStart(2, '0')}>{String(i+1).padStart(2, '0')}</option>
                   ))}
                 </select>
                 <span className="perfil-fecha-sep">-</span>
-                <select className="perfil-input perfil-fecha perfil-fecha-anio" name="fechaNacimiento.anio" value={user.fechaNacimiento.anio} disabled={!editable} onChange={handleInputChange}>
-                  {Array.from({length: 80}, (_, i) => 2024 - i).map(anio => (
+                <select className="perfil-input perfil-fecha perfil-fecha-anio" name="fechaNacimiento.anio" value={user.fechaNacimiento.anio || ''} disabled={!editable} onChange={handleInputChange}>
+                  <option value="">Año</option>
+                  {Array.from({length: 80}, (_, i) => String(currentYear - i)).map(anio => (
                     <option key={anio} value={anio}>{anio}</option>
                   ))}
                 </select>
@@ -313,33 +404,59 @@ function PerfilUsuario() {
         <div className="perfil-contacto-cards-row">
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Teléfono</label>
-            <input className="perfil-input" name="telefono" value={user.telefono} placeholder="3183749230" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="telefono" value={user.telefono || ''} placeholder="3183749230" disabled={!editable} onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
-            <input className="perfil-input" name="contacto1" value={user.contacto1} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="contacto1" value={user.contacto1 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} style={{ background: '#191a2e', color: '#fff', border: 'none', borderRadius: 10, padding: '1rem 1.1rem', fontSize: '1.08rem', width: '100%' }} />
           </div>
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Correo electrónico</label>
-            <input className="perfil-input" name="correo" value={user.correo} placeholder="danielestebanyaruro@gmail.com" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="correo" value={user.correo || ''} placeholder="danielestebanyaruro@gmail.com" disabled /* siempre deshabilitado */ onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
-            <input className="perfil-input" name="contacto2" value={user.contacto2} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="contacto2" value={user.contacto2 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
           </div>
         </div>
       </div>
 
+      {/* BOTÓN CAMBIAR CONTRASEÑA FIJO (si NO está en edición) */}
+      {!editable && (
+        <button
+          className="perfil-btn-cambiar-fijo"
+          style={{
+            position: 'fixed',
+            left: 32,
+            bottom: 32,
+            background: '#0d1b36',
+            color: '#fff',
+            fontWeight: 600,
+            fontSize: '1.08rem',
+            border: 'none',
+            borderRadius: 8,
+            padding: '0.7rem 2.5rem',
+            zIndex: 120,
+            boxShadow: '0 2px 12px #0003',
+            cursor: 'pointer',
+          }}
+          onClick={() => setShowPasswordForm(true)}
+          type="button"
+        >
+          Cambiar contraseña
+        </button>
+      )}
+
       {/* BOTONES FLOTANTES SOLO EN EDICIÓN */}
       {editable && (
-        <div className="perfil-botones-barra-fija" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#18192b', padding: '1.2rem 2.5rem 1.2rem 2.5rem', position: 'fixed', left: 0, bottom: 0, width: '100vw', zIndex: 100 }}>
+        <div className="perfil-botones-barra-fija" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', background: '#18192b', padding: '1.2rem 2.5rem 1.2rem 2.5rem', position: 'fixed', left: 0, bottom: 0, width: '100vw', zIndex: 100 }}>
           <button
-            className="perfil-btn-cambiar"
-            style={{ background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginRight: 16, cursor: 'pointer' }}
-            onClick={() => setShowPasswordForm((v) => !v)}
+            className="perfil-btn-cancelar"
+            style={{ background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginRight: 16, cursor: 'pointer' }}
+            onClick={handleCancel}
             type="button"
           >
-            Cambiar contraseña
+            Cancelar
           </button>
           <button
             className="perfil-btn-guardar"
-            style={{ background: '#21E058', color: '#fff', fontWeight: 700, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginLeft: 16, cursor: 'pointer' }}
+            style={{ background: '#21E058', color: '#fff', fontWeight: 700, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 2.5rem', marginLeft: 0, cursor: 'pointer' }}
             onClick={handleSave}
             type="button"
           >

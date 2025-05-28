@@ -6,15 +6,28 @@ class UsuarioSerializer(serializers.ModelSerializer):
     foto = serializers.ImageField(max_length=None, use_url=True, required=False, allow_null=True, allow_empty_file=True)
     contrasena = serializers.CharField(write_only=True, required=True)
     nombre_usuario = serializers.CharField(write_only=True, required=True)
+    descripcion = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    contacto1 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    contacto2 = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Si es update (PATCH/PUT), no exigir contrasena ni nombre_usuario
+        request = self.context.get('request') if 'context' in self.__dict__ else None
+        if request and request.method in ['PUT', 'PATCH']:
+            self.fields['contrasena'].required = False
+            self.fields['nombre_usuario'].required = False
 
     class Meta:
         model = Usuario
         fields = [
             'id', 'username', 'nombre_usuario', 'nombre', 'apellido', 'correo', 'contrasena',
-            'sexo', 'fecha_nacimiento', 'telefono', 'foto', 'first_name', 'last_name', 'email'
+            'sexo', 'fecha_nacimiento', 'telefono', 'foto', 'first_name', 'last_name', 'email',
+            'descripcion', 'contacto1', 'contacto2', 'tipoUsuario'
         ]
         extra_kwargs = {
             'username': {'read_only': True},
+            'tipoUsuario': {'read_only': True},
         }
 
     def to_internal_value(self, data):
@@ -33,3 +46,36 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if 'foto' in validated_data and not validated_data['foto']:
             validated_data['foto'] = None
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Mapear nombre_usuario a username si viene en el update
+        if 'nombre_usuario' in validated_data:
+            instance.username = validated_data.pop('nombre_usuario')
+        # Si se actualiza la contraseña, hashearla
+        if 'contrasena' in validated_data:
+            instance.password = make_password(validated_data.pop('contrasena'))
+        # Actualizar el resto de los campos normalmente
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+    def validate(self, data):
+        # Validar que el nombre de usuario no exista SOLO si viene y no es vacío
+        username = data.get('nombre_usuario')
+        correo = data.get('correo')
+        request = self.context.get('request')
+        user = request.user if request else None
+        if username is not None and username != '':
+            qs = Usuario.objects.filter(username=username)
+            if user and user.is_authenticated:
+                qs = qs.exclude(pk=user.pk)
+            if qs.exists():
+                raise serializers.ValidationError({'nombre_usuario': 'Este nombre de usuario ya está en uso.'})
+        if correo:
+            qs = Usuario.objects.filter(correo=correo)
+            if user and user.is_authenticated:
+                qs = qs.exclude(pk=user.pk)
+            if qs.exists():
+                raise serializers.ValidationError({'correo': 'Este correo ya está en uso.'})
+        return data

@@ -13,7 +13,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Token ${token}`;
     }
     return config;
   },
@@ -31,11 +31,18 @@ export const authService = {
     return api.post('/api/registrar/', userData, config);
   },
   checkEmail: (correo) => api.get(`/api/verificar-correo/?correo=${encodeURIComponent(correo)}`),
-  getCurrentUser: () => api.get('/usuarios/me'),
-  restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }),
-  updateUsername: (username) => api.put('/usuarios/actualizar-username', { username }),
-  deleteAccount: () => api.delete('/usuarios/eliminar-cuenta'),
-  restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }, { headers: { 'Content-Type': 'application/json' } }),
+  getCurrentUser: () => api.get('/api/usuarios/me'),
+  restablecerContrasena: (correo) => api.post('/api/usuarios/restablecer-contrasena/', { correo }, { headers: { 'Content-Type': 'application/json' } }),
+  updateProfile: (userData) => {
+    const isFormData = (typeof FormData !== 'undefined') && userData instanceof FormData;
+    const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+    return api.patch('/api/usuarios/me/', userData, config);
+  },
+  cambiarContrasena: (contrasena_anterior, contrasena_nueva) =>
+    api.post('/api/usuarios/cambiar_contrasena/', { contrasena_anterior, contrasena_nueva }, { headers: { 'Content-Type': 'application/json' } }),
+  updateUsername: (nombre_usuario) =>
+    api.patch('/api/usuarios/cambiar_nombre_usuario/', { nombre_usuario }, { headers: { 'Content-Type': 'application/json' } }),
+  deleteAccount: () => api.delete('/api/usuarios/eliminar_cuenta/'),
 };
 
 export const donatonService = {

@@ -1,12 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import './RegistroDatosExtra.css';
 
 function RegistroDatosExtra() {
   const navigate = useNavigate();
   const location = useLocation();
   const { email, password } = location.state || {};
+  const { refreshUser } = useContext(AuthContext);
 
   const [nombres, setNombres] = useState('');
   const [apellidos, setApellidos] = useState('');
@@ -16,6 +18,9 @@ function RegistroDatosExtra() {
   const [telefono, setTelefono] = useState('');
   const [correo, setCorreo] = useState(email || '');
   const [foto, setFoto] = useState(null);
+  const [contacto1, setContacto1] = useState('');
+  const [contacto2, setContacto2] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -37,6 +42,7 @@ function RegistroDatosExtra() {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append('nombre', nombres);
@@ -47,38 +53,59 @@ function RegistroDatosExtra() {
       formData.append('sexo', sexo);
       formData.append('fecha_nacimiento', fechaNacimiento);
       formData.append('telefono', telefono);
-      if (foto) {
-        formData.append('foto', foto);
-      }
+      formData.append('contacto1', contacto1);
+      formData.append('contacto2', contacto2);
+      formData.append('descripcion', descripcion); // Asegura que la descripción se envía al backend
+      
+      if (foto) formData.append('foto', foto);
 
-      await authService.register(formData); // No pongas headers aquí, axios lo hace solo con FormData
+      await authService.register(formData);
 
-      if (password === 'MICROSOFT_AUTH') {
-        navigate('/feed');
-      } else {
-        const loginResp = await authService.login(correo, password);
-        localStorage.setItem('token', loginResp.data.token);
-        navigate('/feed');
-      }
+      // Si llegamos aquí fue OK
+      const loginResp = password === 'MICROSOFT_AUTH'
+        ? await authService.login(correo, 'MICROSOFT_AUTH')
+        : await authService.login(correo, password);
+
+      localStorage.setItem('token', loginResp.data.token);
+      await refreshUser();
+      navigate('/feed');
+
     } catch (err) {
-      if (err.response && err.response.data) {
-        // Mostrar solo el mensaje relevante si existe
-        const data = err.response.data;
-        if (data.detail) {
-          setError('Error: ' + data.detail);
-        } else {
-          setError('Error: ' + JSON.stringify(data, null, 2));
+      console.log('❌ /api/registrar/ error:', err.response?.data);
+
+      // 1) Mensaje por defecto
+      let msg = 'Error al registrar usuario.';
+
+      const data = err.response?.data;
+      if (data) {
+        // 2) Si viene validación por nombre_usuario:
+        if (Array.isArray(data.nombre_usuario) && data.nombre_usuario.length) {
+          msg = data.nombre_usuario[0];
         }
-      } else {
-        setError('Error al registrar usuario.');
+        // 3) Otras claves que quieras capturar:
+        else if (Array.isArray(data.username) && data.username.length) {
+          msg = data.username[0];
+        }
+        // 4) O detalle genérico:
+        else if (typeof data.detail === 'string') {
+          msg = data.detail;
+        }
+        // 5) Cualquier otro array de errores:
+        else {
+          const flat = Object.values(data).flat();
+          if (flat.length) msg = flat.join(' ');
+        }
       }
+
+      setError(msg);
+
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="registro-bg-img" style={{height: '100vh', overflowY: 'auto'}}>
+    <div className="registro-bg-img" style={{ height: '100vh', overflowY: 'auto' }}>
       <div className="registro-sidebar-img">
         <img src="/logo-pequeno.svg" alt="logo" className="registro-sidebar-logo-img" />
       </div>
@@ -114,7 +141,7 @@ function RegistroDatosExtra() {
                   Quitar foto
                 </button>
               )}
-              <input id="foto" type="file" accept="image/*" style={{display:'none'}} onChange={handleFotoChange} ref={fileInputRef} />
+              <input id="foto" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFotoChange} ref={fileInputRef} />
             </div>
             <div className="registro-user-fields-img">
               <span className="registro-section-title-img">Perfil de usuario</span>
@@ -145,9 +172,34 @@ function RegistroDatosExtra() {
           </div>
           <div className="registro-contact-section-img">
             <span className="registro-section-title-img">Información de contacto</span>
-            <div className="registro-contact-fields-img">
-              <input placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} />
-              <input placeholder="Correo electrónico" value={correo} onChange={e => setCorreo(e.target.value)} required />
+            <div className="registro-contact-fields-img" style={{ display: 'flex', gap: 30 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Teléfono</label>
+                <input placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} />
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Otra forma de contacto</label>
+                  <input placeholder="Otra forma de contacto" value={contacto1} style={{ width: '100%', minWidth: 220 }} onChange={e => setContacto1(e.target.value)} />
+                  <label style={{ color: '#b3b3b3', margin: '13px 0 4px 0', display: 'block' }}>Otra forma de contacto 2</label>
+                  <input placeholder="Otra forma de contacto 2" value={contacto2} style={{ width: '100%', minWidth: 220 }} onChange={e => setContacto2(e.target.value)} />
+                </div>
+              </div>
+              <div style={{ flex: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                <div>
+                  <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Correo electrónico</label>
+                  <input placeholder="Correo electrónico" value={correo} disabled style={{ width: '100%', minWidth: 220 }} />
+                </div>
+                <div style={{ marginTop: 11, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+                  <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Descripción</label>
+                  <input
+                    placeholder="Breve descripción"
+                    value={descripcion}
+                    onChange={e => setDescripcion(e.target.value.slice(0, 60))}
+                    maxLength={60}
+                    style={{ width: '100%' }}
+                  />
+                  <span style={{ color: '#7ee787', fontSize: '0.98rem', alignSelf: 'flex-end', marginTop: 2 }}>{descripcion.length} / 60 caracteres</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="registro-btn-row-img">

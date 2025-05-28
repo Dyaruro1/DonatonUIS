@@ -14,6 +14,10 @@ class Usuario(AbstractUser):
     fecha_nacimiento = models.DateField(blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     foto = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    descripcion = models.CharField(max_length=255, blank=True, null=True)
+    contacto1 = models.CharField(max_length=100, blank=True, null=True)
+    contacto2 = models.CharField(max_length=100, blank=True, null=True)
+    tipoUsuario = models.CharField(max_length=50, blank=True, null=True, default="estandar")
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'correo'

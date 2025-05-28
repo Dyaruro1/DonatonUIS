@@ -10,6 +10,7 @@ function Register() {
   const [captchaChecked, setCaptchaChecked] = useState(false);
   const [msalError, setMsalError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { instance } = useMsal();
   const { login } = authService;
@@ -51,7 +52,13 @@ function Register() {
       const email = loginResponse.account.username;
       if (!email.endsWith('@correo.uis.edu.co')) {
         setMsalError('Solo se permite registrar cuentas @correo.uis.edu.co');
-        await instance.logoutPopup();
+        setLoading(false);
+        return;
+      }
+      // Verifica si ya existe una cuenta con ese correo
+      const resp = await authService.checkEmail(email.trim().toLowerCase());
+      if (resp.data.exists) {
+        setMsalError('Ya existe una cuenta registrada con ese correo.');
         setLoading(false);
         return;
       }
@@ -59,6 +66,8 @@ function Register() {
       navigate('/registro-datos-extra', { state: { email, password: 'MICROSOFT_AUTH' } });
     } catch (err) {
       setMsalError('Error al registrar con Microsoft');
+      // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
+      await instance.logoutPopup();
     } finally {
       setLoading(false);
     }
@@ -85,15 +94,31 @@ function Register() {
             required
           />
           <label className="login-label" htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            className="login-input"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-          />
+          <div style={{ position: 'relative', width: '100%' }}>
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              className="login-input"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+              style={{ background: '#fff', color: '#18192b', border: '1px solid #e0e0e0', borderRadius: 10, padding: '1rem 3.2rem 1rem 1.1rem', fontSize: '1.08rem', width: '100%' }}
+            />
+            <span
+              onClick={() => setShowPassword(v => !v)}
+              style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#babcc4', fontSize: 22 }}
+              tabIndex={0}
+              role="button"
+              aria-label="Mostrar/ocultar contraseña"
+            >
+              {showPassword ? (
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#babcc4" strokeWidth="2"/><circle cx="12" cy="12" r="3.5" stroke="#babcc4" strokeWidth="2"/></svg>
+              ) : (
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.77 21.77 0 0 1 5.06-6.06M1 1l22 22" stroke="#babcc4" strokeWidth="2"/></svg>
+              )}
+            </span>
+          </div>
           <div className="login-captcha-row">
             <input
               type="checkbox"
@@ -114,7 +139,7 @@ function Register() {
             {loading ? 'Cargando...' : 'Continuar'}
           </button>
         </form>
-        <div className="login-links">
+        <div className="login-links" style={{ textAlign: 'center', width: '100%' }}>
           <a href="#" className="login-link">¿Necesitas ayuda?</a>
         </div>
         <div className="login-register-row">

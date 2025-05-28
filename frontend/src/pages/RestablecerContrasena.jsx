@@ -15,24 +15,28 @@ function RestablecerContrasena() {
     setError('');
     setLoading(true);
     try {
-      await authService.restablecerContrasena(correo);
+      // Validar si el correo existe antes de llamar a la API de restablecimiento
+      const resp = await authService.checkEmail(correo.trim().toLowerCase());
+      if (!resp.data.exists) {
+        setError('No existe una cuenta con ese correo.');
+        setLoading(false);
+        return;
+      }
+      // Si existe, llamar a la API de restablecimiento (el backend debe enviar el correo y cambiar la contraseña)
+      await authService.restablecerContrasena(correo.trim().toLowerCase());
       setEnviado(true);
     } catch (err) {
-      if (err.response && err.response.status === 404) {
-        setError('No existe una cuenta con ese correo.');
-      } else {
-        setError('No se pudo enviar el correo. Intenta de nuevo.');
-      }
+      setError('No se pudo enviar el correo. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-bg-container">
+    <div className="login-bg-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
       <div className="login-bg-overlay"></div>
       <div className="login-header-title">DONATON UIS</div>
-      <div className="login-form-container">
+      <div className="login-form-container" style={{ margin: '0 auto', maxWidth: 400, width: '100%' }}>
         <div className="login-avatar">
           <svg height="80" width="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="40" cy="40" r="40" fill="#21E058" />
@@ -51,7 +55,7 @@ function RestablecerContrasena() {
             <div style={{color: '#333', fontSize: '1rem', textAlign: 'center', marginBottom: '1.2rem'}}>
               Introduce tu dirección de correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña.
             </div>
-            <form className="login-form" onSubmit={handleSubmit}>
+            <form className="login-form" onSubmit={handleSubmit} style={{ margin: 0 }}>
               <label className="login-label" htmlFor="correo">Correo</label>
               <input
                 id="correo"

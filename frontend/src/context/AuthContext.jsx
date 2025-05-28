@@ -8,12 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Comprobar si hay un token en localStorage
     const token = localStorage.getItem('token');
     if (token) {
-      // Aquí podrías implementar la verificación del usuario actual si tienes endpoint, pero por ahora solo marca loading false
-      setLoading(false);
+      // Cargar usuario actual desde el backend
+      authService.getCurrentUser()
+        .then(res => {
+          setCurrentUser(res.data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setCurrentUser(null);
+          setLoading(false);
+        });
     } else {
+      setCurrentUser(null);
       setLoading(false);
     }
   }, []);
@@ -23,7 +31,9 @@ export function AuthProvider({ children }) {
     try {
       const response = await authService.login(correo, contrasena);
       localStorage.setItem('token', response.data.token);
-      setCurrentUser(response.data.usuario);
+      // Fetch the current user from backend to ensure fresh data
+      const userRes = await authService.getCurrentUser();
+      setCurrentUser(userRes.data);
       return true;
     } catch (error) {
       return false;
@@ -46,12 +56,46 @@ export function AuthProvider({ children }) {
     }
   };
   
+  // Función para actualizar el perfil del usuario autenticado
+  const updateProfile = async (userData) => {
+    try {
+      const response = await authService.updateProfile(userData);
+      setCurrentUser(response.data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Función para refrescar el usuario desde el backend
+  const refreshUser = async () => {
+    try {
+      const response = await authService.getCurrentUser();
+      setCurrentUser(response.data);
+    } catch (error) {
+      setCurrentUser(null);
+    }
+  };
+
+  // Función para cambiar la contraseña del usuario autenticado
+  const cambiarContrasena = async (contrasena_anterior, contrasena_nueva) => {
+    try {
+      const response = await authService.cambiarContrasena(contrasena_anterior, contrasena_nueva);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Error al cambiar la contraseña.' };
+    }
+  };
+
   const value = {
     currentUser,
     loading,
     login,
     logout,
-    register
+    register,
+    updateProfile,
+    refreshUser,
+    cambiarContrasena
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
