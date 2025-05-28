@@ -410,7 +410,7 @@ function PerfilUsuario() {
           </div>
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Correo electrónico</label>
-            <input className="perfil-input" name="correo" value={user.correo || ''} placeholder="danielestebanyaruro@gmail.com" disabled={!editable} onChange={handleInputChange} />
+            <input className="perfil-input" name="correo" value={user.correo || ''} placeholder="danielestebanyaruro@gmail.com" disabled /* siempre deshabilitado */ onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
             <input className="perfil-input" name="contacto2" value={user.contacto2 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
           </div>

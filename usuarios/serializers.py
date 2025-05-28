@@ -27,6 +27,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'username': {'read_only': True},
+            'tipoUsuario': {'read_only': True},
         }
 
     def to_internal_value(self, data):
@@ -60,11 +61,21 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, data):
-        # Validar que el nombre de usuario no exista
+        # Validar que el nombre de usuario no exista SOLO si viene y no es vacío
         username = data.get('nombre_usuario')
         correo = data.get('correo')
-        if username and Usuario.objects.filter(username=username).exists():
-            raise serializers.ValidationError({'nombre_usuario': 'Este nombre de usuario ya está en uso.'})
-        if correo and Usuario.objects.filter(correo=correo).exists():
-            raise serializers.ValidationError({'correo': 'Este correo ya está en uso.'})
+        request = self.context.get('request')
+        user = request.user if request else None
+        if username is not None and username != '':
+            qs = Usuario.objects.filter(username=username)
+            if user and user.is_authenticated:
+                qs = qs.exclude(pk=user.pk)
+            if qs.exists():
+                raise serializers.ValidationError({'nombre_usuario': 'Este nombre de usuario ya está en uso.'})
+        if correo:
+            qs = Usuario.objects.filter(correo=correo)
+            if user and user.is_authenticated:
+                qs = qs.exclude(pk=user.pk)
+            if qs.exists():
+                raise serializers.ValidationError({'correo': 'Este correo ya está en uso.'})
         return data

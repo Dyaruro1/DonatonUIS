@@ -18,6 +18,9 @@ function RegistroDatosExtra() {
   const [telefono, setTelefono] = useState('');
   const [correo, setCorreo] = useState(email || '');
   const [foto, setFoto] = useState(null);
+  const [contacto1, setContacto1] = useState('');
+  const [contacto2, setContacto2] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -50,6 +53,9 @@ function RegistroDatosExtra() {
       formData.append('sexo', sexo);
       formData.append('fecha_nacimiento', fechaNacimiento);
       formData.append('telefono', telefono);
+      formData.append('contacto1', contacto1);
+      formData.append('contacto2', contacto2);
+      formData.append('descripcion', descripcion); // Asegura que la descripción se envía al backend
       
       if (foto) formData.append('foto', foto);
 
@@ -166,9 +172,34 @@ function RegistroDatosExtra() {
           </div>
           <div className="registro-contact-section-img">
             <span className="registro-section-title-img">Información de contacto</span>
-            <div className="registro-contact-fields-img">
-              <input placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} />
-              <input placeholder="Correo electrónico" value={correo} onChange={e => setCorreo(e.target.value)} required />
+            <div className="registro-contact-fields-img" style={{ display: 'flex', gap: 30 }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Teléfono</label>
+                <input placeholder="Teléfono" value={telefono} onChange={e => setTelefono(e.target.value)} />
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Otra forma de contacto</label>
+                  <input placeholder="Otra forma de contacto" value={contacto1} style={{ width: '100%', minWidth: 220 }} onChange={e => setContacto1(e.target.value)} />
+                  <label style={{ color: '#b3b3b3', margin: '13px 0 4px 0', display: 'block' }}>Otra forma de contacto 2</label>
+                  <input placeholder="Otra forma de contacto 2" value={contacto2} style={{ width: '100%', minWidth: 220 }} onChange={e => setContacto2(e.target.value)} />
+                </div>
+              </div>
+              <div style={{ flex: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                <div>
+                  <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Correo electrónico</label>
+                  <input placeholder="Correo electrónico" value={correo} disabled style={{ width: '100%', minWidth: 220 }} />
+                </div>
+                <div style={{ marginTop: 11, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+                  <label style={{ color: '#b3b3b3', marginBottom: 4, display: 'block' }}>Descripción</label>
+                  <input
+                    placeholder="Breve descripción"
+                    value={descripcion}
+                    onChange={e => setDescripcion(e.target.value.slice(0, 60))}
+                    maxLength={60}
+                    style={{ width: '100%' }}
+                  />
+                  <span style={{ color: '#7ee787', fontSize: '0.98rem', alignSelf: 'flex-end', marginTop: 2 }}>{descripcion.length} / 60 caracteres</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="registro-btn-row-img">
