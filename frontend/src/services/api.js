@@ -32,7 +32,7 @@ export const authService = {
   },
   checkEmail: (correo) => api.get(`/api/verificar-correo/?correo=${encodeURIComponent(correo)}`),
   getCurrentUser: () => api.get('/api/usuarios/me'),
-  restablecerContrasena: (correo) => api.post('/api/usuarios/restablecer-contrasena/', { correo }, { headers: { 'Content-Type': 'application/json' } }),
+  restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }, { headers: { 'Content-Type': 'application/json' } }),
   updateProfile: (userData) => {
     const isFormData = (typeof FormData !== 'undefined') && userData instanceof FormData;
     const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };

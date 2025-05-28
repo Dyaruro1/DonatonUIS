@@ -406,7 +406,7 @@ function PerfilUsuario() {
             <label className="perfil-label">Teléfono</label>
             <input className="perfil-input" name="telefono" value={user.telefono || ''} placeholder="3183749230" disabled={!editable} onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
-            <input className="perfil-input" name="contacto1" value={user.contacto1 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} style={{ background: '#191a2e', color: '#fff', border: 'none', borderRadius: 10, padding: '1rem 1.1rem', fontSize: '1.08rem', width: '100%' }} />
+            <input className="perfil-input" name="contacto1" value={user.contacto1 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
           </div>
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Correo electrónico</label>
