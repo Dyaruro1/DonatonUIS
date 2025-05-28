@@ -40,6 +40,9 @@ export const authService = {
   },
   cambiarContrasena: (contrasena_anterior, contrasena_nueva) =>
     api.post('/api/usuarios/cambiar_contrasena/', { contrasena_anterior, contrasena_nueva }, { headers: { 'Content-Type': 'application/json' } }),
+  updateUsername: (nombre_usuario) =>
+    api.patch('/api/usuarios/cambiar_nombre_usuario/', { nombre_usuario }, { headers: { 'Content-Type': 'application/json' } }),
+  deleteAccount: () => api.delete('/api/usuarios/eliminar_cuenta/'),
 };
 
 export const donatonService = {

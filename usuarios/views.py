@@ -120,3 +120,25 @@ def perfil_usuario_actual(request):
     user = request.user
     serializer = UsuarioSerializer(user)
     return Response(serializer.data)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def cambiar_nombre_usuario(request):
+    user = request.user
+    nuevo_username = request.data.get('nombre_usuario')
+    if not nuevo_username:
+        return Response({'detail': 'Debes proporcionar un nombre de usuario.'}, status=status.HTTP_400_BAD_REQUEST)
+    if len(nuevo_username) < 2:
+        return Response({'detail': 'El nombre de usuario debe tener al menos 2 caracteres.'}, status=status.HTTP_400_BAD_REQUEST)
+    if Usuario.objects.filter(username=nuevo_username).exclude(pk=user.pk).exists():
+        return Response({'detail': 'Este nombre de usuario ya está en uso.'}, status=status.HTTP_400_BAD_REQUEST)
+    user.username = nuevo_username
+    user.save()
+    return Response({'detail': 'Nombre de usuario actualizado correctamente.'})
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def eliminar_cuenta(request):
+    user = request.user
+    user.delete()
+    return Response({'detail': 'Cuenta eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)

@@ -38,8 +38,8 @@ function Ajustes() {
     setUsernameMsg('');
     setErrorMsg('');
     // Validación: debe empezar con arroba y tener al menos 2 caracteres
-    if (!usernameInput.startsWith('@') || usernameInput.length < 2) {
-      setErrorMsg('El nombre de usuario debe empezar con "@" y tener al menos 2 caracteres.');
+    if (usernameInput.length < 2) {
+      setErrorMsg('El nombre de usuario debe tener al menos 2 caracteres.');
       return;
     }
     setPendingUsername(usernameInput);
@@ -55,7 +55,15 @@ function Ajustes() {
       setUsername(pendingUsername);
       setUsernameMsg('Nombre de usuario actualizado correctamente.');
     } catch (err) {
-      setErrorMsg('No se pudo actualizar el nombre de usuario.');
+      // Mostrar mensaje de error específico del backend si existe
+      let msg = 'No se pudo actualizar el nombre de usuario.';
+      if (err.response && err.response.data) {
+        const data = err.response.data;
+        if (typeof data.detail === 'string') msg = data.detail;
+        else if (Array.isArray(data.nombre_usuario) && data.nombre_usuario.length) msg = data.nombre_usuario[0];
+        else if (Array.isArray(data.username) && data.username.length) msg = data.username[0];
+      }
+      setErrorMsg(msg);
     }
   };
 
