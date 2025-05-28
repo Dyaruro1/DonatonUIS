@@ -45,6 +45,14 @@
   background: #23233a;
   margin-top: 0.5rem;
 }
+.admin-user-profile-username {
+  margin-top: 0.7rem;
+  color: #babcc4;
+  font-size: 1.13rem;
+  font-weight: 600;
+  text-align: center;
+  word-break: break-all;
+}
 .admin-user-profile-info {
   flex: 1;
   display: flex;

@@ -153,6 +153,10 @@ function PerfilAdmin() {
             <div className="perfil-foto-wrapper">
               <img src={foto} alt="Foto de perfil" className="perfil-foto" />
             </div>
+            {/* NOMBRE DE USUARIO DEBAJO DE LA FOTO */}
+            <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem', marginTop: 12, marginBottom: 0, textAlign: 'center' }}>
+              {currentUser?.username}
+            </div>
             {editable && (
               <>
                 <input id="foto-admin-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFoto} />

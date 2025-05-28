@@ -37,6 +37,7 @@ function AdminUsuarioDetalle() {
           <div className="admin-user-profile-main">
             <div className="admin-user-profile-photo-col">
               <img src={user.foto || '/logo-pequeno.svg'} alt="avatar" className="admin-user-profile-photo" />
+              <div className="admin-user-profile-username">@{user.username}</div>
             </div>
             <div className="admin-user-profile-info">
               <div className="admin-user-profile-row">
