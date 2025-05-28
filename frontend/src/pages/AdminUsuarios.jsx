@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./AdminUsuarios.css";
 import api from '../services/api';
 import AdminSidebar from '../components/AdminSidebar';
+import { useNavigate } from 'react-router-dom';
 
 function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState([]);
@@ -10,6 +11,7 @@ function UsuariosAdmin() {
   const [now, setNow] = useState(Date.now());
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const navigate = useNavigate();
 
   // Actualiza el tiempo cada 30 segundos para refrescar el estado en línea
   useEffect(() => {
@@ -74,7 +76,10 @@ function UsuariosAdmin() {
                     </span>
                   </td>
                   <td>
-                    <button style={{background:'none',color:'#21e058',border:'none',fontWeight:600,cursor:'pointer'}}>
+                    <button 
+                      style={{background:'none',color:'#21e058',border:'none',fontWeight:600,cursor:'pointer'}}
+                      onClick={() => window.location.href = `/admin/contactar-usuario/${u.id}`}
+                    >
                       Contactar usuario
                     </button>
                   </td>
