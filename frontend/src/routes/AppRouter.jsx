@@ -17,6 +17,8 @@ import PrendaPublicaDetalle from '../pages/PrendaPublicaDetalle';
 import AdminHome from '../pages/AdminHome';
 import AdminUsuarios from '../pages/AdminUsuarios';
 import AdminPost from '../pages/AdminPost';
+import PerfilAdmin from '../pages/PerfilAdmin';
+import AdminConfiguracion from '../pages/AdminConfiguracion';
 
 function AppContent() {
   const location = useLocation();
@@ -48,6 +50,8 @@ function AppContent() {
           <Route path="/admin" element={<AdminHome />} />
           <Route path="/admin/users" element={<AdminUsuarios />} />
           <Route path="/admin/posts" element={<AdminPost />} />
+          <Route path="/admin/perfil-admin" element={<PerfilAdmin />} />
+          <Route path="/admin/configuracion" element={<AdminConfiguracion />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
