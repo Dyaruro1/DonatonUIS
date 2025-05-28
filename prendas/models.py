@@ -11,6 +11,7 @@ class Prenda(models.Model):
     sexo = models.CharField(max_length=10, choices=SEXO_CHOICES)
     uso = models.CharField(max_length=100, blank=True, null=True)
     imagen_url = models.URLField(blank=True, null=True)
+    visitas = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.nombre
