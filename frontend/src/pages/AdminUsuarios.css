@@ -54,6 +54,44 @@
   border-bottom: none;
 }
 
+.admin-eye-btn {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s;
+}
+
+.admin-eye-btn:hover {
+  background: #23233a;
+  box-shadow: 0 2px 12px #0002;
+}
+
+.admin-block-btn {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s;
+}
+
+.admin-block-btn:hover {
+  background: #2a1a1a;
+  box-shadow: 0 2px 12px #ff6b6b33;
+}
+
 @media (max-width: 700px) {
   .admin-usuarios-container {
     padding: 12px 2px;

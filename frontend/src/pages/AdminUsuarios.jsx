@@ -6,6 +6,15 @@ function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [now, setNow] = useState(Date.now());
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // Actualiza el tiempo cada 30 segundos para refrescar el estado en línea
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     api.get('/api/usuarios/')
@@ -14,13 +23,21 @@ function UsuariosAdmin() {
       .finally(() => setLoading(false));
   }, []);
 
-  const toggleActivo = async (id, activo) => {
-    try {
-      await api.patch(`/api/usuarios/${id}/`, { is_active: !activo });
-      setUsuarios(usuarios => usuarios.map(u => u.id === id ? { ...u, is_active: !activo } : u));
-    } catch {
-      alert("No se pudo cambiar el estado del usuario.");
-    }
+  // Considera en línea si el usuario actualizó su actividad en los últimos 2 minutos
+  const isOnline = (lastActive) => {
+    if (!lastActive) return false;
+    const last = new Date(lastActive).getTime();
+    return now - last < 2 * 60 * 1000;
+  };
+
+  // Solo UI: mostrar confirmación
+  const handleShowConfirm = (user) => {
+    setSelectedUser(user);
+    setShowConfirm(true);
+  };
+  const handleCloseConfirm = () => {
+    setShowConfirm(false);
+    setSelectedUser(null);
   };
 
   return (
@@ -46,10 +63,10 @@ function UsuariosAdmin() {
                 <img src={u.foto || '/logo-pequeno.svg'} alt="avatar" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',background:'#23233a'}} />
                 <span style={{fontWeight:600}}>{u.nombre} {u.apellido}</span>
               </td>
-              <td>Hoy</td>
+              <td>{u.last_active ? new Date(u.last_active).toLocaleDateString() === new Date().toLocaleDateString() ? 'Hoy' : new Date(u.last_active).toLocaleDateString() : 'Desconocido'}</td>
               <td>
-                <span style={{background:u.is_active?"#21e058":"#babcc4",color:u.is_active?"#fff":"#23233a",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
-                  {u.is_active ? "En línea" : "Desconectado"}
+                <span style={{background:isOnline(u.last_active)?"#21e058":"#babcc4",color:isOnline(u.last_active)?"#fff":"#23233a",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
+                  {isOnline(u.last_active) ? "En línea" : "Desconectado"}
                 </span>
               </td>
               <td>
@@ -58,11 +75,12 @@ function UsuariosAdmin() {
                 </button>
               </td>
               <td>
-                <button onClick={()=>toggleActivo(u.id, u.is_active)} style={{background:'none',border:'none',cursor:'pointer'}} title={u.is_active?"Bloquear usuario":"Desbloquear usuario"}>
-                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke="#babcc4" strokeWidth="2" fill="none" />
-                    <ellipse cx="12" cy="12" rx="6" ry="3" fill={u.is_active?"#21e058":"#babcc4"} />
-                    <circle cx="12" cy="12" r="2" fill="#fff" />
+                <button onClick={()=>handleShowConfirm(u)} className="admin-block-btn" title="Bloquear usuario">
+                  {/* Ícono de candado cerrado */}
+                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#ff6b6b" strokeWidth="2"/>
+                    <path d="M9 12V9a5 5 0 0 1 10 0v3" stroke="#ff6b6b" strokeWidth="2" fill="none"/>
+                    <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
                   </svg>
                 </button>
               </td>
@@ -70,6 +88,67 @@ function UsuariosAdmin() {
           ))}
         </tbody>
       </table>
+      )}
+      {/* Modal de confirmación de bloqueo */}
+      {showConfirm && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(24,25,43,0.55)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 100,
+          }} onClick={handleCloseConfirm}></div>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 101,
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 24,
+              boxShadow: '0 2px 32px 0 #0004',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 340,
+              maxWidth: 400,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}>
+              <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                ¿Seguro que deseas bloquear a {selectedUser?.nombre} {selectedUser?.apellido}?
+              </div>
+              <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                Esta acción impedirá que el usuario acceda a la plataforma hasta que sea desbloqueado.
+              </div>
+              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                <button
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={handleCloseConfirm}
+                >
+                  Cancelar
+                </button>
+                <button
+                  style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={handleCloseConfirm}
+                >
+                  Bloquear
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
