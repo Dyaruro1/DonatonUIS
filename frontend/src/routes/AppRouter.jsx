@@ -14,6 +14,9 @@ import PrendaDetalle from '../pages/PrendaDetalle';
 import EditarPublicacion from '../pages/EditarPublicacion';
 import Ajustes from '../pages/Ajustes';
 import PrendaPublicaDetalle from '../pages/PrendaPublicaDetalle';
+import AdminHome from '../pages/AdminHome';
+import AdminUsuarios from '../pages/AdminUsuarios';
+import AdminPost from '../pages/AdminPost';
 
 function AppContent() {
   const location = useLocation();
@@ -42,6 +45,9 @@ function AppContent() {
           <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
           <Route path="/feed" element={<FeedPrendas />} />
           <Route path="/prenda-publica" element={<PrendaPublicaDetalle />} />
+          <Route path="/admin" element={<AdminHome />} />
+          <Route path="/admin/users" element={<AdminUsuarios />} />
+          <Route path="/admin/posts" element={<AdminPost />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
