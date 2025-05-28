@@ -13,6 +13,49 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import check_password
+from django.core.mail import EmailMessage
+import random
+import requests
+import msal
+
+# Configuración de Microsoft Graph (rellena con tus datos reales)
+MS_CLIENT_ID = 'TU_CLIENT_ID'
+MS_CLIENT_SECRET = 'TU_CLIENT_SECRET'
+MS_TENANT_ID = 'TU_TENANT_ID'
+MS_SENDER = 'julio2220089@correo.uis.edu.co'  # El correo desde el que se enviará
+MS_AUTHORITY = f'https://login.microsoftonline.com/{MS_TENANT_ID}'
+MS_SCOPE = ['https://graph.microsoft.com/.default']
+
+def enviar_correo_microsoft(destinatario, asunto, mensaje):
+    app = msal.ConfidentialClientApplication(
+        MS_CLIENT_ID,
+        authority=MS_AUTHORITY,
+        client_credential=MS_CLIENT_SECRET
+    )
+    result = app.acquire_token_for_client(scopes=MS_SCOPE)
+    if 'access_token' not in result:
+        raise Exception('No se pudo obtener el token de Microsoft Graph')
+    access_token = result['access_token']
+    url = f'https://graph.microsoft.com/v1.0/users/{MS_SENDER}/sendMail'
+    email_msg = {
+        "message": {
+            "subject": asunto,
+            "body": {
+                "contentType": "Text",
+                "content": mensaje
+            },
+            "toRecipients": [
+                {"emailAddress": {"address": destinatario}}
+            ]
+        }
+    }
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    response = requests.post(url, headers=headers, json=email_msg)
+    if not response.ok:
+        raise Exception(f'Error enviando correo: {response.text}')
 
 # Create your views here.
 
@@ -142,3 +185,22 @@ def eliminar_cuenta(request):
     user = request.user
     user.delete()
     return Response({'detail': 'Cuenta eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def restablecer_contrasena(request):
+    correo = request.data.get('correo', '').strip().lower()
+    if not correo:
+        return Response({'detail': 'Debes proporcionar un correo.'}, status=status.HTTP_400_BAD_REQUEST)
+    usuario = Usuario.objects.filter(correo=correo).first()
+    if not usuario:
+        return Response({'detail': 'No existe una cuenta con ese correo.'}, status=status.HTTP_404_NOT_FOUND)
+    # Generar nueva contraseña aleatoria de 3 dígitos
+    nueva_contrasena = str(random.randint(100, 999))
+    usuario.set_password(nueva_contrasena)
+    usuario.save()
+    # Enviar correo con la nueva contraseña usando Microsoft Graph
+    subject = 'Restablecimiento de contraseña - Donaton UIS'
+    message = f'Su nueva contraseña temporal es: {nueva_contrasena}'
+    enviar_correo_microsoft(correo, subject, message)
+    return Response({'detail': 'Se ha enviado un correo con la nueva contraseña.'}, status=status.HTTP_200_OK)
