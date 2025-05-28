@@ -39,6 +39,7 @@ function RegistroDatosExtra() {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append('nombre', nombres);
@@ -49,43 +50,56 @@ function RegistroDatosExtra() {
       formData.append('sexo', sexo);
       formData.append('fecha_nacimiento', fechaNacimiento);
       formData.append('telefono', telefono);
-      if (foto) {
-        formData.append('foto', foto);
-      }
+      
+      if (foto) formData.append('foto', foto);
 
-      await authService.register(formData); // No pongas headers aquí, axios lo hace solo con FormData
+      await authService.register(formData);
 
-      if (password === 'MICROSOFT_AUTH') {
-        // Login automático tras registro con Microsoft
-        const loginResp = await authService.login(correo, 'MICROSOFT_AUTH');
-        localStorage.setItem('token', loginResp.data.token);
-        await refreshUser();
-        navigate('/feed');
-      } else {
-        const loginResp = await authService.login(correo, password);
-        localStorage.setItem('token', loginResp.data.token);
-        await refreshUser();
-        navigate('/feed');
-      }
+      // Si llegamos aquí fue OK
+      const loginResp = password === 'MICROSOFT_AUTH'
+        ? await authService.login(correo, 'MICROSOFT_AUTH')
+        : await authService.login(correo, password);
+
+      localStorage.setItem('token', loginResp.data.token);
+      await refreshUser();
+      navigate('/feed');
+
     } catch (err) {
-      if (err.response && err.response.data) {
-        // Mostrar solo el mensaje relevante si existe
-        const data = err.response.data;
-        if (data.detail) {
-          setError('Error: ' + data.detail);
-        } else {
-          setError('Error: ' + JSON.stringify(data, null, 2));
+      console.log('❌ /api/registrar/ error:', err.response?.data);
+
+      // 1) Mensaje por defecto
+      let msg = 'Error al registrar usuario.';
+
+      const data = err.response?.data;
+      if (data) {
+        // 2) Si viene validación por nombre_usuario:
+        if (Array.isArray(data.nombre_usuario) && data.nombre_usuario.length) {
+          msg = data.nombre_usuario[0];
         }
-      } else {
-        setError('Error al registrar usuario.');
+        // 3) Otras claves que quieras capturar:
+        else if (Array.isArray(data.username) && data.username.length) {
+          msg = data.username[0];
+        }
+        // 4) O detalle genérico:
+        else if (typeof data.detail === 'string') {
+          msg = data.detail;
+        }
+        // 5) Cualquier otro array de errores:
+        else {
+          const flat = Object.values(data).flat();
+          if (flat.length) msg = flat.join(' ');
+        }
       }
+
+      setError(msg);
+
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="registro-bg-img" style={{height: '100vh', overflowY: 'auto'}}>
+    <div className="registro-bg-img" style={{ height: '100vh', overflowY: 'auto' }}>
       <div className="registro-sidebar-img">
         <img src="/logo-pequeno.svg" alt="logo" className="registro-sidebar-logo-img" />
       </div>
@@ -121,7 +135,7 @@ function RegistroDatosExtra() {
                   Quitar foto
                 </button>
               )}
-              <input id="foto" type="file" accept="image/*" style={{display:'none'}} onChange={handleFotoChange} ref={fileInputRef} />
+              <input id="foto" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFotoChange} ref={fileInputRef} />
             </div>
             <div className="registro-user-fields-img">
               <span className="registro-section-title-img">Perfil de usuario</span>

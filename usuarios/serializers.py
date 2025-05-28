@@ -58,3 +58,13 @@ class UsuarioSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+    def validate(self, data):
+        # Validar que el nombre de usuario no exista
+        username = data.get('nombre_usuario')
+        correo = data.get('correo')
+        if username and Usuario.objects.filter(username=username).exists():
+            raise serializers.ValidationError({'nombre_usuario': 'Este nombre de usuario ya está en uso.'})
+        if correo and Usuario.objects.filter(correo=correo).exists():
+            raise serializers.ValidationError({'correo': 'Este correo ya está en uso.'})
+        return data

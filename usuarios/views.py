@@ -100,7 +100,7 @@ def registrar_usuario(request):
         return Response({'detail': 'Usuario registrado correctamente.'}, status=status.HTTP_201_CREATED)
     else:
         print('Errores de validación:', serializer.errors)
-        return Response({'detail': 'Error de validación', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UsuarioRegistroAPIView(generics.CreateAPIView):
     queryset = Usuario.objects.all()
