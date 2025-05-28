@@ -13,7 +13,7 @@ const initialUser = {
 };
 
 function PerfilAdmin() {
-  const { currentUser, updateProfile, cambiarContrasena } = useContext(AuthContext);
+  const { currentUser, updateProfile, cambiarContrasena, refreshUser } = useContext(AuthContext);
   const [user, setUser] = useState(initialUser);
   const [foto, setFoto] = useState(user.foto);
   const [editable, setEditable] = useState(false);
@@ -35,6 +35,8 @@ function PerfilAdmin() {
         descripcion: currentUser.descripcion || '',
         telefono: currentUser.telefono || '',
         correo: currentUser.correo || '',
+        contacto1: currentUser.contacto1 || '',
+        contacto2: currentUser.contacto2 || '',
         foto: currentUser.foto || '/logo-pequeno.svg',
       });
       setFoto(currentUser.foto || '/logo-pequeno.svg');
@@ -76,6 +78,8 @@ function PerfilAdmin() {
       formData.append('descripcion', user.descripcion);
       formData.append('telefono', user.telefono);
       formData.append('correo', user.correo);
+      formData.append('contacto1', user.contacto1 || '');
+      formData.append('contacto2', user.contacto2 || '');
       if (foto && foto !== currentUser.foto && foto.startsWith('blob:')) {
         const fileInput = document.getElementById('foto-admin-input');
         if (fileInput && fileInput.files && fileInput.files[0]) {
@@ -83,6 +87,7 @@ function PerfilAdmin() {
         }
       }
       await updateProfile(formData);
+      await refreshUser(); // Esto actualizará currentUser y disparará el useEffect de arriba
       setEditable(false);
     } catch (err) {
       alert('No se pudo guardar el perfil. Revisa la consola para más detalles.');

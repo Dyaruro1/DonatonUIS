@@ -1,0 +1,232 @@
+.admin-user-profile-root {
+  min-height: 100vh;
+  background: #18192b;
+  color: #fff;
+  padding: 2.5rem 0 2.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.admin-user-profile-header {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.admin-user-profile-header h1 {
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+.admin-user-profile-main {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: row;
+  gap: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+.admin-user-profile-photo-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 220px;
+  justify-content: flex-start;
+}
+.admin-user-profile-photo {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #23233a;
+  background: #23233a;
+  margin-top: 0.5rem;
+}
+.admin-user-profile-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.admin-user-profile-row {
+  display: flex;
+  flex-direction: row;
+  gap: 2.2rem;
+}
+.admin-user-profile-card {
+  background: #23233a;
+  border-radius: 16px;
+  padding: 2rem 2.2rem 1.5rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 270px;
+  flex: 1;
+}
+.admin-user-profile-card label {
+  color: #babcc4;
+  font-weight: 500;
+  font-size: 1.08rem;
+  margin-bottom: 0.2rem;
+}
+.admin-user-profile-card input {
+  background: #191a2e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.1rem;
+  font-size: 1.08rem;
+  margin-bottom: 0.2rem;
+  width: 100%;
+}
+.admin-user-profile-date-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+}
+.admin-user-profile-contact-section {
+  width: 100%;
+  max-width: 1100px;
+  margin-top: 0.5rem;
+}
+.admin-user-profile-contact-section h2 {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+}
+.admin-user-profile-contact-row {
+  display: flex;
+  flex-direction: row;
+  gap: 2.2rem;
+}
+.admin-user-profile-contact-card {
+  background: #23233a;
+  border-radius: 16px;
+  padding: 1.5rem 2.2rem 1.2rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 270px;
+  flex: 1;
+}
+.admin-user-profile-contact-card label {
+  color: #babcc4;
+  font-weight: 500;
+  font-size: 1.08rem;
+  margin-bottom: 0.2rem;
+}
+.admin-user-profile-contact-card input {
+  background: #191a2e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.1rem;
+  font-size: 1.08rem;
+  margin-bottom: 0.2rem;
+  width: 100%;
+}
+.admin-user-profile-actions-row {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 2.2rem;
+}
+.admin-user-profile-back-btn {
+  background: #19213a;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.13rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 3.2rem;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.admin-user-profile-delete-btn {
+  background: #e53935;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.13rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 3.2rem;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.modal-blur {
+  position: fixed;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(24,25,43,0.55);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+}
+.modal-confirm {
+  position: fixed;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 101;
+}
+.admin-user-modal-box {
+  background: #23233a;
+  border-radius: 18px;
+  box-shadow: 0 2px 32px 0 #0004;
+  padding: 2.2rem 2.2rem 2.2rem 2.2rem;
+  min-width: 340px;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.admin-user-modal-title {
+  color: #e53935;
+  font-weight: 700;
+  font-size: 1.18rem;
+  margin-bottom: 1.1rem;
+  text-align: center;
+}
+.admin-user-modal-desc {
+  color: #fff;
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.admin-user-modal-actions {
+  display: flex;
+  gap: 22px;
+  width: 100%;
+  justify-content: center;
+}
+.admin-user-modal-btn {
+  min-width: 90px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 2.5rem;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.admin-user-modal-btn-red {
+  background: #4d1111;
+  color: #fff;
+}
+.admin-user-modal-btn-blue {
+  background: #0d1b36;
+  color: #fff;
+}
+.admin-user-modal-btn-red:hover {
+  background: #8b1e1e;
+}
+.admin-user-modal-btn-blue:hover {
+  background: #19213a;
+}

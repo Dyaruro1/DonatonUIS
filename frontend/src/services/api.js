@@ -53,4 +53,9 @@ export const donatonService = {
   getMisDonaciones: () => api.get('/donaciones/usuario'),
 };
 
+// Admin user management
+api.getUserById = (id) => api.get(`/api/usuarios/${id}/`);
+api.updateUserById = (id, data) => api.put(`/api/usuarios/${id}/`, data);
+api.deleteUserById = (id) => api.delete(`/api/usuarios/${id}/`);
+
 export default api;
