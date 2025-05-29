@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FeedPrendas.css';
 import { donatonService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 
 function FeedPrendas() {
   const [prendas, setPrendas] = useState([]);
@@ -16,19 +17,13 @@ function FeedPrendas() {
   const [filter, setFilter] = useState("");
   const [filterValue, setFilterValue] = useState("");
   const [tab, setTab] = useState("disponibles");
-  const [userId, setUserId] = useState(null);
+  const { currentUser } = useContext(AuthContext);
+  const userId = currentUser?.id;
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleSidebarNav = (route) => {
     navigate(route);
   };
-
-  // Obtener el usuario actual para "Mis publicaciones"
-  useEffect(() => {
-    donatonService.getCurrentUser?.().then(res => {
-      setUserId(res?.data?.id);
-    }).catch(() => {});
-  }, []);
 
   // Scroll infinito
   const loadMore = useCallback(async () => {
@@ -87,8 +82,11 @@ function FeedPrendas() {
   );
 
   const prendasFiltradas = uniquePrendas.filter(prenda => {
+    // Ajusta para usar userId del contexto
     if (tab === "mis") {
-      if (!userId || prenda.usuario_id !== userId) return false;
+      if (!userId || prenda.donante?.id !== userId) return false;
+    } else if (tab === "disponibles") {
+      if (userId && prenda.donante?.id === userId) return false;
     }
     if (search && !prenda.nombre.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter && filterValue) {
