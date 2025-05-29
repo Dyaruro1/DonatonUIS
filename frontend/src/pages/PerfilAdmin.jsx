@@ -103,6 +103,10 @@ function PerfilAdmin() {
       setPasswordError('Completa todos los campos.');
       return;
     }
+    if (newPassword.length < 8 || /^\s+$/.test(newPassword)) {
+      setPasswordError('La nueva contraseña debe tener al menos 8 caracteres y no puede ser solo espacios.');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setPasswordError('Las contraseñas no coinciden.');
       return;

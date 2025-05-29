@@ -42,7 +42,11 @@ function RegistroDatosExtra() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
+    if (password.length < 8 || /^\s+$/.test(password)) {
+      setError('La contraseña debe tener al menos 8 caracteres y no puede ser solo espacios.');
+      setLoading(false);
+      return;
+    }
     try {
       const formData = new FormData();
       formData.append('nombre', nombres);
