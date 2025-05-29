@@ -8,3 +8,5 @@ from .serializers import DonacionSerializer
 class DonacionViewSet(viewsets.ModelViewSet):
     queryset = Donacion.objects.all()
     serializer_class = DonacionSerializer
+
+

@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FeedPrendas.css';
 import { donatonService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 
 function FeedPrendas() {
   const [prendas, setPrendas] = useState([]);
@@ -16,19 +17,13 @@ function FeedPrendas() {
   const [filter, setFilter] = useState("");
   const [filterValue, setFilterValue] = useState("");
   const [tab, setTab] = useState("disponibles");
-  const [userId, setUserId] = useState(null);
+  const { currentUser } = useContext(AuthContext);
+  const userId = currentUser?.id;
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleSidebarNav = (route) => {
     navigate(route);
   };
-
-  // Obtener el usuario actual para "Mis publicaciones"
-  useEffect(() => {
-    donatonService.getCurrentUser?.().then(res => {
-      setUserId(res?.data?.id);
-    }).catch(() => {});
-  }, []);
 
   // Scroll infinito
   const loadMore = useCallback(async () => {
@@ -81,9 +76,17 @@ function FeedPrendas() {
     return value;
   };
 
-  const prendasFiltradas = prendas.filter(prenda => {
+  // Deduplicate prendas by id before filtering
+  const uniquePrendas = Array.from(
+    new Map(prendas.map(p => [p.id, p])).values()
+  );
+
+  const prendasFiltradas = uniquePrendas.filter(prenda => {
+    // Ajusta para usar userId del contexto
     if (tab === "mis") {
-      if (!userId || prenda.usuario_id !== userId) return false;
+      if (!userId || prenda.donante?.id !== userId) return false;
+    } else if (tab === "disponibles") {
+      if (userId && prenda.donante?.id === userId) return false;
     }
     if (search && !prenda.nombre.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter && filterValue) {
@@ -277,7 +280,14 @@ function FeedPrendas() {
             prendasFiltradas.map((prenda, idx) => (
               <div className="feed-card" key={prenda.id || idx}>
                 <div className="feed-card-img">
-                  <img src={prenda.imagen_url || '/fondo-uis.jpg'} alt={prenda.nombre} />
+                  <img
+                    src={
+                      prenda.imagenes && prenda.imagenes.length > 0
+                        ? prenda.imagenes[0].imagen
+                        : '/fondo-uis.jpg'
+                    }
+                    alt={prenda.nombre}
+                  />
                 </div>
                 <div className="feed-card-body">
                   <div className="feed-card-title">{prenda.nombre}</div>
@@ -286,7 +296,11 @@ function FeedPrendas() {
                     <div>Sexo <span>{prenda.sexo}</span></div>
                     <div>Uso <span>{prenda.uso}</span></div>
                   </div>
-                  <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                  {tab === 'mis' ? (
+                    <button className="feed-card-btn" onClick={() => navigate('/editar-publicacion', { state: { prenda } })}>Editar prenda</button>
+                  ) : (
+                    <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                  )}
                 </div>
               </div>
             ))

@@ -32,7 +32,7 @@ export const authService = {
   },
   checkEmail: (correo) => api.get(`/api/verificar-correo/?correo=${encodeURIComponent(correo)}`),
   getCurrentUser: () => api.get('/api/usuarios/me'),
-  restablecerContrasena: (correo) => api.post('/api/usuarios/restablecer-contrasena/', { correo }, { headers: { 'Content-Type': 'application/json' } }),
+  restablecerContrasena: (correo) => api.post('/usuarios/restablecer-contrasena', { correo }, { headers: { 'Content-Type': 'application/json' } }),
   updateProfile: (userData) => {
     const isFormData = (typeof FormData !== 'undefined') && userData instanceof FormData;
     const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
@@ -46,11 +46,18 @@ export const authService = {
 };
 
 export const donatonService = {
-  donarRopa: (donacion) => api.post('/donaciones', donacion),
-  solicitarRopa: (solicitud) => api.post('/solicitudes', solicitud),
-  getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/prendas?skip=${skip}&limit=${limit}`),
-  getMisSolicitudes: () => api.get('/solicitudes/usuario'),
-  getMisDonaciones: () => api.get('/donaciones/usuario'),
+  crearPrenda: (formData) => api.post('/api/prendas/', formData),
+  donarRopa: (donacion) => api.post('/api/donaciones', donacion),
+  solicitarRopa: (solicitud) => api.post('/api/solicitudes', solicitud),
+  getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/api/prendas/?skip=${skip}&limit=${limit}`),
+  getMisSolicitudes: () => api.get('/api/solicitudes/usuario'),
+  getMisDonaciones: () => api.get('/api/donaciones/usuario'),
+  updatePrenda: (id, formData) => api.patch(`/api/prendas/${id}/`, formData),
 };
+
+// Admin user management
+api.getUserById = (id) => api.get(`/api/usuarios/${id}/`);
+api.updateUserById = (id, data) => api.put(`/api/usuarios/${id}/`, data);
+api.deleteUserById = (id) => api.delete(`/api/usuarios/${id}/`);
 
 export default api;

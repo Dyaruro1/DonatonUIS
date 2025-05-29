@@ -327,27 +327,31 @@ function PerfilUsuario() {
         <div className="perfil-foto-col">
           <div className="perfil-foto-wrapper">
             <img src={foto} alt="Foto de perfil" className="perfil-foto" />
-            {editable && (
-              <>
-                <input id="foto-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFoto} />
-                <label htmlFor="foto-input" className="perfil-editar-foto" style={{
-                  position: 'static',
-                  display: 'block',
-                  margin: '0.7rem auto 0 auto',
-                  color: '#21E058',
-                  background: 'none',
-                  fontWeight: 600,
-                  fontSize: '1.08rem',
-                  textAlign: 'center',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  width: 'fit-content',
-                }}>
-                  Editar foto
-                </label>
-              </>
-            )}
           </div>
+          {/* NOMBRE DE USUARIO DEBAJO DE LA FOTO */}
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem', marginTop: 12, marginBottom: 0, textAlign: 'center' }}>
+            @{currentUser?.username}
+          </div>
+          {editable && (
+            <>
+              <input id="foto-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFoto} />
+              <label htmlFor="foto-input" className="perfil-editar-foto" style={{
+                position: 'static',
+                display: 'block',
+                margin: '0.7rem auto 0 auto',
+                color: '#21E058',
+                background: 'none',
+                fontWeight: 600,
+                fontSize: '1.08rem',
+                textAlign: 'center',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                width: 'fit-content',
+              }}>
+                Editar foto
+              </label>
+            </>
+          )}
         </div>
 
         {/* DATOS PERFIL */}
@@ -406,7 +410,7 @@ function PerfilUsuario() {
             <label className="perfil-label">Teléfono</label>
             <input className="perfil-input" name="telefono" value={user.telefono || ''} placeholder="3183749230" disabled={!editable} onChange={handleInputChange} />
             <label className="perfil-label">Otra forma de contacto</label>
-            <input className="perfil-input" name="contacto1" value={user.contacto1 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} style={{ background: '#191a2e', color: '#fff', border: 'none', borderRadius: 10, padding: '1rem 1.1rem', fontSize: '1.08rem', width: '100%' }} />
+            <input className="perfil-input" name="contacto1" value={user.contacto1 || ''} placeholder="Otra forma de contacto" disabled={!editable} onChange={handleInputChange} />
           </div>
           <div className="perfil-card perfil-card-contacto">
             <label className="perfil-label">Correo electrónico</label>

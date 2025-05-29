@@ -18,6 +18,7 @@ class Usuario(AbstractUser):
     contacto1 = models.CharField(max_length=100, blank=True, null=True)
     contacto2 = models.CharField(max_length=100, blank=True, null=True)
     tipoUsuario = models.CharField(max_length=50, blank=True, null=True, default="estandar")
+    last_active = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'correo'

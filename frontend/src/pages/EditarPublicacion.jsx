@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './EditarPublicacion.css';
+import { donatonService } from '../services/api'; // Asegúrate de importar tu servicio
 
 function EditarPublicacion() {
   const navigate = useNavigate();
@@ -17,7 +18,11 @@ function EditarPublicacion() {
   const [sexo, setSexo] = useState(prenda.sexo || '');
   const [descripcion, setDescripcion] = useState(prenda.descripcion || '');
   // Fotos: pueden ser URLs (string) o File
-  const [fotos, setFotos] = useState(prenda.fotos && prenda.fotos.length > 0 ? prenda.fotos : (prenda.imagen_url ? [prenda.imagen_url] : []));
+  const [fotos, setFotos] = useState(
+    prenda.imagenes && prenda.imagenes.length > 0
+      ? prenda.imagenes.map(img => img.imagen)
+      : (prenda.imagen_url ? [prenda.imagen_url] : [])
+  );
   const [nuevasFotos, setNuevasFotos] = useState([]); // File[]
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -26,10 +31,15 @@ function EditarPublicacion() {
   // Navegación
   const handleNav = (route) => { navigate(route); };
 
-  // Manejar nuevas fotos (permite varias)
+  // Manejar nuevas fotos (permite varias, máximo 3 en total)
   const handleAddFoto = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      setNuevasFotos([...nuevasFotos, ...Array.from(e.target.files)]);
+      const total = fotos.length + nuevasFotos.length + e.target.files.length;
+      if (total > 3) {
+        setError('Solo puedes subir hasta 3 fotos en total.');
+        return;
+      }
+      setNuevasFotos([...nuevasFotos, ...Array.from(e.target.files)].slice(0, 3 - fotos.length));
     }
   };
   // Eliminar foto existente (URL)
@@ -41,8 +51,8 @@ function EditarPublicacion() {
     setNuevasFotos(nuevasFotos.filter((_, i) => i !== idx));
   };
 
-  // Guardar cambios (simulado)
-  const handleSubmit = (e) => {
+  // Guardar cambios (real)
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -50,14 +60,39 @@ function EditarPublicacion() {
       setError('Por favor completa todos los campos y sube al menos una foto.');
       return;
     }
+    if (fotos.length + nuevasFotos.length > 3) {
+      setError('Solo puedes subir hasta 3 fotos en total.');
+      return;
+    }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      // Construir formData para enviar imágenes y datos
+      const formData = new FormData();
+      formData.append('nombre', nombre);
+      formData.append('talla', talla);
+      formData.append('uso', uso);
+      formData.append('sexo', sexo);
+      formData.append('descripcion', descripcion);
+      // Fotos existentes (solo nombre de archivo)
+      fotos.forEach((foto) => {
+        // Extrae solo el nombre del archivo, sin el path
+        const nombreArchivo = foto.split('/').pop();
+        formData.append('fotos_existentes', nombreArchivo);
+      });
+      // Nuevas fotos (archivos) - usa el campo 'imagenes' igual que en DonarRopa.jsx
+      nuevasFotos.forEach((file) => {
+        formData.append('imagenes', file);
+      });
+      await donatonService.updatePrenda(prenda.id, formData);
       setSuccess('¡Cambios guardados exitosamente!');
-      setLoading(false);
       setTimeout(() => {
-        navigate('/feed'); // Redirige al feed principal después de guardar
+        navigate('/feed');
       }, 1200);
-    }, 900);
+    } catch (err) {
+      setError('Error al guardar los cambios. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,11 +167,11 @@ function EditarPublicacion() {
           <label className="editar-label">Sexo</label>
           <select value={sexo} onChange={e => setSexo(e.target.value)} className="editar-select" required>
             <option value="">Seleccione el sexo</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
-            <option value="Unisex">Unisex</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+            <option value="otro">Otro</option>
           </select>
-          <span className="editar-ejemplo">Ejemplo: Masculino, Femenino, Unisex</span>
+          <span className="editar-ejemplo">Ejemplo: Masculino, Femenino, Otro</span>
         </div>
         {/* Columna derecha */}
         <div className="editar-col-der">

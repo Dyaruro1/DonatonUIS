@@ -12,9 +12,26 @@ function PrendaPublicaDetalle() {
     return null;
   }
 
-  // Miniaturas: si hay varias imágenes
-  const imagenes = prenda.imagenes || [prenda.imagen_url || '/fondo-uis.jpg'];
+  // Usar arreglo de objetos imagenes
+  const imagenes = (prenda.imagenes && prenda.imagenes.length > 0)
+    ? prenda.imagenes.map(img => img.imagen)
+    : [prenda.imagen_url || '/fondo-uis.jpg'];
   const [imgSeleccionada, setImgSeleccionada] = React.useState(imagenes[0]);
+
+  React.useEffect(() => {
+    setImgSeleccionada(imagenes[0]);
+  }, [prenda]);
+
+  // Formatear fecha de publicación
+  let fechaPublicacion = '';
+  if (prenda.fecha_publicacion) {
+    const fecha = new Date(prenda.fecha_publicacion);
+    fechaPublicacion = fecha.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Obtener nombre del donante
+  // Mostrar username si existe, si no nombre, si no 'Usuario'
+  const nombreDonante = prenda.donante?.username || prenda.donante?.nombre || prenda.usuario_nombre || 'Usuario';
 
   return (
     <div style={{ minHeight: '100vh', background: '#18192b', padding: 0 }}>
@@ -66,11 +83,14 @@ function PrendaPublicaDetalle() {
         {/* Detalles */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 18 }}>
           <h2 style={{ color: '#fff', fontWeight: 700, fontSize: '2rem', marginBottom: 0 }}>{prenda.nombre}</h2>
-          <div style={{ color: '#babcc4', fontSize: '1rem', marginBottom: 8 }}>Publicado por {prenda.usuario_nombre || 'Usuario'}</div>
+          <div style={{ color: '#babcc4', fontSize: '1rem', marginBottom: 8 }}>Publicado por <b>{nombreDonante}</b></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
             <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Talla <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{prenda.talla}</span></div>
             <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Sexo <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{prenda.sexo}</span></div>
             <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Uso <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{prenda.uso}</span></div>
+            {fechaPublicacion && (
+              <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.08rem' }}>Fecha de publicación <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{fechaPublicacion}</span></div>
+            )}
           </div>
           <button style={{ background: '#21E058', color: '#fff', border: 'none', borderRadius: 8, padding: '0.9rem 0', fontWeight: 700, fontSize: '1.08rem', marginBottom: 12, cursor: 'pointer', width: 220 }}>
             Solicitar prenda
@@ -81,7 +101,11 @@ function PrendaPublicaDetalle() {
       <div style={{ width: '90%', maxWidth: 1100, margin: '2.5rem auto 0 auto', background: 'transparent', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{ flex: 1 }}>
           <h3 style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem', marginBottom: 8 }}>Descripción</h3>
-          <div style={{ color: '#babcc4', fontSize: '1.08rem', lineHeight: 1.6 }}>{prenda.descripcion}</div>
+          <div style={{ color: '#babcc4', fontSize: '1.08rem', lineHeight: 1.6 }}>
+            {prenda.descripcion !== undefined && prenda.descripcion !== null && prenda.descripcion !== ''
+              ? prenda.descripcion
+              : <span style={{color:'#ff6b6b'}}>Sin descripción</span>}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           <button style={{ background: '#0d1b36', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, fontSize: '0.98rem', cursor: 'pointer', minWidth: 120, marginTop: 8 }}>
