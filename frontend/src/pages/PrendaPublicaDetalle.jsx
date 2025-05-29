@@ -92,7 +92,8 @@ function PrendaPublicaDetalle() {
               <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.08rem' }}>Fecha de publicación <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{fechaPublicacion}</span></div>
             )}
           </div>
-          <button style={{ background: '#21E058', color: '#fff', border: 'none', borderRadius: 8, padding: '0.9rem 0', fontWeight: 700, fontSize: '1.08rem', marginBottom: 12, cursor: 'pointer', width: 220 }}>
+          <button style={{ background: '#21E058', color: '#fff', border: 'none', borderRadius: 8, padding: '0.9rem 0', fontWeight: 700, fontSize: '1.08rem', marginBottom: 12, cursor: 'pointer', width: 220 }}
+            onClick={() => navigate('/solicitacion-prenda', { state: { prenda } })}>
             Solicitar prenda
           </button>
         </div>
