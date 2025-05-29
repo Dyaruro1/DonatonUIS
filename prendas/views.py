@@ -21,14 +21,15 @@ class PrendaViewSet(viewsets.ModelViewSet):
         imagenes = request.FILES.getlist('imagenes')
         if len(imagenes) > 3:
             return Response({'error': 'Máximo 3 imágenes permitidas.'}, status=400)
-        # Crear la prenda asignando el usuario autenticado como donante
+        # Forzar status a 'disponible' siempre
         prenda = Prenda.objects.create(
             nombre=data['nombre'],
             talla=data['talla'],
             sexo=data['sexo'],
             uso=data.get('uso', ''),
             descripcion=data.get('descripcion', ''),
-            donante=request.user
+            donante=request.user,
+            status='disponible'
         )
         for img in imagenes:
             ImagenPrenda.objects.create(prenda=prenda, imagen=img)
@@ -68,6 +69,10 @@ class PrendaViewSet(viewsets.ModelViewSet):
         instance.sexo = data.get('sexo', instance.sexo)
         instance.uso = data.get('uso', instance.uso)
         instance.descripcion = data.get('descripcion', instance.descripcion)
+        # Solo el dueño puede editar el status
+        if 'status' in data and hasattr(request, 'user') and instance.donante == request.user:
+            if data['status'] in dict(Prenda.STATUS_CHOICES):
+                instance.status = data['status']
         instance.save()
         serializer = self.get_serializer(instance, context={'request': request})
         return Response(serializer.data)

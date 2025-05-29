@@ -15,6 +15,11 @@ class Prenda(models.Model):
     donante = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='prendas_donadas')  # Obligatorio
     fecha_publicacion = models.DateTimeField(auto_now_add=True)  # NUEVO: fecha de publicación
     visitas = models.PositiveIntegerField(default=0)
+    STATUS_CHOICES = [
+        ('disponible', 'Disponible'),
+        ('en_solicitud', 'En solicitud'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='disponible')
 
     def __str__(self):
         return self.nombre

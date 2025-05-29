@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './EditarPublicacion.css';
 import { donatonService } from '../services/api'; // Asegúrate de importar tu servicio
+import { AuthContext } from '../context/AuthContext';
 
 function EditarPublicacion() {
   const navigate = useNavigate();
   const location = useLocation();
   const prenda = location.state?.prenda;
+  const { currentUser } = useContext(AuthContext);
   if (!prenda) {
     navigate('/feed');
     return null;
@@ -17,6 +19,7 @@ function EditarPublicacion() {
   const [uso, setUso] = useState(prenda.uso || '');
   const [sexo, setSexo] = useState(prenda.sexo || '');
   const [descripcion, setDescripcion] = useState(prenda.descripcion || '');
+  const [status, setStatus] = useState(prenda.status || 'disponible');
   // Fotos: pueden ser URLs (string) o File
   const [fotos, setFotos] = useState(
     prenda.imagenes && prenda.imagenes.length > 0
@@ -74,6 +77,10 @@ function EditarPublicacion() {
       formData.append('uso', uso);
       formData.append('sexo', sexo);
       formData.append('descripcion', descripcion);
+      // Solo el dueño puede editar status
+      if (currentUser && prenda.donante && (currentUser.id === prenda.donante.id) && status) {
+        formData.append('status', status);
+      }
       // Fotos existentes (solo nombre de archivo)
       fotos.forEach((foto) => {
         // Extrae solo el nombre del archivo, sin el path
@@ -190,6 +197,18 @@ function EditarPublicacion() {
             <option value="otro">Otro</option>
           </select>
           <span className="editar-ejemplo">Ejemplo: Masculino, Femenino, Otro</span>
+
+          {/* Campo status solo para el dueño */}
+          {currentUser && prenda.donante && (currentUser.id === prenda.donante.id) && (
+            <>
+              <label className="editar-label">Estado de la prenda</label>
+              <select value={status} onChange={e => setStatus(e.target.value)} className="editar-select" required>
+                <option value="disponible">Disponible</option>
+                <option value="en_solicitud">En solicitud</option>
+              </select>
+              <span className="editar-ejemplo">Puedes cambiar el estado de tu prenda</span>
+            </>
+          )}
         </div>
         {/* Columna derecha */}
         <div className="editar-col-der">

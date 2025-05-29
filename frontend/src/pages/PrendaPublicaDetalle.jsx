@@ -99,6 +99,10 @@ function PrendaPublicaDetalle() {
             <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Talla <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{prenda.talla}</span></div>
             <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Sexo <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{prenda.sexo}</span></div>
             <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Uso <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{prenda.uso}</span></div>
+            {/* Mostrar estado de la prenda */}
+            <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.15rem' }}>Estado <span style={{ color: prenda.status === 'disponible' ? '#21E058' : '#ffb300', fontWeight: 700, marginLeft: 8 }}>
+              {prenda.status === 'disponible' ? 'Disponible' : prenda.status === 'en_solicitud' ? 'En solicitud' : prenda.status}
+            </span></div>
             {fechaPublicacion && (
               <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.08rem' }}>Fecha de publicación <span style={{ color: '#5b5be7', fontWeight: 700, marginLeft: 8 }}>{fechaPublicacion}</span></div>
             )}
