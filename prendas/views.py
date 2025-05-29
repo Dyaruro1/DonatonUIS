@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Prenda, ImagenPrenda
 from .serializers import PrendaSerializer, PrendaAdminSerializer, ImagenPrendaSerializer
+import os
 
 # Create your views here.
 
@@ -37,4 +38,36 @@ class PrendaViewSet(viewsets.ModelViewSet):
     def admin_list(self, request):
         prendas = Prenda.objects.all()
         serializer = PrendaAdminSerializer(prendas, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        fotos_existentes = data.getlist('fotos_existentes') if 'fotos_existentes' in data else []
+        nuevas_imagenes = request.FILES.getlist('imagenes')
+
+        # Eliminar imágenes que el usuario quitó
+        actuales = list(instance.imagenes.all())
+        for img in actuales:
+            nombre_archivo = os.path.basename(img.imagen.name)
+            if nombre_archivo not in fotos_existentes:
+                img.delete()
+
+        # Validar que no se exceda el máximo de 3 imágenes
+        total_imgs = instance.imagenes.count() + len(nuevas_imagenes)
+        if total_imgs > 3:
+            return Response({'error': 'Máximo 3 imágenes permitidas.'}, status=400)
+
+        # Agregar nuevas imágenes
+        for img in nuevas_imagenes:
+            ImagenPrenda.objects.create(prenda=instance, imagen=img)
+
+        # Actualizar los demás campos
+        instance.nombre = data.get('nombre', instance.nombre)
+        instance.talla = data.get('talla', instance.talla)
+        instance.sexo = data.get('sexo', instance.sexo)
+        instance.uso = data.get('uso', instance.uso)
+        instance.descripcion = data.get('descripcion', instance.descripcion)
+        instance.save()
+        serializer = self.get_serializer(instance, context={'request': request})
         return Response(serializer.data)

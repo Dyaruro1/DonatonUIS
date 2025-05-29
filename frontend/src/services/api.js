@@ -52,6 +52,7 @@ export const donatonService = {
   getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/api/prendas/?skip=${skip}&limit=${limit}`),
   getMisSolicitudes: () => api.get('/api/solicitudes/usuario'),
   getMisDonaciones: () => api.get('/api/donaciones/usuario'),
+  updatePrenda: (id, formData) => api.patch(`/api/prendas/${id}/`, formData),
 };
 
 // Admin user management

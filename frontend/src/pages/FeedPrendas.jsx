@@ -296,7 +296,11 @@ function FeedPrendas() {
                     <div>Sexo <span>{prenda.sexo}</span></div>
                     <div>Uso <span>{prenda.uso}</span></div>
                   </div>
-                  <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                  {tab === 'mis' ? (
+                    <button className="feed-card-btn" onClick={() => navigate('/editar-publicacion', { state: { prenda } })}>Editar prenda</button>
+                  ) : (
+                    <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                  )}
                 </div>
               </div>
             ))
