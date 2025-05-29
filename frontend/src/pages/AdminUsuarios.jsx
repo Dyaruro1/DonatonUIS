@@ -43,6 +43,20 @@ function UsuariosAdmin() {
     setSelectedUser(null);
   };
 
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    try {
+      await api.delete(`/api/usuarios/${selectedUser.id}/`);
+      setUsuarios(usuarios.filter(u => u.id !== selectedUser.id));
+      setShowConfirm(false);
+      setSelectedUser(null);
+    } catch (err) {
+      setError("No se pudo eliminar el usuario. Intenta de nuevo.");
+      setShowConfirm(false);
+      setSelectedUser(null);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#18192b' }}>
       <AdminSidebar />
@@ -67,7 +81,7 @@ function UsuariosAdmin() {
                   <td><input type="checkbox" /></td>
                   <td style={{display:'flex',alignItems:'center',gap:12}}>
                     <img src={u.foto || '/logo-pequeno.svg'} alt="avatar" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',background:'#23233a'}} />
-                    <span style={{fontWeight:600, cursor:'pointer', color:'#21e058'}} onClick={()=>window.location.href=`/admin/users/${u.id}`}>{u.nombre} {u.apellido}</span>
+                    <span style={{fontWeight:600, cursor:'pointer', color:'#21e058'}} onClick={()=>navigate(`/admin/users/${u.id}`)}>{u.nombre} {u.apellido}</span>
                   </td>
                   <td>{u.last_active ? new Date(u.last_active).toLocaleDateString() === new Date().toLocaleDateString() ? 'Hoy' : new Date(u.last_active).toLocaleDateString() : 'Desconocido'}</td>
                   <td>
@@ -150,7 +164,7 @@ function UsuariosAdmin() {
                     </button>
                     <button
                       style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
-                      onClick={handleCloseConfirm}
+                      onClick={handleDeleteUser}
                     >
                       Bloquear
                     </button>

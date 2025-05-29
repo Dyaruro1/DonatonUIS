@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import "./AdminPost.css";
 import AdminSidebar from "../components/AdminSidebar";
+import { useNavigate } from "react-router-dom";
 
 function AdminPost() {
   const [publicaciones, setPublicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchPublicaciones() {
@@ -83,7 +85,12 @@ function AdminPost() {
                             background: "#23233a",
                           }}
                         />
-                        <span style={{ fontWeight: 600 }}>{p.nombre}</span>
+                        <span
+                          style={{ fontWeight: 600, cursor: 'pointer', color: '#3151cf' }}
+                          onClick={() => navigate(`/admin/posts/${p.id}`)}
+                        >
+                          {p.nombre}
+                        </span>
                       </td>
                       <td>{p.visitas ?? 0}</td>
                       <td>{p.postulados ?? 0}</td>
@@ -106,6 +113,7 @@ function AdminPost() {
                         <button
                           className="admin-eye-btn"
                           title="Ver publicación"
+                          onClick={() => navigate(`/admin/posts/${p.id}`)}
                         >
                           <svg
                             width="28"

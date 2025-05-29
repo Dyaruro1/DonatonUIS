@@ -71,3 +71,9 @@ class PrendaViewSet(viewsets.ModelViewSet):
         instance.save()
         serializer = self.get_serializer(instance, context={'request': request})
         return Response(serializer.data)
+
+    def get_permissions(self):
+        # Permitir acceso público al detalle de prenda (retrieve)
+        if self.action == 'retrieve':
+            return [AllowAny()]
+        return super().get_permissions()
