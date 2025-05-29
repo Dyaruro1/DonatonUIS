@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { authService } from '../services/api';
@@ -16,6 +16,11 @@ function Register() {
   const { login } = authService;
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    // Elimina todos los posibles tokens al entrar a la vista de registro
+    localStorage.removeItem('token');
+    // Si usas otros nombres de token, agrégalos aquí
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();

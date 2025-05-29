@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { AuthContext } from '../context/AuthContext';
@@ -16,6 +16,12 @@ function Login() {
   const navigate = useNavigate();
   const { instance } = useMsal();
   const { login } = useContext(AuthContext);
+
+  useEffect(() => {
+    // Elimina todos los posibles tokens al entrar a la vista de login
+    localStorage.removeItem('token');
+    // Si usas otros nombres de token, agrégalos aquí
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
