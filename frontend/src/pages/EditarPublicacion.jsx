@@ -27,6 +27,7 @@ function EditarPublicacion() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Navegación
   const handleNav = (route) => { navigate(route); };
@@ -92,6 +93,23 @@ function EditarPublicacion() {
       setError('Error al guardar los cambios. Intenta de nuevo.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Eliminar publicación
+  const handleDelete = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      await donatonService.deletePrenda(prenda.id);
+      setSuccess('Publicación eliminada correctamente.');
+      setTimeout(() => navigate('/feed'), 1200);
+    } catch (err) {
+      setError('No se pudo eliminar la publicación. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -203,6 +221,68 @@ function EditarPublicacion() {
             <button type="button" onClick={() => navigate(-1)} className="editar-cancelar">Cancelar</button>
             <button type="submit" className="feed-card-btn editar-guardar" disabled={loading}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
           </div>
+          <button type="button" onClick={() => setShowDeleteModal(true)} style={{marginTop:16, background:'#ff2d2d', color:'#fff', border:'none', borderRadius:8, padding:'0.9rem 0', fontWeight:700, fontSize:'1.08rem', cursor:'pointer', width:220}}>Eliminar publicación</button>
+          {showDeleteModal && (
+            <>
+              <div style={{
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(24,25,43,0.55)',
+                backdropFilter: 'blur(6px)',
+                zIndex: 200,
+              }}></div>
+              <div style={{
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                width: '100vw',
+                height: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 201,
+              }}>
+                <div style={{
+                  background: '#23233a',
+                  borderRadius: 18,
+                  boxShadow: '0 2px 32px 0 #0004',
+                  padding: '2.2rem 2.5rem 2rem 2.5rem',
+                  minWidth: 340,
+                  maxWidth: 400,
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                    ¿Seguro que deseas eliminar esta publicación?
+                  </div>
+                  <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                    Esta acción no se puede deshacer.
+                  </div>
+                  <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                    <button
+                      style={{ flex: 1, background: '#ff2d2d', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                      onClick={handleDelete}
+                      disabled={loading}
+                    >
+                      Sí, eliminar
+                    </button>
+                    <button
+                      style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                      onClick={() => setShowDeleteModal(false)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
           {error && <div style={{ color: '#ff6b6b', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{error}</div>}
           {success && <div style={{ color: '#21E058', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{success}</div>}
         </div>

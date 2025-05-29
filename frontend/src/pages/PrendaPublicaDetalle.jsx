@@ -37,7 +37,7 @@ function PrendaPublicaDetalle() {
     <div style={{ minHeight: '100vh', background: '#18192b', padding: 0 }}>
       {/* BOTONES DE NAVEGACIÓN SUPERIOR */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '2.5rem', marginBottom: '1.2rem', width: '100%' }}>
-        <button className={`feed-navbar-btn${window.location.pathname === '/feed' || window.location.pathname === '/' ? ' feed-navbar-btn-active' : ''}`} onClick={() => navigate('/feed')}>
+        <button className={`feed-navbar-btn feed-navbar-btn-active`} style={{ background: '#21e058', color: '#18192b' }} onClick={() => navigate('/feed')}>
           <span className="feed-navbar-icon">🧺</span>
           <span className="feed-navbar-label">Prendas</span>
         </button>
@@ -52,6 +52,17 @@ function PrendaPublicaDetalle() {
         <button className={`feed-navbar-btn${window.location.pathname === '/ajustes' ? ' feed-navbar-btn-active' : ''}`} onClick={() => navigate('/ajustes')}>
           <span className="feed-navbar-icon">⚙️</span>
           <span className="feed-navbar-label">Configuración</span>
+        </button>
+        <button
+          className="feed-navbar-btn feed-navbar-btn-logout"
+          style={{ background: 'transparent', color: '#ff6b6b', border: 'none', borderRadius: '50%', padding: '0.7rem', fontWeight: 600, fontSize: '1.55rem', marginLeft: '2.5rem', cursor: 'pointer' }}
+          onClick={() => {
+            localStorage.removeItem('token');
+            navigate('/login');
+          }}
+          title="Cerrar sesión"
+        >
+          <i className="fa fa-sign-out-alt" style={{ fontSize: 28 }}></i>
         </button>
       </div>
       {/* Contenido principal */}

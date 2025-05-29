@@ -53,6 +53,7 @@ export const donatonService = {
   getMisSolicitudes: () => api.get('/api/solicitudes/usuario'),
   getMisDonaciones: () => api.get('/api/donaciones/usuario'),
   updatePrenda: (id, formData) => api.patch(`/api/prendas/${id}/`, formData),
+  deletePrenda: (id) => api.delete(`/api/prendas/${id}/`),
 };
 
 // Admin user management
