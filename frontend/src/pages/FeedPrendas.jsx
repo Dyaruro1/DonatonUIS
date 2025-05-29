@@ -92,18 +92,7 @@ function FeedPrendas() {
     if (filter && filterValue) {
       if (filter === "talla" && prenda.talla !== filterValue) return false;
       if (filter === "sexo" && prenda.sexo !== filterValue) return false;
-      if (filter === "uso" && filterValue) {
-        const dias = parseUso(prenda.uso);
-        if (filterValue === "0-7" && !(dias >= 0 && dias <= 7)) return false;
-        if (filterValue === "8-15" && !(dias > 7 && dias <= 15)) return false;
-        if (filterValue === "16-30" && !(dias > 15 && dias <= 30)) return false;
-        if (filterValue === "31-60" && !(dias > 30 && dias <= 60)) return false;
-        if (filterValue === "61-90" && !(dias > 60 && dias <= 90)) return false;
-        if (filterValue === "91-180" && !(dias > 90 && dias <= 180)) return false;
-        if (filterValue === "181-365" && !(dias > 180 && dias <= 365)) return false;
-        if (filterValue === "366-730" && !(dias > 365 && dias <= 730)) return false;
-        if (filterValue === "731+" && !(dias > 730)) return false;
-      }
+      if (filter === "status" && prenda.status !== filterValue) return false;
     }
     return true;
   });
@@ -229,38 +218,34 @@ function FeedPrendas() {
             <option value="">Filtrar por...</option>
             <option value="talla">Talla</option>
             <option value="sexo">Sexo</option>
-            <option value="uso">Uso</option>
+            <option value="status">Disponibilidad</option>
           </select>
           {filter === "talla" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
               <option value="">Todas las tallas</option>
-              <option value="38">38</option>
-              <option value="40">40</option>
-              <option value="42">42</option>
+              <option value="XS">XS</option>
               <option value="S">S</option>
               <option value="M">M</option>
               <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="Única">Única</option>
+              <option value="Infantil">Infantil</option>
             </select>
           )}
           {filter === "sexo" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
-              <option value="">Ambos</option>
-              <option value="M">M</option>
-              <option value="F">F</option>
+              <option value="">Todos</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
             </select>
           )}
-          {filter === "uso" && (
+          {filter === "status" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="0-7">0-7 días</option>
-              <option value="8-15">8-15 días</option>
-              <option value="16-30">16-30 días</option>
-              <option value="31-60">31-60 días</option>
-              <option value="61-90">61-90 días</option>
-              <option value="91-180">91-180 días</option>
-              <option value="181-365">181-365 días</option>
-              <option value="366-730">1-2 años</option>
-              <option value="731+">Más de 2 años</option>
+              <option value="">Todas</option>
+              <option value="disponible">Disponible</option>
+              <option value="en_solicitud">En solicitud</option>
             </select>
           )}
           <div className="feed-user-actions">

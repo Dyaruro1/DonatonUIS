@@ -182,7 +182,17 @@ function EditarPublicacion() {
           <span className="editar-ejemplo">Ejemplo: Camisa a cuadros</span>
 
           <label className="editar-label">Talla</label>
-          <input type="text" value={talla} onChange={e => setTalla(e.target.value)} placeholder="Ejemplo: S, M, L, XL" className="editar-input" required />
+          <select value={talla} onChange={e => setTalla(e.target.value)} className="editar-select" required>
+            <option value="">Seleccione la talla</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+            <option value="Única">Única</option>
+            <option value="Infantil">Infantil</option>
+          </select>
           <span className="editar-ejemplo">Ejemplo: S, M, L, XL</span>
 
           <label className="editar-label">Tiempo de Uso</label>

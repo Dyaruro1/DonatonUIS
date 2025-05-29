@@ -208,12 +208,14 @@ function DonarRopa() {
             <label style={{color: '#fff', fontWeight: 500}}>Talla</label>
             <select value={talla} onChange={e => setTalla(e.target.value)} style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', marginBottom: 0, boxShadow: '0 1px 4px #0001'}} required>
               <option value="">Seleccione la talla</option>
+              <option value="XS">XS</option>
               <option value="S">S</option>
               <option value="M">M</option>
               <option value="L">L</option>
-              <option value="38">38</option>
-              <option value="40">40</option>
-              <option value="42">42</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="Única">Única</option>
+              <option value="Infantil">Infantil</option>
             </select>
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: S, M, L, XL</span>
 
