@@ -136,6 +136,18 @@ function PerfilUsuario() {
       // Solo enviar fecha_nacimiento si todos los campos están completos
       const { anio, mes, dia } = user.fechaNacimiento;
       if (anio && mes && dia) {
+        // Validación de fecha: no futura y al menos 12 años
+        const fechaNacimiento = new Date(`${anio}-${mes}-${dia}T00:00:00`);
+        const hoy = new Date();
+        const hace12Anios = new Date(hoy.getFullYear() - 12, hoy.getMonth(), hoy.getDate());
+        if (fechaNacimiento > hace12Anios) {
+          alert('Debes tener al menos 12 años para registrarte.');
+          return;
+        }
+        if (fechaNacimiento > hoy) {
+          alert('La fecha de nacimiento no puede ser en el futuro.');
+          return;
+        }
         formData.append('fecha_nacimiento', `${anio}-${mes}-${dia}`);
       }
       formData.append('telefono', user.telefono);
