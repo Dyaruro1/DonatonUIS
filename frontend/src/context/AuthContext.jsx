@@ -28,6 +28,8 @@ export function AuthProvider({ children }) {
   
   // Función para iniciar sesión
   const login = async (correo, contrasena) => {
+    // Eliminar cualquier token previo antes de intentar login
+    localStorage.removeItem('token');
     try {
       const response = await authService.login(correo, contrasena);
       localStorage.setItem('token', response.data.token);
@@ -48,6 +50,8 @@ export function AuthProvider({ children }) {
   
   // Función para registrar nuevo usuario
   const register = async (userData) => {
+    // Eliminar cualquier token previo antes de intentar registro
+    localStorage.removeItem('token');
     try {
       const response = await authService.register(userData);
       return response.data;
