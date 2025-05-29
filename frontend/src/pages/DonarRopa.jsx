@@ -273,7 +273,30 @@ function DonarRopa() {
             )}
 
             <label style={{color: '#fff', fontWeight: 500}}>Descripción</label>
-            <input type="text" value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Ingrese el nombre de la prenda" style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', marginBottom: 0, boxShadow: '0 1px 4px #0001'}} required />
+            <textarea
+              value={descripcion}
+              onChange={e => {
+                if (e.target.value.length <= 60) setDescripcion(e.target.value);
+              }}
+              placeholder="Agregar descripción"
+              rows={2}
+              maxLength={60}
+              style={{
+                background: '#fff',
+                color: '#23244a',
+                border: 'none',
+                borderRadius: 8,
+                padding: '0.8rem 1rem',
+                fontSize: '1rem',
+                marginBottom: 0,
+                boxShadow: '0 1px 4px #0001',
+                resize: 'none',
+                minHeight: 56,
+                lineHeight: 1.3
+              }}
+              required
+            />
+            <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 4}}>{descripcion.length} / 60 caracteres</span>
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: Camisa hecha de algodón</span>
 
             <label style={{color: '#fff', fontWeight: 500}}>Sexo</label>
