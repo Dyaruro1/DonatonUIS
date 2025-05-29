@@ -33,15 +33,19 @@ class PrendaSerializer(serializers.ModelSerializer):
 class PrendaAdminSerializer(serializers.ModelSerializer):
     postulados = serializers.SerializerMethodField()
     donante = serializers.SerializerMethodField()
+    imagen_url = serializers.SerializerMethodField()
+    imagenes = ImagenPrendaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Prenda
-        fields = ['id', 'nombre', 'imagen_url', 'visitas', 'postulados', 'donante']
+        fields = ['id', 'nombre', 'imagen_url', 'imagenes', 'visitas', 'postulados', 'donante']
 
     def get_postulados(self, obj):
+        from solicitudes.models import Solicitud
         return Solicitud.objects.filter(prenda=obj).count()
 
     def get_donante(self, obj):
+        from donaciones.models import Donacion
         donacion = Donacion.objects.filter(prenda=obj).first()
         if donacion and donacion.usuario:
             return {
@@ -50,4 +54,10 @@ class PrendaAdminSerializer(serializers.ModelSerializer):
                 'apellido': donacion.usuario.apellido,
                 'foto': donacion.usuario.foto.url if donacion.usuario.foto else None,
             }
+        return None
+
+    def get_imagen_url(self, obj):
+        # Devuelve la URL de la primera imagen si existe
+        if obj.imagenes.exists():
+            return obj.imagenes.first().imagen.url
         return None

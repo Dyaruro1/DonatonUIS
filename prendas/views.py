@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Prenda, ImagenPrenda
 from .serializers import PrendaSerializer, PrendaAdminSerializer, ImagenPrendaSerializer
 import os
@@ -34,7 +34,7 @@ class PrendaViewSet(viewsets.ModelViewSet):
             ImagenPrenda.objects.create(prenda=prenda, imagen=img)
         return Response(PrendaSerializer(prenda, context={'request': request}).data)
 
-    @action(detail=False, methods=['get'], url_path='admin-list')
+    @action(detail=False, methods=['get'], url_path='admin-list', permission_classes=[AllowAny])
     def admin_list(self, request):
         prendas = Prenda.objects.all()
         serializer = PrendaAdminSerializer(prendas, many=True, context={'request': request})
