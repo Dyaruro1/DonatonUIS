@@ -60,7 +60,7 @@ function SolicitudPrenda() {
           setUserObj({ name: data.username, ...data });
           // Opcional: guardar en localStorage para futuras sesiones
           localStorage.setItem('username', data.username);
-          localStorage.setItem('currentUser', JSON.stringify(data));
+          // localStorage.setItem('currentUser', JSON.stringify(data));
         } else {
           setUsername('Invitado');
           setUserObj({ name: 'Invitado' });
