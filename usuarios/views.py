@@ -112,7 +112,31 @@ def registrar_usuario(request):
         data['correo'] = data['correo'].strip().lower()
     serializer = UsuarioSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
+        usuario = serializer.save()
+        # --- INICIO: Registro en Supabase Auth ---
+        from backend_django.supabase_settings import SUPABASE_URL, SUPABASE_KEY
+        from supabase import create_client
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        correo = usuario.correo
+        password = request.data.get('contrasena')
+        try:
+            if password and password != 'MICROSOFT_AUTH':
+                response = supabase.auth.admin.create_user({
+                    'email': correo,
+                    'password': password,
+                    'email_confirm': True
+                })
+                # Manejo explícito de error y depuración
+                print('Respuesta Supabase create_user:', response)
+                if hasattr(response, 'user') and response.user is not None:
+                    print('Usuario creado en Supabase:', response.user)
+                elif hasattr(response, 'error') and response.error is not None:
+                    print('Error creando usuario en Supabase:', response.error)
+                else:
+                    print('Respuesta inesperada de Supabase:', response)
+        except Exception as e:
+            print('Excepción al crear usuario en Supabase:', str(e))
+        # --- FIN: Registro en Supabase Auth ---
         return Response({'detail': 'Usuario registrado correctamente.'}, status=status.HTTP_201_CREATED)
     else:
         print('Errores de validación:', serializer.errors)
@@ -156,6 +180,23 @@ def cambiar_nombre_usuario(request):
 @permission_classes([IsAuthenticated])
 def eliminar_cuenta(request):
     user = request.user
+    # --- INICIO: Eliminación en Supabase Auth ---
+    from backend_django.supabase_settings import SUPABASE_URL, SUPABASE_KEY
+    from supabase import create_client
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    try:
+        # Buscar usuario en Supabase por email
+        email = user.correo
+        # Listar usuarios para encontrar el id
+        users = supabase.auth.admin.list_users(email=email)
+        if users and users.get('users'):
+            for u in users['users']:
+                if u.get('email') == email:
+                    supabase.auth.admin.delete_user(u['id'])
+                    break
+    except Exception as e:
+        print('Excepción al eliminar usuario en Supabase:', str(e))
+    # --- FIN: Eliminación en Supabase Auth ---
     user.delete()
     return Response({'detail': 'Cuenta eliminada correctamente.'}, status=status.HTTP_204_NO_CONTENT)
 
