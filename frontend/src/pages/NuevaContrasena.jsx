@@ -3,30 +3,33 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import './Login.css';
 
-function RestablecerContrasena() {
-  const [correo, setCorreo] = useState('');
-  const [enviado, setEnviado] = useState(false);
+function NuevaContrasena() {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
     setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(correo, {
-        redirectTo: 'http://localhost:5173/nueva-contrasena' // Cambia por tu URL de redirección
-      });
-      if (error) {
-        setError('No se pudo enviar el correo. Intenta de nuevo.');
-      } else {
-        setEnviado(true);
-      }
-    } catch (err) {
-      setError('No se pudo enviar el correo. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
+    const { error } = await supabase.auth.updateUser({ password });
+    setLoading(false);
+    if (error) {
+      setError('No se pudo actualizar la contraseña. Intenta de nuevo.');
+    } else {
+      setSuccess(true);
+      setTimeout(() => navigate('/login'), 2500);
     }
   };
 
@@ -47,7 +50,7 @@ function RestablecerContrasena() {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(24,25,43,0.58)', // overlay azul oscuro semitransparente
+          background: 'rgba(24,25,43,0.58)',
           zIndex: 0,
         }}
       ></div>
@@ -77,27 +80,35 @@ function RestablecerContrasena() {
             <circle cx="40" cy="32" r="8" fill="#21E058" />
           </svg>
         </div>
-        <h2 style={{ textAlign: 'center', fontSize: '1.35rem', fontWeight: 600, marginBottom: '1.2rem', color: '#222' }}>Restablece tu contraseña</h2>
-        {enviado ? (
+        <h2 style={{ textAlign: 'center', fontSize: '1.35rem', fontWeight: 600, marginBottom: '1.2rem', color: '#222' }}>Establece tu nueva contraseña</h2>
+        {success ? (
           <div style={{textAlign: 'center', color: '#21E058', fontWeight: 500, margin: '1.5rem 0'}}>
-            ¡Revisa tu correo para continuar con el restablecimiento!
+            ¡Contraseña actualizada correctamente!<br />Redirigiendo al inicio de sesión...
           </div>
         ) : (
           <>
-            <div style={{color: '#333', fontSize: '1rem', textAlign: 'center', marginBottom: '1.2rem'}}>
-              Introduce tu dirección de correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña.
-            </div>
             <form style={{ width: '100%' }} onSubmit={handleSubmit}>
-              <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="correo">Correo</label>
+              <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="password">Nueva contraseña</label>
               <input
-                id="correo"
-                type="email"
+                id="password"
+                type="password"
                 style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.6rem 0.9rem', fontSize: '1rem', outline: 'none', marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
-                value={correo}
-                onChange={e => setCorreo(e.target.value)}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 required
+                minLength={8}
               />
-              <button style={{ width: '100%', background: '#21E058', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 0', marginTop: 8, marginBottom: 4, cursor: 'pointer', transition: 'background 0.2s' }} type="submit" disabled={loading}>{loading ? 'Enviando...' : 'Continuar'}</button>
+              <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="confirmPassword">Confirmar contraseña</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.6rem 0.9rem', fontSize: '1rem', outline: 'none', marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+              <button style={{ width: '100%', background: '#21E058', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 0', marginTop: 8, marginBottom: 4, cursor: 'pointer', transition: 'background 0.2s' }} type="submit" disabled={loading}>{loading ? 'Guardando...' : 'Guardar nueva contraseña'}</button>
             </form>
             {error && <div style={{ color: 'red', margin: '0.5rem 0', textAlign: 'center', fontSize: '0.98rem' }}>{error}</div>}
           </>
@@ -113,4 +124,4 @@ function RestablecerContrasena() {
   );
 }
 
-export default RestablecerContrasena;
+export default NuevaContrasena;

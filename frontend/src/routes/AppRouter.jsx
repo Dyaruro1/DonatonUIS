@@ -9,6 +9,7 @@ import SolicitarRopa from '../pages/SolicitarRopa';
 import PerfilUsuario from '../pages/PerfilUsuario';
 import RegistroDatosExtra from '../pages/RegistroDatosExtra';
 import RestablecerContrasena from '../pages/RestablecerContrasena';
+import NuevaContrasena from '../pages/NuevaContrasena';
 import FeedPrendas from '../pages/FeedPrendas';
 import PrendaDetalle from '../pages/PrendaDetalle';
 import EditarPublicacion from '../pages/EditarPublicacion';
@@ -49,6 +50,7 @@ function AppContent() {
           <Route path="/perfil" element={isAuthenticated ? <PerfilUsuario /> : <Navigate to="/login" />} />
           <Route path="/registro-datos-extra" element={<RegistroDatosExtra />} />
           <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
+          <Route path="/nueva-contrasena" element={<NuevaContrasena />} />
           <Route path="/feed" element={<FeedPrendas />} />
           <Route path="/prenda-publica" element={<PrendaPublicaDetalle />} />
           <Route path="/admin" element={<AdminHome />} />
