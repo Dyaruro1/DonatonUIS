@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuración base de axios
-const API_URL = 'http://localhost:8000'; // URL de tu backend FastAPI
+const API_URL = 'http://localhost:8000'; // URL de tu backend Django
 
 const api = axios.create({
   baseURL: API_URL,
@@ -53,6 +53,10 @@ export const authService = {
   updateUsername: (nombre_usuario) =>
     api.patch('/api/usuarios/cambiar_nombre_usuario/', { nombre_usuario }, { headers: { 'Content-Type': 'application/json' } }),
   deleteAccount: () => api.delete('/api/usuarios/eliminar_cuenta/'),
+  solicitarResetPassword: (correo) => api.post('/api/usuarios/solicitar-reset-password/', { correo }, { headers: { 'Content-Type': 'application/json' } }),  cambiarContrasenaConToken: (token, nueva_contrasena) => api.post('/api/usuarios/reset-password-confirm/', { token, nueva_contrasena }, { headers: { 'Content-Type': 'application/json' } }),
+  // Nuevo método para sincronizar la contraseña con el backend
+  sincronizarContrasenaSupabase: (correo, nueva_contrasena) =>
+    api.post('/api/sincronizar-contrasena-supabase/', { correo, nueva_contrasena }, { headers: { 'Content-Type': 'application/json' } }),
 };
 
 export const donatonService = {

@@ -1,5 +1,10 @@
 from django.urls import path
-from .views import LoginView, UsuarioRegistroAPIView, verificar_correo, perfil_usuario_actual, UsuarioViewSet, registrar_usuario, cambiar_nombre_usuario, eliminar_cuenta, restablecer_contrasena, get_csrf
+from .views import (
+    LoginView, UsuarioRegistroAPIView, verificar_correo, 
+    perfil_usuario_actual, UsuarioViewSet, registrar_usuario, 
+    cambiar_nombre_usuario, eliminar_cuenta, get_csrf, 
+    sincronizar_contrasena_supabase
+)
 from rest_framework.routers import DefaultRouter
 
 urlpatterns = [
@@ -13,7 +18,7 @@ urlpatterns = [
     path('usuarios/cambiar_contrasena/', UsuarioViewSet.as_view({'post': 'cambiar_contrasena'}), name='cambiar_contrasena'),
     path('usuarios/cambiar_nombre_usuario/', cambiar_nombre_usuario, name='cambiar_nombre_usuario'),
     path('usuarios/eliminar_cuenta/', eliminar_cuenta, name='eliminar_cuenta'),
-    path('usuarios/restablecer_contrasena/', restablecer_contrasena, name='restablecer_contrasena'),
+    path('sincronizar-contrasena-supabase/', sincronizar_contrasena_supabase, name='sincronizar_contrasena_supabase'),
 ]
 
 # Incluye las rutas del router (ViewSet)

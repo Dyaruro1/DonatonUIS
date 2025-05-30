@@ -23,6 +23,7 @@ import AdminUsuarioDetalle from '../pages/AdminUsuarioDetalle';
 import SolicitudPrenda from '../pages/SolicitudPrenda';
 import AdminDetallePublicacion from '../pages/AdminDetallePublicacion';
 import ChatDonante from '../pages/ChatDonante';
+import NuevaContrasena from '../pages/NuevaContrasena';
 
 function AppContent() {
   const location = useLocation();
@@ -49,6 +50,7 @@ function AppContent() {
           <Route path="/perfil" element={isAuthenticated ? <PerfilUsuario /> : <Navigate to="/login" />} />
           <Route path="/registro-datos-extra" element={<RegistroDatosExtra />} />
           <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
+          <Route path="/nueva-contrasena" element={<NuevaContrasena />} />
           <Route path="/feed" element={<FeedPrendas />} />
           <Route path="/prenda-publica" element={<PrendaPublicaDetalle />} />
           <Route path="/admin" element={<AdminHome />} />

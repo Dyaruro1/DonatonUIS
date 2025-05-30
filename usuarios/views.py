@@ -12,11 +12,17 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
-from django.contrib.auth.hashers import check_password
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.hashers import check_password, make_password
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 import requests
 import random
+from supabase import create_client, Client
+import os
+from django.conf import settings
+from backend_django.supabase_settings import SUPABASE_URL, SUPABASE_KEY
 
 # Create your views here.
 
@@ -155,56 +161,21 @@ def eliminar_cuenta(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def restablecer_contrasena(request):
-    correo = request.data.get('correo', '').strip().lower()
-    if not correo:
-        return Response({'detail': 'Debes proporcionar un correo.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+@csrf_exempt
+def sincronizar_contrasena_supabase(request):
+    correo = request.data.get('correo')
+    nueva_contrasena = request.data.get('nueva_contrasena')
+    if not correo or not nueva_contrasena:
+        return Response({'detail': 'Correo y nueva contraseña son requeridos.'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         usuario = Usuario.objects.get(correo__iexact=correo)
+        usuario.set_password(nueva_contrasena)
+        usuario.save()
+        return Response({'detail': 'Contraseña sincronizada exitosamente en el backend.'}, status=status.HTTP_200_OK)
     except Usuario.DoesNotExist:
-        return Response({'detail': 'No existe una cuenta con ese correo.'}, status=status.HTTP_404_NOT_FOUND)
-    
-    # Generar contraseña de 3 dígitos
-    nueva_contrasena = str(random.randint(100, 999))
-    usuario.set_password(nueva_contrasena)
-    usuario.save()
+        return Response({'detail': 'Usuario no encontrado en el backend.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error sincronizando contraseña: {str(e)}")
+        return Response({'detail': 'Error interno al sincronizar la contraseña.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # Crear notificación en la base de datos
-    from .models import Notification
-    Notification.objects.create(correo=correo, nuevaContrasena=nueva_contrasena)
-
-    # Enviar correo usando Microsoft Graph API (temporalmente comentado)
-    # access_token = 'AQUÍ_TU_TOKEN_DE_ACCESO_DE_APP_MICROSOFT_GRAPH'  # Debes obtener un token válido
-    # sender_email = 'julio2220089@correo.uis.edu.co'  # Cambia esto por el correo autorizado en Azure
-    # headers = {
-    #     'Authorization': f'Bearer {access_token}',
-    #     'Content-Type': 'application/json'
-    # }
-    # body = {
-    #     "message": {
-    #         "subject": "Restablecimiento de contraseña DonatonUIS",
-    #         "body": {
-    #             "contentType": "Text",
-    #             "content": f"Hola,\n\nTu nueva contraseña para DonatonUIS es: {nueva_contrasena}\n\nPor favor, cámbiala después de iniciar sesión.\n\nSaludos,\nEquipo DonatonUIS"
-    #         },
-    #         "toRecipients": [
-    #             {"emailAddress": {"address": correo}}
-    #         ]
-    #     }
-    # }
-    # try:
-    #     response = requests.post(
-    #         f'https://graph.microsoft.com/v1.0/users/{sender_email}/sendMail',
-    #         headers=headers,
-    #         json=body
-    #     )
-    #     if response.status_code not in [202, 200]:
-    #         return Response({'detail': 'No se pudo enviar el correo. Intenta de nuevo.', 'error': response.text}, status=500)
-    # except Exception as e:
-    #     return Response({'detail': 'Error enviando el correo.', 'error': str(e)}, status=500)
-    
-    return Response({
-        'detail': 'Contraseña restablecida exitosamente.',
-        'nuevaContrasena': nueva_contrasena
-    }, status=200)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None

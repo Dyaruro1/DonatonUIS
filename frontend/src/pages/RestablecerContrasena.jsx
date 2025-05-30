@@ -9,72 +9,29 @@ function RestablecerContrasena() {
   const [enviado, setEnviado] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [nuevaContrasena, setNuevaContrasena] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getCsrfToken = async () => {
-      try {
-        await authService.getCsrf();
-      } catch (error) {
-        console.error('Error fetching CSRF token:', error);
-        setError('Error de configuración, por favor intente más tarde.');
-      }
-    };
-    getCsrfToken();
-  }, []);  const handleSubmit = async (e) => {
+    // El flujo ahora es 100% Supabase, no necesitas CSRF ni llamada al backend
+    // Puedes eliminar esta función para evitar errores de red
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      // Restablecer contraseña en Django
-      const resp = await authService.restablecerContrasena(correo);
-      if (resp && resp.data && resp.data.nuevaContrasena) {
-        const nuevaPassword = resp.data.nuevaContrasena;
-        setNuevaContrasena(nuevaPassword);
-        
-        // Intentar actualizar la contraseña en Supabase Authentication
-        try {
-          // Primero intentar crear el usuario en Supabase (si no existe)
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: correo,
-            password: nuevaPassword
-          });
-          
-          if (signUpError) {
-            // Si el error es que el usuario ya existe, intentar actualizar la contraseña
-            if (signUpError.message.includes('already registered')) {
-              console.log('Usuario ya existe en Supabase, intentando actualizar contraseña...');
-              
-              // Intentar hacer login para obtener sesión y luego actualizar
-              const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-                email: correo,
-                password: nuevaPassword // Usar la nueva contraseña
-              });
-              
-              if (signInError) {
-                console.warn('No se pudo sincronizar con Supabase:', signInError.message);
-              } else {
-                console.log('Contraseña sincronizada exitosamente con Supabase');
-              }
-            } else {
-              console.error('Error creando usuario en Supabase:', signUpError);
-            }
-          } else {
-            console.log('Usuario creado exitosamente en Supabase');
-          }
-        } catch (supabaseError) {
-          console.error('Error con Supabase Authentication:', supabaseError);
-          // No fallar el proceso completo si Supabase falla
-        }
-      }
-      setEnviado(true);
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
-        setError('No existe una cuenta con ese correo.');
-      } else {
+      // Enviar email de recuperación usando Supabase directamente desde el frontend
+      const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(correo, {
+        redirectTo: window.location.origin + '/nueva-contrasena'
+      });
+      if (supabaseError) {
         setError('No se pudo enviar el correo. Intenta de nuevo.');
+      } else {
+        setEnviado(true);
       }
+    } catch (err) {
+      setError('No se pudo enviar el correo. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -97,7 +54,7 @@ function RestablecerContrasena() {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(24,25,43,0.58)', // overlay azul oscuro semitransparente
+          background: 'rgba(24,25,43,0.58)',
           zIndex: 0,
         }}
       ></div>
@@ -127,21 +84,13 @@ function RestablecerContrasena() {
             <circle cx="40" cy="32" r="8" fill="#21E058" />
           </svg>
         </div>
-        <h2 style={{ textAlign: 'center', fontSize: '1.35rem', fontWeight: 600, marginBottom: '1.2rem', color: '#222' }}>Restablece tu contraseña</h2>        {enviado ? (
+        <h2 style={{ textAlign: 'center', fontSize: '1.35rem', fontWeight: 600, marginBottom: '1.2rem', color: '#222' }}>Restablece tu contraseña</h2>
+        {enviado ? (
           <div style={{textAlign: 'center', color: '#21E058', fontWeight: 500, margin: '1.5rem 0'}}>
-            ¡Contraseña restablecida exitosamente!<br />
-            {nuevaContrasena && (
-              <>
-                <div style={{color: '#222', marginTop: '1.2rem', fontWeight: 400}}>
-                  <b>Tu nueva contraseña temporal es:</b><br />
-                  <span style={{fontSize: '1.15rem', color: '#21E058', fontFamily: 'monospace', letterSpacing: '2px'}}>{nuevaContrasena}</span><br />
-                  <span style={{fontSize: '0.98rem', color: '#444'}}>Guarda esta contraseña y cámbiala después de iniciar sesión.</span><br />
-                  <span style={{fontSize: '0.9rem', color: '#666', marginTop: '8px', display: 'inline-block'}}>
-                    Esta contraseña también se ha sincronizado con tu cuenta de autenticación.
-                  </span>
-                </div>
-              </>
-            )}
+            ¡Te hemos enviado un correo con instrucciones para restablecer tu contraseña!<br />
+            <span style={{color: '#222', marginTop: '1.2rem', fontWeight: 400, display: 'block'}}>
+              Revisa tu bandeja de entrada y sigue el enlace para crear una nueva contraseña.
+            </span>
           </div>
         ) : (
           <>
