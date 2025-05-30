@@ -59,7 +59,10 @@ function DonarRopa() {
       formData.append('uso', uso);
       formData.append('descripcion', descripcion);
       formData.append('sexo', sexo);
-      fotos.forEach(foto => formData.append('imagenes', foto));
+      // Subir cada imagen en su campo correspondiente (foto1, foto2, foto3)
+      if (fotos.length > 0) formData.append('foto1', fotos[0]);
+      if (fotos.length > 1) formData.append('foto2', fotos[1]);
+      if (fotos.length > 2) formData.append('foto3', fotos[2]);
       // Llama a la API real
       await donatonService.crearPrenda(formData);
       setSuccess('¡Donación publicada exitosamente!');

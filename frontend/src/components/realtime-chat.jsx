@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { createNotification } from '../services/notifications';
 
-export function RealtimeChat({ roomName, username, messages: initialMessages = [], onMessage }) {
+export function RealtimeChat({ roomName, username, user, userDestino, messages: initialMessages = [], onMessage }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
@@ -43,33 +42,21 @@ export function RealtimeChat({ roomName, username, messages: initialMessages = [
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    // Insertar mensaje
-    const { data: inserted, error: msgError } = await supabase.from('messages').insert({
-      room: roomName,
-      content: input,
-      user: { name: username },
-      username,
-    }).select();
-    if (msgError) {
-      console.error('Error al insertar mensaje:', msgError);
-      setInput('');
+    // DEBUG: log username antes de enviar
+    console.log('Enviando mensaje con username:', username);
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        room: roomName,
+        content: input,
+        username: username, // nombre real del usuario
+        user_destino: userDestino,
+      })
+      .select();
+    console.log('insert result →', { data, error });
+    if (error) {
+      alert('Error al enviar mensaje: ' + error.message);
       return;
-    }
-    // Obtener el último mensaje insertado para identificar emisor y receptor
-    const message = inserted && inserted[0];
-    if (message) {
-      // Suponiendo que en la tabla messages tienes los campos sender_id y receiver_id
-      const senderId = message.sender_id || window.currentUser?.id;
-      const receiverId = message.receiver_id || window.donanteId;
-      // Solo notificar si el emisor y receptor son diferentes
-      if (senderId && receiverId && senderId !== receiverId) {
-        await createNotification({
-          user_id: receiverId,
-          sender_id: senderId,
-          prenda_id: roomName,
-          message: `Te ha escrito ${username} para solicitarte por la prenda ${prendaNombre}`,
-        });
-      }
     }
     setInput('');
   };

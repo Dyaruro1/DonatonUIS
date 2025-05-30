@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import '../pages/FeedPrendas.css';
 import { RealtimeChat } from '../components/realtime-chat';
 import { useMessagesQuery } from '../hooks/use-messages-query';
+import { getProfileWithToken } from '../services/api';
 
 function SolicitudPrenda() {
   const location = useLocation();
@@ -11,15 +12,19 @@ function SolicitudPrenda() {
   console.log('DEBUG SolicitudPrenda prenda:', prenda);
   const roomName = prenda?.id?.toString();
   const [donante, setDonante] = useState(prenda?.donante || null);
-  const [isOnline, setIsOnline] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
-  // Simula la lógica de online (debería venir de backend en real)
+  // Lógica para saber si el donante está en línea (última actividad < 2 minutos)
+  const isOnline = (lastActive) => {
+    if (!lastActive) return false;
+    const last = new Date(lastActive).getTime();
+    return now - last < 2 * 60 * 1000;
+  };
+
   useEffect(() => {
-    if (donante && donante.last_active) {
-      const last = new Date(donante.last_active).getTime();
-      setIsOnline(Date.now() - last < 2 * 60 * 1000);
-    }
-  }, [donante]);
+    const interval = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Guardar info global para notificaciones en el chat
   useEffect(() => {
@@ -30,7 +35,52 @@ function SolicitudPrenda() {
 
   // Mensajes iniciales para el chat
   const { data: messages } = useMessagesQuery(roomName);
-  const username = localStorage.getItem('username') || 'Invitado';
+  // Obtener username actual y username del donante
+  let [username, setUsername] = useState(undefined);
+  let [userObj, setUserObj] = useState(undefined);
+
+  useEffect(() => {
+    let localUserObj;
+    let localUsername;
+    try {
+      const userStr = localStorage.getItem('currentUser');
+      if (userStr) {
+        localUserObj = JSON.parse(userStr);
+        if (localUserObj && localUserObj.username) localUsername = localUserObj.username;
+      }
+      if (!localUsername) {
+        const fallback = localStorage.getItem('username');
+        if (fallback) localUsername = fallback;
+      }
+    } catch (e) {
+      localUsername = localStorage.getItem('username');
+    }
+    if (localUsername && localUsername !== 'Invitado') {
+      setUsername(localUsername);
+      setUserObj(localUserObj ? { name: localUserObj.username, ...localUserObj } : { name: localUsername });
+    } else {
+      // Si no hay username válido, pedirlo al backend usando el token
+      getProfileWithToken().then(res => {
+        const data = res.data;
+        if (data && data.username) {
+          setUsername(data.username);
+          setUserObj({ name: data.username, ...data });
+          // Opcional: guardar en localStorage para futuras sesiones
+          localStorage.setItem('username', data.username);
+          // localStorage.setItem('currentUser', JSON.stringify(data));
+        } else {
+          setUsername('Invitado');
+          setUserObj({ name: 'Invitado' });
+        }
+      }).catch(() => {
+        setUsername('Invitado');
+        setUserObj({ name: 'Invitado' });
+      });
+    }
+  }, []);
+  // Para el campo user, pasar el objeto userObj si existe, si no, solo el username
+  const user = userObj ? userObj : { name: username };
+  const userDestino = prenda?.donante?.username || prenda?.donante?.nombre || '';
 
   if (!prenda || !donante) {
     return (
@@ -78,7 +128,7 @@ function SolicitudPrenda() {
           <img src={donante.foto || '/logo-pequeno.svg'} alt="avatar" style={{ width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', background: '#23233a', border: '3px solid #fff' }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontWeight: 700, fontSize: '1.35rem', color: '#fff' }}>{donante.nombre} {donante.apellido}</div>
-            <span style={{ background: isOnline ? '#21e058' : '#babcc4', color: isOnline ? '#fff' : '#23233a', fontWeight: 600, borderRadius: 6, padding: '2px 12px', fontSize: 15, width: 'fit-content', marginBottom: 2 }}>{isOnline ? 'En línea' : 'Desconectado'}</span>
+            <span style={{ background: isOnline(donante.last_active) ? '#21e058' : '#babcc4', color: isOnline(donante.last_active) ? '#fff' : '#23233a', fontWeight: 600, borderRadius: 6, padding: '2px 12px', fontSize: 15, width: 'fit-content', marginBottom: 2 }}>{isOnline(donante.last_active) ? 'En línea' : 'Desconectado'}</span>
             <span style={{ color: '#babcc4', fontSize: 16, marginTop: 2 }}>¡Bienvenido al chat!</span>
           </div>
         </div>
@@ -87,6 +137,8 @@ function SolicitudPrenda() {
         <RealtimeChat
           roomName={roomName}
           username={username}
+          user={user}
+          userDestino={userDestino}
           messages={messages}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16 }}>

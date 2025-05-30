@@ -21,6 +21,9 @@ class PrendaViewSet(viewsets.ModelViewSet):
         imagenes = request.FILES.getlist('imagenes')
         if len(imagenes) > 3:
             return Response({'error': 'Máximo 3 imágenes permitidas.'}, status=400)
+        foto1 = request.FILES.get('foto1')
+        foto2 = request.FILES.get('foto2')
+        foto3 = request.FILES.get('foto3')
         # Forzar status a 'disponible' y upload_status a 'En espera' siempre
         prenda = Prenda.objects.create(
             nombre=data['nombre'],
@@ -30,10 +33,12 @@ class PrendaViewSet(viewsets.ModelViewSet):
             descripcion=data.get('descripcion', ''),
             donante=request.user,
             status='disponible',
-            upload_status='En espera'
+            upload_status='En espera',
+            foto1=foto1,
+            foto2=foto2,
+            foto3=foto3,
         )
-        for img in imagenes:
-            ImagenPrenda.objects.create(prenda=prenda, imagen=img)
+        prenda.refresh_from_db()
         return Response(PrendaSerializer(prenda, context={'request': request}).data)
 
     @action(detail=False, methods=['get'], url_path='admin-list', permission_classes=[AllowAny])
@@ -48,23 +53,34 @@ class PrendaViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         fotos_existentes = data.getlist('fotos_existentes') if 'fotos_existentes' in data else []
         nuevas_imagenes = request.FILES.getlist('imagenes')
-
         # Eliminar imágenes que el usuario quitó
         actuales = list(instance.imagenes.all())
         for img in actuales:
             nombre_archivo = os.path.basename(img.imagen.name)
             if nombre_archivo not in fotos_existentes:
                 img.delete()
-
         # Validar que no se exceda el máximo de 3 imágenes
         total_imgs = instance.imagenes.count() + len(nuevas_imagenes)
         if total_imgs > 3:
             return Response({'error': 'Máximo 3 imágenes permitidas.'}, status=400)
-
-        # Agregar nuevas imágenes
-        for img in nuevas_imagenes:
-            ImagenPrenda.objects.create(prenda=instance, imagen=img)
-
+        # Si hay nuevas imágenes, actualizar la foto principal y las secundarias
+        if nuevas_imagenes:
+            # Actualizar foto principal
+            instance.foto = nuevas_imagenes[0]
+            instance.save()
+            # Eliminar todas las ImagenPrenda y volver a crear con las nuevas (menos la principal)
+            instance.imagenes.all().delete()
+            for img in nuevas_imagenes[1:]:
+                ImagenPrenda.objects.create(prenda=instance, imagen=img)
+        # Actualizar hasta tres imágenes en los campos foto1, foto2 y foto3
+        if nuevas_imagenes:
+            if len(nuevas_imagenes) > 0:
+                instance.foto1 = nuevas_imagenes[0]
+            if len(nuevas_imagenes) > 1:
+                instance.foto2 = nuevas_imagenes[1]
+            if len(nuevas_imagenes) > 2:
+                instance.foto3 = nuevas_imagenes[2]
+            instance.save()
         # Actualizar los demás campos
         instance.nombre = data.get('nombre', instance.nombre)
         instance.talla = data.get('talla', instance.talla)

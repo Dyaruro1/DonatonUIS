@@ -62,4 +62,7 @@ api.getUserById = (id) => api.get(`/api/usuarios/${id}/`);
 api.updateUserById = (id, data) => api.put(`/api/usuarios/${id}/`, data);
 api.deleteUserById = (id) => api.delete(`/api/usuarios/${id}/`);
 
+// Función para obtener el perfil del usuario autenticado usando el token
+export const getProfileWithToken = () => api.get('/api/usuarios/perfil/');
+
 export default api;

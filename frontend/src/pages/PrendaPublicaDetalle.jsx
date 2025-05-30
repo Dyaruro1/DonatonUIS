@@ -12,10 +12,15 @@ function PrendaPublicaDetalle() {
     return null;
   }
 
-  // Usar arreglo de objetos imagenes
-  const imagenes = (prenda.imagenes && prenda.imagenes.length > 0)
-    ? prenda.imagenes.map(img => img.imagen)
-    : [prenda.imagen_url || '/fondo-uis.jpg'];
+  // Obtener todas las imágenes disponibles (foto1_url, foto2_url, foto3_url, fallback a foto1, foto2, foto3)
+  const fotos = [
+    prenda.foto1_url || prenda.foto1,
+    prenda.foto2_url || prenda.foto2,
+    prenda.foto3_url || prenda.foto3
+  ].filter(Boolean);
+
+  // Si no hay imágenes, usar el fondo por defecto
+  const imagenes = fotos.length > 0 ? fotos : ['/fondo-uis.jpg'];
   const [imgSeleccionada, setImgSeleccionada] = React.useState(imagenes[0]);
 
   React.useEffect(() => {
@@ -30,7 +35,6 @@ function PrendaPublicaDetalle() {
   }
 
   // Obtener nombre del donante
-  // Mostrar username si existe, si no nombre, si no 'Usuario'
   const nombreDonante = prenda.donante?.username || prenda.donante?.nombre || prenda.usuario_nombre || 'Usuario';
 
   return (

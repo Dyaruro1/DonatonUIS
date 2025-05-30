@@ -296,9 +296,7 @@ function FeedPrendas() {
                 <div className="feed-card-img">
                   <img
                     src={
-                      prenda.imagenes && prenda.imagenes.length > 0
-                        ? prenda.imagenes[0].imagen
-                        : '/fondo-uis.jpg'
+                      prenda.foto1_url || prenda.foto1 || '/fondo-uis.jpg'
                     }
                     alt={prenda.nombre}
                   />
