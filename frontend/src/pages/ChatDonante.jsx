@@ -7,8 +7,13 @@ function ChatDonante() {
   const location = useLocation();
   const navigate = useNavigate();
   const prenda = location.state?.prenda;
-  console.log('DEBUG ChatDonante prenda:', prenda);
   const roomName = prenda?.id?.toString();
+
+  // Forzar username localStorage a 'Donante' para correcta alineación
+  React.useEffect(() => {
+    localStorage.setItem('username', 'Donante');
+  }, []);
+
   const { data: messages } = useMessagesQuery(roomName);
   const username = localStorage.getItem('username') || 'Donante';
 

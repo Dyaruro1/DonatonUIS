@@ -53,24 +53,93 @@ export function RealtimeChat({ roomName, username, messages: initialMessages = [
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 320, background: '#e3e3e3', borderRadius: 24, boxShadow: '0 2px 16px #0002', position: 'relative', padding: 0 }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2.2rem' }}>
-        {messages.map((msg) => (
-          <div key={msg.id} style={{ marginBottom: 8, background: '#fff', borderRadius: 8, padding: '0.5rem 1.2rem', width: 'fit-content', color: '#23233a', fontWeight: msg.user?.name === username ? 700 : 500 }}>
-            <span style={{ color: '#21e058', marginRight: 8 }}>{msg.user?.name || msg.username}:</span> {msg.content}
-          </div>
-        ))}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2.2rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {messages.map((msg, idx) => {
+          const isOwn = (msg.user?.name || msg.username) === username;
+          return (
+            <div
+              key={msg.id || idx}
+              style={{
+                display: 'flex',
+                justifyContent: isOwn ? 'flex-end' : 'flex-start',
+                width: '100%',
+              }}
+            >
+              <div
+                style={{
+                  background: isOwn ? '#21e058' : '#fff',
+                  color: isOwn ? '#fff' : '#23233a',
+                  fontWeight: isOwn ? 700 : 500,
+                  borderRadius: 12,
+                  padding: '0.7rem 1.4rem',
+                  minWidth: 60,
+                  maxWidth: '60%',
+                  boxShadow: isOwn ? '0 2px 8px #21e05833' : '0 2px 8px #0001',
+                  alignSelf: isOwn ? 'flex-end' : 'flex-start',
+                  textAlign: 'left',
+                  marginLeft: isOwn ? 'auto' : 0,
+                  marginRight: isOwn ? 0 : 'auto',
+                  marginTop: 2,
+                  marginBottom: 2,
+                  display: 'inline-block',
+                  wordBreak: 'break-word',
+                }}
+              >
+                <span style={{ color: isOwn ? '#fff' : '#21e058', marginRight: 8, fontWeight: 600 }}>
+                  {msg.user?.name || msg.username}
+                </span>
+                {msg.content}
+              </div>
+            </div>
+          );
+        })}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={sendMessage} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, background: '#e3e3e3', borderRadius: '0 0 24px 24px', padding: '1.1rem 1.5rem', position: 'absolute', bottom: 0, left: 0 }}>
+      <form onSubmit={sendMessage} style={{
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'nowrap',
+        alignItems: 'center',
+        gap: '0.5rem',
+        paddingTop: '1.1rem',
+        paddingBottom: '1.1rem',
+        paddingLeft: 0,
+        paddingRight: 0,
+        background: '#e3e3e3',
+        borderRadius: '0 0 24px 24px',
+        marginTop: 'auto',
+        width: '100%',
+        minWidth: 0,
+      }}>
         <input
           type="text"
           placeholder="Escribe un mensaje"
-          style={{ flex: 1, border: 'none', borderRadius: 18, padding: '0.7rem 1.2rem', fontSize: 16, outline: 'none', background: '#fff', color: '#23233a' }}
+          style={{
+            flex: '1 1 0',
+            width: '100%',
+            border: 'none',
+            borderRadius: 18,
+            padding: '0.7rem 1.2rem',
+            fontSize: 16,
+            outline: 'none',
+            background: '#fff',
+            color: '#23233a',
+            minWidth: 0,
+            boxSizing: 'border-box',
+          }}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={e => setInput(e.target.value)}
         />
-        <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="#21e058"/></svg>
+        <button type="submit" style={{
+          flex: '0 0 auto',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 0,
+        }}>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+            <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="#21e058"/>
+          </svg>
         </button>
       </form>
     </div>
