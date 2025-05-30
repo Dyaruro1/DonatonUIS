@@ -22,11 +22,13 @@ function EditarPublicacion() {
   const [descripcion, setDescripcion] = useState(prenda.descripcion || '');
   const [status, setStatus] = useState(prenda.status || 'disponible');
   // Fotos: pueden ser URLs (string) o File
-  const [fotos, setFotos] = useState(
-    prenda.imagenes && prenda.imagenes.length > 0
-      ? prenda.imagenes.map(img => img.imagen)
-      : (prenda.imagen_url ? [prenda.imagen_url] : [])
-  );
+  // Unificar lógica: usar foto1_url, foto2_url, foto3_url, o sus variantes, igual que en el feed
+  const fotosPrenda = [
+    prenda.foto1_url || prenda.foto1,
+    prenda.foto2_url || prenda.foto2,
+    prenda.foto3_url || prenda.foto3
+  ].filter(Boolean);
+  const [fotos, setFotos] = useState(fotosPrenda);
   const [nuevasFotos, setNuevasFotos] = useState([]); // File[]
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');

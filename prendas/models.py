@@ -26,6 +26,9 @@ class Prenda(models.Model):
         ('Cargado', 'Cargado'),
     ]
     upload_status = models.CharField(max_length=20, choices=UPLOAD_STATUS_CHOICES, default='Cargado')
+    foto1 = models.ImageField(upload_to='prendas/', blank=True, null=True)
+    foto2 = models.ImageField(upload_to='prendas/', blank=True, null=True)
+    foto3 = models.ImageField(upload_to='prendas/', blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -33,6 +36,14 @@ class Prenda(models.Model):
 class ImagenPrenda(models.Model):
     prenda = models.ForeignKey(Prenda, related_name='imagenes', on_delete=models.CASCADE)
     imagen = models.ImageField(upload_to='prendas/')  # Esto ya guarda en media/prendas/ y es accesible por URL si MEDIA_URL está bien configurado
+    ruta_local = models.CharField(max_length=255, blank=True, null=True)  # NUEVO: ruta local del archivo
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Guardar la ruta local después de guardar la imagen
+        if self.imagen and self.ruta_local != self.imagen.name:
+            self.ruta_local = self.imagen.name
+            super().save(update_fields=['ruta_local'])
 
     def __str__(self):
         return f"Imagen de {self.prenda.nombre}"

@@ -13,12 +13,23 @@ function SolicitudPrenda() {
   const [donante, setDonante] = useState(prenda?.donante || null);
   const [isOnline, setIsOnline] = useState(false);
 
-  // Simula la lógica de online (debería venir de backend en real)
+  // Lógica para saber si el donante está en línea (última actividad < 2 minutos)
   useEffect(() => {
     if (donante && donante.last_active) {
       const last = new Date(donante.last_active).getTime();
       setIsOnline(Date.now() - last < 2 * 60 * 1000);
     }
+  }, [donante]);
+
+  // Actualiza el tiempo cada 30 segundos para refrescar el estado en línea
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (donante && donante.last_active) {
+        const last = new Date(donante.last_active).getTime();
+        setIsOnline(Date.now() - last < 2 * 60 * 1000);
+      }
+    }, 30000);
+    return () => clearInterval(interval);
   }, [donante]);
 
   // Mensajes iniciales para el chat

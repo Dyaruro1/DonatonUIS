@@ -86,7 +86,19 @@ function AdminDetallePublicacion() {
   if (error) return <div style={{color:'#ff6b6b'}}>Error: {error} (id: {id})</div>;
   if (!prenda) return <div style={{color:'#ff6b6b'}}>No se encontró la prenda (id: {id})</div>;
 
-  const imagenes = prenda.imagenes && prenda.imagenes.length > 0 ? prenda.imagenes : (prenda.imagen_url ? [{ imagen: prenda.imagen_url }] : []);
+  // Mostrar imágenes de los campos foto1, foto2, foto3 o foto1_url, foto2_url, foto3_url si existen
+  const imagenes = [
+    prenda.foto1 || prenda.foto1_url,
+    prenda.foto2 || prenda.foto2_url,
+    prenda.foto3 || prenda.foto3_url
+  ].filter(Boolean).map(url => ({ imagen: url.startsWith('http') ? url : `http://localhost:8000${url}` }));
+
+  // Si no hay fotos en los campos directos, usar las de imagenes (ImagenPrenda) o imagen_url
+  const fallbackImagenes = prenda.imagenes && prenda.imagenes.length > 0
+    ? prenda.imagenes.map(img => ({ imagen: img.imagen.startsWith('http') ? img.imagen : `http://localhost:8000${img.imagen}` }))
+    : (prenda.imagen_url ? [{ imagen: prenda.imagen_url.startsWith('http') ? prenda.imagen_url : `http://localhost:8000${prenda.imagen_url}` }] : []);
+
+  const allImagenes = imagenes.length > 0 ? imagenes : fallbackImagenes;
 
   // Status color helpers
   const statusColor = prenda.status === 'disponible' ? '#21E058' : '#ffb300';
@@ -100,7 +112,7 @@ function AdminDetallePublicacion() {
         <div className="detalle-admin-container">
           <div className="detalle-admin-imgs">
             <div className="detalle-admin-thumbs">
-              {imagenes.map((img, idx) => (
+              {allImagenes.map((img, idx) => (
                 <img
                   key={idx}
                   src={img.imagen.startsWith('http') ? img.imagen : `http://localhost:8000${img.imagen}`}
@@ -112,9 +124,9 @@ function AdminDetallePublicacion() {
               ))}
             </div>
             <div className="detalle-admin-main-img">
-              {imagenes[imgIndex] && (
+              {allImagenes[imgIndex] && (
                 <img
-                  src={imagenes[imgIndex].imagen.startsWith('http') ? imagenes[imgIndex].imagen : `http://localhost:8000${imagenes[imgIndex].imagen}`}
+                  src={allImagenes[imgIndex].imagen.startsWith('http') ? allImagenes[imgIndex].imagen : `http://localhost:8000${allImagenes[imgIndex].imagen}`}
                   alt="main"
                 />
               )}

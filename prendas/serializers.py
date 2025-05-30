@@ -13,6 +13,8 @@ class ImagenPrendaSerializer(serializers.ModelSerializer):
 class PrendaSerializer(serializers.ModelSerializer):
     imagenes = ImagenPrendaSerializer(many=True, read_only=True)
     donante = serializers.SerializerMethodField(read_only=True)
+    imagenes_ruta = serializers.SerializerMethodField(read_only=True)
+    foto_url = serializers.SerializerMethodField(read_only=True)  # NUEVO
 
     class Meta:
         model = Prenda
@@ -30,15 +32,33 @@ class PrendaSerializer(serializers.ModelSerializer):
             }
         return None
 
+    def get_imagenes_ruta(self, obj):
+        # Devuelve una lista con la ruta local de cada imagen
+        return [img.imagen.name for img in obj.imagenes.all()]
+
+    def get_foto_url(self, obj):
+        # Compatibilidad: regresa la primera foto disponible
+        if hasattr(obj, 'foto1') and obj.foto1:
+            return obj.foto1.url
+        if hasattr(obj, 'foto2') and obj.foto2:
+            return obj.foto2.url
+        if hasattr(obj, 'foto3') and obj.foto3:
+            return obj.foto3.url
+        return None
+
 class PrendaAdminSerializer(serializers.ModelSerializer):
     postulados = serializers.SerializerMethodField()
     donante = serializers.SerializerMethodField()
     imagen_url = serializers.SerializerMethodField()
     imagenes = ImagenPrendaSerializer(many=True, read_only=True)
+    foto_url = serializers.SerializerMethodField(read_only=True)  # NUEVO
+    foto1_url = serializers.SerializerMethodField(read_only=True)
+    foto2_url = serializers.SerializerMethodField(read_only=True)
+    foto3_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Prenda
-        fields = ['id', 'nombre', 'imagen_url', 'imagenes', 'visitas', 'postulados', 'donante']
+        fields = ['id', 'nombre', 'imagen_url', 'imagenes', 'foto_url', 'visitas', 'postulados', 'donante', 'foto1_url', 'foto2_url', 'foto3_url']
 
     def get_postulados(self, obj):
         from solicitudes.models import Solicitud
@@ -61,3 +81,22 @@ class PrendaAdminSerializer(serializers.ModelSerializer):
         if obj.imagenes.exists():
             return obj.imagenes.first().imagen.url
         return None
+
+    def get_foto_url(self, obj):
+        # Compatibilidad: regresa la primera foto disponible
+        if hasattr(obj, 'foto1') and obj.foto1:
+            return obj.foto1.url
+        if hasattr(obj, 'foto2') and obj.foto2:
+            return obj.foto2.url
+        if hasattr(obj, 'foto3') and obj.foto3:
+            return obj.foto3.url
+        return None
+
+    def get_foto1_url(self, obj):
+        return obj.foto1.url if obj.foto1 else None
+
+    def get_foto2_url(self, obj):
+        return obj.foto2.url if obj.foto2 else None
+
+    def get_foto3_url(self, obj):
+        return obj.foto3.url if obj.foto3 else None

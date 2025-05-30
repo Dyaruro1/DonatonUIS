@@ -11,6 +11,10 @@ function PrendaDetalle() {
     return null;
   }
 
+  // Mostrar todas las fotos disponibles como miniaturas y principal
+  const fotos = [prenda.foto1_url, prenda.foto2_url, prenda.foto3_url].filter(Boolean);
+  const mainImage = fotos[0] || '/fondo-uis.jpg';
+
   // Barra de navegación horizontal
   const handleNav = (route) => {
     navigate(route);
@@ -42,12 +46,13 @@ function PrendaDetalle() {
         <div style={{display: 'flex', gap: '2.5rem', width: '90%', maxWidth: 1100, background: 'transparent'}}>
           {/* Miniaturas */}
           <div style={{display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center'}}>
-            <img src={prenda.imagen_url || '/fondo-uis.jpg'} alt="mini" style={{width: 60, height: 60, borderRadius: 12, objectFit: 'cover', border: '3px solid #7ee787', background: '#fff'}} />
-            {/* Aquí podrías mapear más imágenes si las hubiera */}
+            {fotos.map((foto, idx) => (
+              <img key={idx} src={foto} alt={`mini-${idx}`} style={{width: 60, height: 60, borderRadius: 12, objectFit: 'cover', border: '3px solid #7ee787', background: '#fff'}} />
+            ))}
           </div>
           {/* Imagen principal */}
           <div style={{flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-            <img src={prenda.imagen_url || '/fondo-uis.jpg'} alt={prenda.nombre} style={{width: 340, height: 340, objectFit: 'cover', borderRadius: 16, background: '#fff'}} />
+            <img src={mainImage} alt={prenda.nombre} style={{width: 340, height: 340, objectFit: 'cover', borderRadius: 16, background: '#fff'}} />
           </div>
           {/* Detalles */}
           <div style={{flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 18}}>
