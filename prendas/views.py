@@ -21,7 +21,7 @@ class PrendaViewSet(viewsets.ModelViewSet):
         imagenes = request.FILES.getlist('imagenes')
         if len(imagenes) > 3:
             return Response({'error': 'Máximo 3 imágenes permitidas.'}, status=400)
-        # Forzar status a 'disponible' siempre
+        # Forzar status a 'disponible' y upload_status a 'En espera' siempre
         prenda = Prenda.objects.create(
             nombre=data['nombre'],
             talla=data['talla'],
@@ -29,7 +29,8 @@ class PrendaViewSet(viewsets.ModelViewSet):
             uso=data.get('uso', ''),
             descripcion=data.get('descripcion', ''),
             donante=request.user,
-            status='disponible'
+            status='disponible',
+            upload_status='En espera'
         )
         for img in imagenes:
             ImagenPrenda.objects.create(prenda=prenda, imagen=img)
@@ -37,7 +38,8 @@ class PrendaViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='admin-list', permission_classes=[AllowAny])
     def admin_list(self, request):
-        prendas = Prenda.objects.all()
+        # Solo prendas con upload_status 'En espera'
+        prendas = Prenda.objects.filter(upload_status='En espera')
         serializer = PrendaAdminSerializer(prendas, many=True, context={'request': request})
         return Response(serializer.data)
 

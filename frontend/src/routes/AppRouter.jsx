@@ -21,6 +21,7 @@ import PerfilAdmin from '../pages/PerfilAdmin';
 import AdminConfiguracion from '../pages/AdminConfiguracion';
 import AdminUsuarioDetalle from '../pages/AdminUsuarioDetalle';
 import SolicitudPrenda from '../pages/SolicitudPrenda';
+import AdminDetallePublicacion from '../pages/AdminDetallePublicacion';
 
 function AppContent() {
   const location = useLocation();
@@ -55,6 +56,7 @@ function AppContent() {
           <Route path="/admin/perfil-admin" element={<PerfilAdmin />} />
           <Route path="/admin/configuracion" element={<AdminConfiguracion />} />
           <Route path="/admin/users/:id" element={<AdminUsuarioDetalle />} />
+          <Route path="/admin/posts/:id" element={<AdminDetallePublicacion />} />
           <Route path="/solicitacion-prenda" element={<SolicitudPrenda />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
