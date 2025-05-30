@@ -42,7 +42,25 @@ function RegistroDatosExtra() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
+    // Validación de fecha de nacimiento: no futura y al menos 12 años
+    if (fechaNacimiento) {
+      const partes = fechaNacimiento.split('-');
+      if (partes.length === 3) {
+        const fecha = new Date(`${partes[0]}-${partes[1]}-${partes[2]}T00:00:00`);
+        const hoy = new Date();
+        const hace12Anios = new Date(hoy.getFullYear() - 12, hoy.getMonth(), hoy.getDate());
+        if (fecha > hace12Anios) {
+          setError('Debes tener al menos 12 años para registrarte.');
+          setLoading(false);
+          return;
+        }
+        if (fecha > hoy) {
+          setError('La fecha de nacimiento no puede ser en el futuro.');
+          setLoading(false);
+          return;
+        }
+      }
+    }
     try {
       const formData = new FormData();
       formData.append('nombre', nombres);

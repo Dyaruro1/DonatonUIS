@@ -14,6 +14,13 @@ import PrendaDetalle from '../pages/PrendaDetalle';
 import EditarPublicacion from '../pages/EditarPublicacion';
 import Ajustes from '../pages/Ajustes';
 import PrendaPublicaDetalle from '../pages/PrendaPublicaDetalle';
+import AdminHome from '../pages/AdminHome';
+import AdminUsuarios from '../pages/AdminUsuarios';
+import AdminPost from '../pages/AdminPost';
+import PerfilAdmin from '../pages/PerfilAdmin';
+import AdminConfiguracion from '../pages/AdminConfiguracion';
+import AdminUsuarioDetalle from '../pages/AdminUsuarioDetalle';
+import SolicitudPrenda from '../pages/SolicitudPrenda';
 
 function AppContent() {
   const location = useLocation();
@@ -42,6 +49,13 @@ function AppContent() {
           <Route path="/restablecer-contrasena" element={<RestablecerContrasena />} />
           <Route path="/feed" element={<FeedPrendas />} />
           <Route path="/prenda-publica" element={<PrendaPublicaDetalle />} />
+          <Route path="/admin" element={<AdminHome />} />
+          <Route path="/admin/users" element={<AdminUsuarios />} />
+          <Route path="/admin/posts" element={<AdminPost />} />
+          <Route path="/admin/perfil-admin" element={<PerfilAdmin />} />
+          <Route path="/admin/configuracion" element={<AdminConfiguracion />} />
+          <Route path="/admin/users/:id" element={<AdminUsuarioDetalle />} />
+          <Route path="/solicitacion-prenda" element={<SolicitudPrenda />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './EditarPublicacion.css';
+import { donatonService } from '../services/api'; // Asegúrate de importar tu servicio
+import { AuthContext } from '../context/AuthContext';
 
 function EditarPublicacion() {
   const navigate = useNavigate();
   const location = useLocation();
   const prenda = location.state?.prenda;
+  const { currentUser } = useContext(AuthContext);
+  const [timeoutId, setTimeoutId] = useState(null);
   if (!prenda) {
     navigate('/feed');
     return null;
@@ -16,20 +20,31 @@ function EditarPublicacion() {
   const [uso, setUso] = useState(prenda.uso || '');
   const [sexo, setSexo] = useState(prenda.sexo || '');
   const [descripcion, setDescripcion] = useState(prenda.descripcion || '');
+  const [status, setStatus] = useState(prenda.status || 'disponible');
   // Fotos: pueden ser URLs (string) o File
-  const [fotos, setFotos] = useState(prenda.fotos && prenda.fotos.length > 0 ? prenda.fotos : (prenda.imagen_url ? [prenda.imagen_url] : []));
+  const [fotos, setFotos] = useState(
+    prenda.imagenes && prenda.imagenes.length > 0
+      ? prenda.imagenes.map(img => img.imagen)
+      : (prenda.imagen_url ? [prenda.imagen_url] : [])
+  );
   const [nuevasFotos, setNuevasFotos] = useState([]); // File[]
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Navegación
   const handleNav = (route) => { navigate(route); };
 
-  // Manejar nuevas fotos (permite varias)
+  // Manejar nuevas fotos (permite varias, máximo 3 en total)
   const handleAddFoto = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      setNuevasFotos([...nuevasFotos, ...Array.from(e.target.files)]);
+      const total = fotos.length + nuevasFotos.length + e.target.files.length;
+      if (total > 3) {
+        setError('Solo puedes subir hasta 3 fotos en total.');
+        return;
+      }
+      setNuevasFotos([...nuevasFotos, ...Array.from(e.target.files)].slice(0, 3 - fotos.length));
     }
   };
   // Eliminar foto existente (URL)
@@ -41,8 +56,8 @@ function EditarPublicacion() {
     setNuevasFotos(nuevasFotos.filter((_, i) => i !== idx));
   };
 
-  // Guardar cambios (simulado)
-  const handleSubmit = (e) => {
+  // Guardar cambios (real)
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -50,14 +65,61 @@ function EditarPublicacion() {
       setError('Por favor completa todos los campos y sube al menos una foto.');
       return;
     }
+    if (fotos.length + nuevasFotos.length > 3) {
+      setError('Solo puedes subir hasta 3 fotos en total.');
+      return;
+    }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      // Construir formData para enviar imágenes y datos
+      const formData = new FormData();
+      formData.append('nombre', nombre);
+      formData.append('talla', talla);
+      formData.append('uso', uso);
+      formData.append('sexo', sexo);
+      formData.append('descripcion', descripcion);
+      // Solo el dueño puede editar status
+      if (currentUser && prenda.donante && (currentUser.id === prenda.donante.id) && status) {
+        formData.append('status', status);
+      }
+      // Fotos existentes (solo nombre de archivo)
+      fotos.forEach((foto) => {
+        // Extrae solo el nombre del archivo, sin el path
+        const nombreArchivo = foto.split('/').pop();
+        formData.append('fotos_existentes', nombreArchivo);
+      });
+      // Nuevas fotos (archivos) - usa el campo 'imagenes' igual que en DonarRopa.jsx
+      nuevasFotos.forEach((file) => {
+        formData.append('imagenes', file);
+      });
+      await donatonService.updatePrenda(prenda.id, formData);
       setSuccess('¡Cambios guardados exitosamente!');
-      setLoading(false);
-      setTimeout(() => {
-        navigate('/feed'); // Redirige al feed principal después de guardar
+      const id = setTimeout(() => {
+        navigate('/feed');
       }, 1200);
-    }, 900);
+      setTimeoutId(id);
+    } catch (err) {
+      setError('Error al guardar los cambios. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Eliminar publicación
+  const handleDelete = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      await donatonService.deletePrenda(prenda.id);
+      setSuccess('Publicación eliminada correctamente.');
+      setTimeout(() => navigate('/feed'), 1200);
+    } catch (err) {
+      setError('No se pudo eliminar la publicación. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+      setShowDeleteModal(false);
+    }
   };
 
   return (
@@ -103,6 +165,9 @@ function EditarPublicacion() {
           onMouseOver={e => { e.currentTarget.style.background = '#ff6b6b22'; e.currentTarget.style.color = '#fff'; }}
           onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ff6b6b'; }}
           onClick={() => {
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
             localStorage.removeItem('token');
             navigate('/login');
           }}
@@ -122,7 +187,17 @@ function EditarPublicacion() {
           <span className="editar-ejemplo">Ejemplo: Camisa a cuadros</span>
 
           <label className="editar-label">Talla</label>
-          <input type="text" value={talla} onChange={e => setTalla(e.target.value)} placeholder="Ejemplo: S, M, L, XL" className="editar-input" required />
+          <select value={talla} onChange={e => setTalla(e.target.value)} className="editar-select" required>
+            <option value="">Seleccione la talla</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+            <option value="Única">Única</option>
+            <option value="Infantil">Infantil</option>
+          </select>
           <span className="editar-ejemplo">Ejemplo: S, M, L, XL</span>
 
           <label className="editar-label">Tiempo de Uso</label>
@@ -132,11 +207,23 @@ function EditarPublicacion() {
           <label className="editar-label">Sexo</label>
           <select value={sexo} onChange={e => setSexo(e.target.value)} className="editar-select" required>
             <option value="">Seleccione el sexo</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
-            <option value="Unisex">Unisex</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+            <option value="otro">Otro</option>
           </select>
-          <span className="editar-ejemplo">Ejemplo: Masculino, Femenino, Unisex</span>
+          <span className="editar-ejemplo">Ejemplo: Masculino, Femenino, Otro</span>
+
+          {/* Campo status solo para el dueño */}
+          {currentUser && prenda.donante && (currentUser.id === prenda.donante.id) && (
+            <>
+              <label className="editar-label">Estado de la prenda</label>
+              <select value={status} onChange={e => setStatus(e.target.value)} className="editar-select" required>
+                <option value="disponible">Disponible</option>
+                <option value="en_solicitud">En solicitud</option>
+              </select>
+              <span className="editar-ejemplo">Puedes cambiar el estado de tu prenda</span>
+            </>
+          )}
         </div>
         {/* Columna derecha */}
         <div className="editar-col-der">
@@ -168,6 +255,68 @@ function EditarPublicacion() {
             <button type="button" onClick={() => navigate(-1)} className="editar-cancelar">Cancelar</button>
             <button type="submit" className="feed-card-btn editar-guardar" disabled={loading}>{loading ? 'Guardando...' : 'Guardar cambios'}</button>
           </div>
+          <button type="button" onClick={() => setShowDeleteModal(true)} style={{marginTop:16, background:'#ff2d2d', color:'#fff', border:'none', borderRadius:8, padding:'0.9rem 0', fontWeight:700, fontSize:'1.08rem', cursor:'pointer', width:220}}>Eliminar publicación</button>
+          {showDeleteModal && (
+            <>
+              <div style={{
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(24,25,43,0.55)',
+                backdropFilter: 'blur(6px)',
+                zIndex: 200,
+              }}></div>
+              <div style={{
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                width: '100vw',
+                height: '100vh',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 201,
+              }}>
+                <div style={{
+                  background: '#23233a',
+                  borderRadius: 18,
+                  boxShadow: '0 2px 32px 0 #0004',
+                  padding: '2.2rem 2.5rem 2rem 2.5rem',
+                  minWidth: 340,
+                  maxWidth: 400,
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                    ¿Seguro que deseas eliminar esta publicación?
+                  </div>
+                  <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                    Esta acción no se puede deshacer.
+                  </div>
+                  <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                    <button
+                      style={{ flex: 1, background: '#ff2d2d', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                      onClick={handleDelete}
+                      disabled={loading}
+                    >
+                      Sí, eliminar
+                    </button>
+                    <button
+                      style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                      onClick={() => setShowDeleteModal(false)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
           {error && <div style={{ color: '#ff6b6b', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{error}</div>}
           {success && <div style={{ color: '#21E058', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{success}</div>}
         </div>

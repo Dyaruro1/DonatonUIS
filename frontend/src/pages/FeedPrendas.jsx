@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FeedPrendas.css';
 import { donatonService } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 
 function FeedPrendas() {
   const [prendas, setPrendas] = useState([]);
@@ -16,19 +17,13 @@ function FeedPrendas() {
   const [filter, setFilter] = useState("");
   const [filterValue, setFilterValue] = useState("");
   const [tab, setTab] = useState("disponibles");
-  const [userId, setUserId] = useState(null);
+  const { currentUser } = useContext(AuthContext);
+  const userId = currentUser?.id;
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleSidebarNav = (route) => {
     navigate(route);
   };
-
-  // Obtener el usuario actual para "Mis publicaciones"
-  useEffect(() => {
-    donatonService.getCurrentUser?.().then(res => {
-      setUserId(res?.data?.id);
-    }).catch(() => {});
-  }, []);
 
   // Scroll infinito
   const loadMore = useCallback(async () => {
@@ -81,26 +76,23 @@ function FeedPrendas() {
     return value;
   };
 
-  const prendasFiltradas = prendas.filter(prenda => {
+  // Deduplicate prendas by id before filtering
+  const uniquePrendas = Array.from(
+    new Map(prendas.map(p => [p.id, p])).values()
+  );
+
+  const prendasFiltradas = uniquePrendas.filter(prenda => {
+    // Ajusta para usar userId del contexto
     if (tab === "mis") {
-      if (!userId || prenda.usuario_id !== userId) return false;
+      if (!userId || prenda.donante?.id !== userId) return false;
+    } else if (tab === "disponibles") {
+      if (userId && prenda.donante?.id === userId) return false;
     }
     if (search && !prenda.nombre.toLowerCase().includes(search.toLowerCase())) return false;
     if (filter && filterValue) {
       if (filter === "talla" && prenda.talla !== filterValue) return false;
       if (filter === "sexo" && prenda.sexo !== filterValue) return false;
-      if (filter === "uso" && filterValue) {
-        const dias = parseUso(prenda.uso);
-        if (filterValue === "0-7" && !(dias >= 0 && dias <= 7)) return false;
-        if (filterValue === "8-15" && !(dias > 7 && dias <= 15)) return false;
-        if (filterValue === "16-30" && !(dias > 15 && dias <= 30)) return false;
-        if (filterValue === "31-60" && !(dias > 30 && dias <= 60)) return false;
-        if (filterValue === "61-90" && !(dias > 60 && dias <= 90)) return false;
-        if (filterValue === "91-180" && !(dias > 90 && dias <= 180)) return false;
-        if (filterValue === "181-365" && !(dias > 180 && dias <= 365)) return false;
-        if (filterValue === "366-730" && !(dias > 365 && dias <= 730)) return false;
-        if (filterValue === "731+" && !(dias > 730)) return false;
-      }
+      if (filter === "status" && prenda.status !== filterValue) return false;
     }
     return true;
   });
@@ -226,38 +218,34 @@ function FeedPrendas() {
             <option value="">Filtrar por...</option>
             <option value="talla">Talla</option>
             <option value="sexo">Sexo</option>
-            <option value="uso">Uso</option>
+            <option value="status">Disponibilidad</option>
           </select>
           {filter === "talla" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
               <option value="">Todas las tallas</option>
-              <option value="38">38</option>
-              <option value="40">40</option>
-              <option value="42">42</option>
+              <option value="XS">XS</option>
               <option value="S">S</option>
               <option value="M">M</option>
               <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="Única">Única</option>
+              <option value="Infantil">Infantil</option>
             </select>
           )}
           {filter === "sexo" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
-              <option value="">Ambos</option>
-              <option value="M">M</option>
-              <option value="F">F</option>
+              <option value="">Todos</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
             </select>
           )}
-          {filter === "uso" && (
+          {filter === "status" && (
             <select className="feed-filter" value={filterValue} onChange={e => setFilterValue(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="0-7">0-7 días</option>
-              <option value="8-15">8-15 días</option>
-              <option value="16-30">16-30 días</option>
-              <option value="31-60">31-60 días</option>
-              <option value="61-90">61-90 días</option>
-              <option value="91-180">91-180 días</option>
-              <option value="181-365">181-365 días</option>
-              <option value="366-730">1-2 años</option>
-              <option value="731+">Más de 2 años</option>
+              <option value="">Todas</option>
+              <option value="disponible">Disponible</option>
+              <option value="en_solicitud">En solicitud</option>
             </select>
           )}
           <div className="feed-user-actions">
@@ -277,7 +265,14 @@ function FeedPrendas() {
             prendasFiltradas.map((prenda, idx) => (
               <div className="feed-card" key={prenda.id || idx}>
                 <div className="feed-card-img">
-                  <img src={prenda.imagen_url || '/fondo-uis.jpg'} alt={prenda.nombre} />
+                  <img
+                    src={
+                      prenda.imagenes && prenda.imagenes.length > 0
+                        ? prenda.imagenes[0].imagen
+                        : '/fondo-uis.jpg'
+                    }
+                    alt={prenda.nombre}
+                  />
                 </div>
                 <div className="feed-card-body">
                   <div className="feed-card-title">{prenda.nombre}</div>
@@ -286,7 +281,17 @@ function FeedPrendas() {
                     <div>Sexo <span>{prenda.sexo}</span></div>
                     <div>Uso <span>{prenda.uso}</span></div>
                   </div>
-                  <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                  {/* Estado de la prenda */}
+                  <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.08rem', margin: '4px 0 0 0' }}>
+                    Estado <span style={{ color: prenda.status === 'disponible' ? '#21E058' : '#ffb300', fontWeight: 700, marginLeft: 8 }}>
+                      {prenda.status === 'disponible' ? 'Disponible' : prenda.status === 'en_solicitud' ? 'En solicitud' : prenda.status}
+                    </span>
+                  </div>
+                  {tab === 'mis' ? (
+                    <button className="feed-card-btn" onClick={() => navigate('/editar-publicacion', { state: { prenda } })}>Editar prenda</button>
+                  ) : (
+                    <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                  )}
                 </div>
               </div>
             ))

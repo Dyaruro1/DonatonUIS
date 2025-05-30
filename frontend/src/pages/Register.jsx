@@ -20,6 +20,10 @@ function Register() {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    if (password.length < 8 || /^\s+$/.test(password)) {
+      setError('La contraseña debe tener al menos 8 caracteres y no puede ser solo espacios.');
+      return;
+    }
     if (!captchaChecked) {
       setError('Debes confirmar el captcha');
       return;

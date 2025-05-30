@@ -1,0 +1,69 @@
+.admin-post-container {
+  padding: 32px;
+  background: #18192b;
+  min-height: 100vh;
+}
+
+.admin-post-title {
+  color: #fff;
+  font-size: 2em;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.admin-post-table {
+  width: 100%;
+  background: #23233a;
+  color: #fff;
+  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: 0 4px 20px #0003;
+  overflow: hidden;
+}
+
+.admin-post-table th,
+.admin-post-table td {
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.admin-post-table th {
+  background: #20213a;
+  color: #3151cf;
+  font-weight: 700;
+  font-size: 1.08em;
+  border-bottom: 2px solid #3151cf44;
+}
+
+.admin-post-table tr:nth-child(even) {
+  background: #23233a;
+}
+
+.admin-post-table tr:nth-child(odd) {
+  background: #1c1d2e;
+}
+
+.admin-post-table td {
+  font-size: 1em;
+  border-bottom: 1px solid #23233a;
+}
+
+.admin-post-table tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 700px) {
+  .admin-post-container {
+    padding: 12px 2px;
+  }
+  .admin-post-title {
+    font-size: 1.2em;
+  }
+  .admin-post-table th,
+  .admin-post-table td {
+    padding: 8px 6px;
+    font-size: 0.98em;
+  }
+}

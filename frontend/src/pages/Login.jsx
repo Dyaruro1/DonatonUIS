@@ -30,7 +30,7 @@ function Login() {
         const userResp = await authService.getCurrentUser();
         const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
         if (tipoUsuario === 'admin') {
-          navigate('/Home');
+          navigate('/admin');
         } else {
           navigate('/feed');
         }
@@ -72,7 +72,7 @@ function Login() {
         const userResp = await authService.getCurrentUser();
         const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
         if (tipoUsuario === 'admin') {
-          navigate('/Home');
+          navigate('/admin');
         } else {
           navigate('/feed');
         }

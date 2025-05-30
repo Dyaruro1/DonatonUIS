@@ -136,6 +136,18 @@ function PerfilUsuario() {
       // Solo enviar fecha_nacimiento si todos los campos están completos
       const { anio, mes, dia } = user.fechaNacimiento;
       if (anio && mes && dia) {
+        // Validación de fecha: no futura y al menos 12 años
+        const fechaNacimiento = new Date(`${anio}-${mes}-${dia}T00:00:00`);
+        const hoy = new Date();
+        const hace12Anios = new Date(hoy.getFullYear() - 12, hoy.getMonth(), hoy.getDate());
+        if (fechaNacimiento > hace12Anios) {
+          alert('Debes tener al menos 12 años para registrarte.');
+          return;
+        }
+        if (fechaNacimiento > hoy) {
+          alert('La fecha de nacimiento no puede ser en el futuro.');
+          return;
+        }
         formData.append('fecha_nacimiento', `${anio}-${mes}-${dia}`);
       }
       formData.append('telefono', user.telefono);
@@ -165,6 +177,10 @@ function PerfilUsuario() {
     setPasswordSuccess('');
     if (!currentPassword || !newPassword || !confirmPassword) {
       setPasswordError('Completa todos los campos.');
+      return;
+    }
+    if (newPassword.length < 8 || /^\s+$/.test(newPassword)) {
+      setPasswordError('La nueva contraseña debe tener al menos 8 caracteres y no puede ser solo espacios.');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -327,27 +343,31 @@ function PerfilUsuario() {
         <div className="perfil-foto-col">
           <div className="perfil-foto-wrapper">
             <img src={foto} alt="Foto de perfil" className="perfil-foto" />
-            {editable && (
-              <>
-                <input id="foto-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFoto} />
-                <label htmlFor="foto-input" className="perfil-editar-foto" style={{
-                  position: 'static',
-                  display: 'block',
-                  margin: '0.7rem auto 0 auto',
-                  color: '#21E058',
-                  background: 'none',
-                  fontWeight: 600,
-                  fontSize: '1.08rem',
-                  textAlign: 'center',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  width: 'fit-content',
-                }}>
-                  Editar foto
-                </label>
-              </>
-            )}
           </div>
+          {/* NOMBRE DE USUARIO DEBAJO DE LA FOTO */}
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem', marginTop: 12, marginBottom: 0, textAlign: 'center' }}>
+            @{currentUser?.username}
+          </div>
+          {editable && (
+            <>
+              <input id="foto-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFoto} />
+              <label htmlFor="foto-input" className="perfil-editar-foto" style={{
+                position: 'static',
+                display: 'block',
+                margin: '0.7rem auto 0 auto',
+                color: '#21E058',
+                background: 'none',
+                fontWeight: 600,
+                fontSize: '1.08rem',
+                textAlign: 'center',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                width: 'fit-content',
+              }}>
+                Editar foto
+              </label>
+            </>
+          )}
         </div>
 
         {/* DATOS PERFIL */}
