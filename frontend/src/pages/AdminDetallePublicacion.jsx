@@ -208,10 +208,16 @@ function AdminDetallePublicacion() {
                   <div style={{color:'#fff',fontSize:'1.05rem',marginBottom:22}}>
                     Esta acción no se puede deshacer.
                   </div>
+                  {/* Mostrar error si ocurre al eliminar */}
+                  {eliminando && <div style={{color:'#babcc4',marginBottom:10}}>Eliminando...</div>}
+                  {error && !eliminando && (
+                    <div style={{color:'#ff6b6b',marginBottom:10}}>{error}</div>
+                  )}
                   <div style={{display:'flex',gap:18,justifyContent:'center'}}>
                     <button
                       style={{background:'#8b1e1e',color:'#fff',fontWeight:600,fontSize:'1.08rem',border:'none',borderRadius:8,padding:'0.9rem 2.2rem',cursor:'pointer'}}
                       onClick={()=>setShowConfirm(false)}
+                      disabled={eliminando}
                     >
                       Cancelar
                     </button>
@@ -220,7 +226,7 @@ function AdminDetallePublicacion() {
                       onClick={handleDelete}
                       disabled={eliminando}
                     >
-                      Eliminar
+                      {eliminando ? 'Eliminando...' : 'Eliminar'}
                     </button>
                   </div>
                 </div>
