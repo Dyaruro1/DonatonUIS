@@ -62,7 +62,9 @@ function AdminDetallePublicacion() {
     setPublishSuccess("");
     try {
       await api.patch(`/api/prendas/${id}/`, { upload_status: "Cargado" });
-      setPrenda({ ...prenda, upload_status: "Cargado" });
+      // Refresca la prenda desde el backend para asegurar el estado real
+      const resp = await api.get(`/api/prendas/${id}/`);
+      setPrenda(resp.data);
       setPublishSuccess("¡Prenda publicada exitosamente!");
       setShowPublishModal(false);
       // Redirigir al admin/posts después de publicar
@@ -71,6 +73,9 @@ function AdminDetallePublicacion() {
       }, 700); // Pequeña pausa para UX
     } catch (e) {
       setPublishSuccess("No se pudo publicar la prenda. Intenta de nuevo.");
+      if (e.response && e.response.data) {
+        setError("Error: " + JSON.stringify(e.response.data));
+      }
     } finally {
       setPublishing(false);
     }

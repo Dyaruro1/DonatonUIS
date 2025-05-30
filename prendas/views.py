@@ -75,6 +75,10 @@ class PrendaViewSet(viewsets.ModelViewSet):
         if 'status' in data and hasattr(request, 'user') and instance.donante == request.user:
             if data['status'] in dict(Prenda.STATUS_CHOICES):
                 instance.status = data['status']
+        # Permitir actualizar upload_status desde el PATCH
+        if 'upload_status' in data:
+            if data['upload_status'] in dict(Prenda.UPLOAD_STATUS_CHOICES):
+                instance.upload_status = data['upload_status']
         instance.save()
         serializer = self.get_serializer(instance, context={'request': request})
         return Response(serializer.data)

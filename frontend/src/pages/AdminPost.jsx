@@ -32,7 +32,7 @@ function AdminPost() {
       <AdminSidebar />
       <div style={{ flex: 1, marginLeft: 78 }}>
         <div className="admin-usuarios-container">
-          <h2 className="admin-usuarios-title">Publicaciones activas</h2>
+          <h2 className="admin-usuarios-title">Publicaciones Pendientes</h2>
           {loading ? (
             <div style={{ color: "#fff" }}>Cargando...</div>
           ) : (
