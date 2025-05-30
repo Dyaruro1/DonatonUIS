@@ -94,7 +94,6 @@ function AdminPost() {
                   </th>
                   <th>Lista de publicaciones</th>
                   <th>Visitas</th>
-                  <th>Postulados</th>
                   <th>Contactar</th>
                   <th>Action</th>
                 </tr>
@@ -144,7 +143,6 @@ function AdminPost() {
                         </span>
                       </td>
                       <td>{p.visitas ?? 0}</td>
-                      <td>{p.postulados ?? 0}</td>
                       <td>
                         <span
                           style={{
