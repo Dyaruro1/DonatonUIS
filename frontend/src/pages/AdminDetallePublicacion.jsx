@@ -62,7 +62,9 @@ function AdminDetallePublicacion() {
     setPublishSuccess("");
     try {
       await api.patch(`/api/prendas/${id}/`, { upload_status: "Cargado" });
-      setPrenda({ ...prenda, upload_status: "Cargado" });
+      // Refresca la prenda desde el backend para asegurar el estado real
+      const resp = await api.get(`/api/prendas/${id}/`);
+      setPrenda(resp.data);
       setPublishSuccess("¡Prenda publicada exitosamente!");
       setShowPublishModal(false);
       // Redirigir al admin/posts después de publicar
@@ -71,6 +73,9 @@ function AdminDetallePublicacion() {
       }, 700); // Pequeña pausa para UX
     } catch (e) {
       setPublishSuccess("No se pudo publicar la prenda. Intenta de nuevo.");
+      if (e.response && e.response.data) {
+        setError("Error: " + JSON.stringify(e.response.data));
+      }
     } finally {
       setPublishing(false);
     }
@@ -203,10 +208,16 @@ function AdminDetallePublicacion() {
                   <div style={{color:'#fff',fontSize:'1.05rem',marginBottom:22}}>
                     Esta acción no se puede deshacer.
                   </div>
+                  {/* Mostrar error si ocurre al eliminar */}
+                  {eliminando && <div style={{color:'#babcc4',marginBottom:10}}>Eliminando...</div>}
+                  {error && !eliminando && (
+                    <div style={{color:'#ff6b6b',marginBottom:10}}>{error}</div>
+                  )}
                   <div style={{display:'flex',gap:18,justifyContent:'center'}}>
                     <button
                       style={{background:'#8b1e1e',color:'#fff',fontWeight:600,fontSize:'1.08rem',border:'none',borderRadius:8,padding:'0.9rem 2.2rem',cursor:'pointer'}}
                       onClick={()=>setShowConfirm(false)}
+                      disabled={eliminando}
                     >
                       Cancelar
                     </button>
@@ -215,7 +226,7 @@ function AdminDetallePublicacion() {
                       onClick={handleDelete}
                       disabled={eliminando}
                     >
-                      Eliminar
+                      {eliminando ? 'Eliminando...' : 'Eliminar'}
                     </button>
                   </div>
                 </div>

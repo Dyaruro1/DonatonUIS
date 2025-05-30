@@ -49,11 +49,12 @@ export const donatonService = {
   crearPrenda: (formData) => api.post('/api/prendas/', formData),
   donarRopa: (donacion) => api.post('/api/donaciones', donacion),
   solicitarRopa: (solicitud) => api.post('/api/solicitudes', solicitud),
-  getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/api/prendas/?skip=${skip}&limit=${limit}`),
+  getPrendasDisponibles: (skip = 0, limit = 12) => api.get(`/api/prendas/?upload_status=Cargado&skip=${skip}&limit=${limit}`),
   getMisSolicitudes: () => api.get('/api/solicitudes/usuario'),
   getMisDonaciones: () => api.get('/api/donaciones/usuario'),
   updatePrenda: (id, formData) => api.patch(`/api/prendas/${id}/`, formData),
   deletePrenda: (id) => api.delete(`/api/prendas/${id}/`),
+  incrementarVisitas: (id) => api.post(`/api/prendas/${id}/incrementar-visitas/`),
 };
 
 // Admin user management

@@ -97,6 +97,18 @@ function FeedPrendas() {
     return true;
   });
 
+  const handleDetallePrenda = async (prenda) => {
+    // Si el usuario está autenticado y no es el donante, incrementar visitas
+    if (currentUser && prenda.donante && prenda.donante.id !== currentUser.id) {
+      try {
+        await donatonService.incrementarVisitas(prenda.id);
+      } catch (e) {
+        // No hacer nada si falla
+      }
+    }
+    navigate('/prenda-publica', { state: { prenda } });
+  };
+
   return (
     <div className={`feed-root`}>
       {/* MODAL DE CONFIRMACIÓN LOGOUT */}
@@ -290,7 +302,7 @@ function FeedPrendas() {
                   {tab === 'mis' ? (
                     <button className="feed-card-btn" onClick={() => navigate('/editar-publicacion', { state: { prenda } })}>Editar prenda</button>
                   ) : (
-                    <button className="feed-card-btn" onClick={() => navigate('/prenda-publica', { state: { prenda } })}>Detalles de la prenda</button>
+                    <button className="feed-card-btn" onClick={() => handleDetallePrenda(prenda)}>Detalles de la prenda</button>
                   )}
                 </div>
               </div>

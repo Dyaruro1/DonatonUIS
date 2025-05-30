@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import "./AdminPost.css";
 import AdminSidebar from "../components/AdminSidebar";
 import { useNavigate, useLocation } from "react-router-dom";
+import api from '../services/api'; // Importa tu helper de axios
 
 function AdminPost() {
   const [publicaciones, setPublicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("pendientes"); // 'pendientes' o 'disponibles'
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -13,11 +15,16 @@ function AdminPost() {
     async function fetchPublicaciones() {
       setLoading(true);
       try {
-        // Usa la URL absoluta del backend para desarrollo local
-        const resp = await fetch("http://localhost:8000/api/prendas/admin-list/");
-        const data = await resp.json();
-        console.log('DATA ADMIN:', data); // <-- Depuración
-        setPublicaciones(data);
+        let data;
+        if (tab === "pendientes") {
+          const resp = await fetch("http://localhost:8000/api/prendas/admin-list/");
+          data = await resp.json();
+        } else {
+          // Usa axios autenticado para publicaciones disponibles
+          const resp = await api.get("/api/prendas/?upload_status=Cargado");
+          data = resp.data;
+        }
+        setPublicaciones(Array.isArray(data) ? data : []);
       } catch (e) {
         setPublicaciones([]);
       } finally {
@@ -25,14 +32,57 @@ function AdminPost() {
       }
     }
     fetchPublicaciones();
-  }, [location]);
+  }, [location, tab]);
+
+  // Render tabs
+  const renderTabs = () => (
+    <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+      <button
+        className={tab === 'pendientes' ? 'admin-tab-active' : 'admin-tab'}
+        style={{
+          background: tab === 'pendientes' ? '#23233a' : 'transparent',
+          color: tab === 'pendientes' ? '#21e058' : '#babcc4',
+          fontWeight: 700,
+          fontSize: '1.13rem',
+          border: 'none',
+          borderRadius: 18,
+          padding: '0.5rem 1.5rem',
+          cursor: 'pointer',
+          transition: 'background 0.18s, color 0.18s',
+        }}
+        onClick={() => setTab('pendientes')}
+      >
+        Publicaciones pendientes
+      </button>
+      <button
+        className={tab === 'disponibles' ? 'admin-tab-active' : 'admin-tab'}
+        style={{
+          background: tab === 'disponibles' ? '#23233a' : 'transparent',
+          color: tab === 'disponibles' ? '#21e058' : '#babcc4',
+          fontWeight: 700,
+          fontSize: '1.13rem',
+          border: 'none',
+          borderRadius: 18,
+          padding: '0.5rem 1.5rem',
+          cursor: 'pointer',
+          transition: 'background 0.18s, color 0.18s',
+        }}
+        onClick={() => setTab('disponibles')}
+      >
+        Publicaciones disponibles
+      </button>
+    </div>
+  );
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#18192b" }}>
       <AdminSidebar />
       <div style={{ flex: 1, marginLeft: 78 }}>
         <div className="admin-usuarios-container">
-          <h2 className="admin-usuarios-title">Publicaciones activas</h2>
+          <h2 className="admin-usuarios-title">
+            {tab === 'pendientes' ? 'Publicaciones Pendientes' : 'Publicaciones Disponibles'}
+          </h2>
+          {renderTabs()}
           {loading ? (
             <div style={{ color: "#fff" }}>Cargando...</div>
           ) : (
@@ -44,7 +94,6 @@ function AdminPost() {
                   </th>
                   <th>Lista de publicaciones</th>
                   <th>Visitas</th>
-                  <th>Postulados</th>
                   <th>Contactar</th>
                   <th>Action</th>
                 </tr>
@@ -53,7 +102,7 @@ function AdminPost() {
                 {publicaciones.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ color: '#fff', textAlign: 'center', padding: 24 }}>
-                      No hay publicaciones activas.
+                      No hay publicaciones {tab === 'pendientes' ? 'pendientes' : 'disponibles'}.
                     </td>
                   </tr>
                 ) : (
@@ -94,7 +143,6 @@ function AdminPost() {
                         </span>
                       </td>
                       <td>{p.visitas ?? 0}</td>
-                      <td>{p.postulados ?? 0}</td>
                       <td>
                         <span
                           style={{

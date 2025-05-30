@@ -75,12 +75,37 @@ class PrendaViewSet(viewsets.ModelViewSet):
         if 'status' in data and hasattr(request, 'user') and instance.donante == request.user:
             if data['status'] in dict(Prenda.STATUS_CHOICES):
                 instance.status = data['status']
+        # Permitir actualizar upload_status desde el PATCH
+        if 'upload_status' in data:
+            if data['upload_status'] in dict(Prenda.UPLOAD_STATUS_CHOICES):
+                instance.upload_status = data['upload_status']
         instance.save()
         serializer = self.get_serializer(instance, context={'request': request})
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='incrementar-visitas', permission_classes=[AllowAny])
+    def incrementar_visitas(self, request, pk=None):
+        prenda = self.get_object()
+        user = request.user if request.user.is_authenticated else None
+        # Solo suma si el usuario no es el donante
+        if user is None or prenda.donante != user:
+            prenda.visitas += 1
+            prenda.save(update_fields=['visitas'])
+            return Response({'visitas': prenda.visitas})
+        return Response({'visitas': prenda.visitas, 'msg': 'No se suma visita para el donante.'})
 
     def get_permissions(self):
         # Permitir acceso público al detalle de prenda (retrieve)
         if self.action == 'retrieve':
             return [AllowAny()]
         return super().get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        # Solo mostrar prendas con upload_status='Cargado' en el endpoint principal
+        queryset = Prenda.objects.filter(upload_status='Cargado')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
