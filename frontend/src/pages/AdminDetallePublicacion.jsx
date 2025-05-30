@@ -13,6 +13,9 @@ function AdminDetallePublicacion() {
   const [eliminando, setEliminando] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState("");
 
   useEffect(() => {
     console.log('ID recibido en AdminDetallePublicacion:', id);
@@ -43,7 +46,7 @@ function AdminDetallePublicacion() {
   const handleDelete = async () => {
     setEliminando(true);
     try {
-      await fetch(`http://localhost:8000/api/prendas/${id}/`, { method: 'DELETE' });
+      await api.delete(`/api/prendas/${id}/`); // Usa axios, envía el token
       navigate("/admin/posts");
     } catch (e) {
       setError("No se pudo eliminar la publicación. " + (e.message || e));
@@ -53,12 +56,36 @@ function AdminDetallePublicacion() {
     }
   };
 
+  // Publicar handler
+  const handlePublish = async () => {
+    setPublishing(true);
+    setPublishSuccess("");
+    try {
+      await api.patch(`/api/prendas/${id}/`, { upload_status: "Cargado" });
+      setPrenda({ ...prenda, upload_status: "Cargado" });
+      setPublishSuccess("¡Prenda publicada exitosamente!");
+      setShowPublishModal(false);
+      // Redirigir al admin/posts después de publicar
+      setTimeout(() => {
+        navigate("/admin/posts");
+      }, 700); // Pequeña pausa para UX
+    } catch (e) {
+      setPublishSuccess("No se pudo publicar la prenda. Intenta de nuevo.");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   // Siempre muestra el id recibido y el estado
   if (loading) return <div style={{color:'#fff'}}>Cargando... (id: {id})</div>;
   if (error) return <div style={{color:'#ff6b6b'}}>Error: {error} (id: {id})</div>;
   if (!prenda) return <div style={{color:'#ff6b6b'}}>No se encontró la prenda (id: {id})</div>;
 
   const imagenes = prenda.imagenes && prenda.imagenes.length > 0 ? prenda.imagenes : (prenda.imagen_url ? [{ imagen: prenda.imagen_url }] : []);
+
+  // Status color helpers
+  const statusColor = prenda.status === 'disponible' ? '#21E058' : '#ffb300';
+  const uploadStatusColor = prenda.upload_status === 'Cargado' ? '#21E058' : '#ffb300';
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#18192b" }}>
@@ -90,16 +117,46 @@ function AdminDetallePublicacion() {
           </div>
           <div className="detalle-admin-info">
             <h2 style={{color:'#fff',fontWeight:700}}>{prenda.nombre}</h2>
-            <div style={{color:'#babcc4',marginBottom:8}}>Publicado por <b>{prenda.usuario_nombre || prenda.usuario?.nombre || 'Desconocido'}</b></div>
+            {/* Mostrar correctamente el usuario que publicó la prenda */}
+            <div style={{color:'#babcc4',marginBottom:8}}>
+              Publicado por <b>{prenda.donante?.username || prenda.donante?.nombre || prenda.usuario_nombre || prenda.usuario?.nombre || 'Desconocido'}</b>
+            </div>
             <div style={{display:'flex',gap:32,marginBottom:18}}>
               <div style={{color:'#babcc4'}}>Talla <span style={{color:'#3151cf',fontWeight:700}}>{prenda.talla}</span></div>
               <div style={{color:'#babcc4'}}>Sexo <span style={{color:'#7b5cff',fontWeight:700}}>{prenda.sexo}</span></div>
               <div style={{color:'#babcc4'}}>Uso <span style={{color:'#7b5cff',fontWeight:700}}>{prenda.uso}</span></div>
             </div>
+            <div style={{display:'flex',gap:32,marginBottom:18}}>
+              <div style={{color:'#babcc4'}}>Estado <span style={{color:statusColor,fontWeight:700,marginLeft:8}}>{prenda.status}</span></div>
+              <div style={{color:'#babcc4'}}>Upload status <span style={{color:uploadStatusColor,fontWeight:700,marginLeft:8}}>{prenda.upload_status}</span></div>
+            </div>
             <div style={{marginBottom:24}}>
               <h3 style={{color:'#fff',marginBottom:6}}>Descripción</h3>
               <div style={{color:'#babcc4'}}>{prenda.descripcion}</div>
             </div>
+            {/* Publicar button */}
+            <button
+              style={{
+                background: prenda.upload_status === 'Cargado' ? '#7ee787' : 'linear-gradient(90deg,#21e058 60%,#ffb300 100%)',
+                color: '#23244a',
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                border: 'none',
+                borderRadius: 8,
+                padding: '0.9rem 2.2rem',
+                cursor: prenda.upload_status === 'Cargado' ? 'not-allowed' : 'pointer',
+                marginBottom: 16,
+                boxShadow: '0 1px 4px #0002',
+                transition: 'background 0.18s',
+                opacity: prenda.upload_status === 'Cargado' ? 0.7 : 1
+              }}
+              disabled={prenda.upload_status === 'Cargado'}
+              onClick={() => setShowPublishModal(true)}
+            >
+              {prenda.upload_status === 'Cargado' ? 'Publicado' : 'Publicar'}
+            </button>
+            {publishSuccess && <div style={{ color: '#21E058', fontWeight: 600, marginBottom: 10 }}>{publishSuccess}</div>}
+            {/* Eliminar publicación */}
             <button
               style={{background:'#ff3b3b',color:'#fff',fontWeight:700,fontSize:'1.1rem',border:'none',borderRadius:8,padding:'0.9rem 2.2rem',cursor:'pointer'}}
               onClick={()=>setShowConfirm(true)}
@@ -107,6 +164,36 @@ function AdminDetallePublicacion() {
             >
               Eliminar publicación
             </button>
+            {/* Modal de confirmación de publicación */}
+            {showPublishModal && (
+              <div className="detalle-admin-modal-bg" onClick={()=>setShowPublishModal(false)}>
+                <div className="detalle-admin-modal" onClick={e=>e.stopPropagation()}>
+                  <div style={{color:'#21e058',fontWeight:700,fontSize:'1.18rem',marginBottom:10}}>
+                    ¿Seguro que deseas publicar esta prenda?
+                  </div>
+                  <div style={{color:'#fff',fontSize:'1.05rem',marginBottom:22}}>
+                    Se mostrará públicamente en la plataforma.
+                  </div>
+                  <div style={{display:'flex',gap:18,justifyContent:'center'}}>
+                    <button
+                      style={{background:'#8b1e1e',color:'#fff',fontWeight:600,fontSize:'1.08rem',border:'none',borderRadius:8,padding:'0.9rem 2.2rem',cursor:'pointer'}}
+                      onClick={()=>setShowPublishModal(false)}
+                      disabled={publishing}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      style={{background:'#21e058',color:'#23244a',fontWeight:600,fontSize:'1.08rem',border:'none',borderRadius:8,padding:'0.9rem 2.2rem',cursor:'pointer'}}
+                      onClick={handlePublish}
+                      disabled={publishing}
+                    >
+                      {publishing ? 'Publicando...' : 'Sí, publicar'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* Modal de confirmación de eliminación */}
             {showConfirm && (
               <div className="detalle-admin-modal-bg" onClick={()=>setShowConfirm(false)}>
                 <div className="detalle-admin-modal" onClick={e=>e.stopPropagation()}>

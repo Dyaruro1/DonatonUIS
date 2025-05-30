@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./AdminPost.css";
 import AdminSidebar from "../components/AdminSidebar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function AdminPost() {
   const [publicaciones, setPublicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     async function fetchPublicaciones() {
@@ -24,7 +25,7 @@ function AdminPost() {
       }
     }
     fetchPublicaciones();
-  }, []);
+  }, [location]);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#18192b" }}>
