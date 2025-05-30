@@ -9,6 +9,7 @@ function EditarPublicacion() {
   const location = useLocation();
   const prenda = location.state?.prenda;
   const { currentUser } = useContext(AuthContext);
+  const [timeoutId, setTimeoutId] = useState(null);
   if (!prenda) {
     navigate('/feed');
     return null;
@@ -93,9 +94,10 @@ function EditarPublicacion() {
       });
       await donatonService.updatePrenda(prenda.id, formData);
       setSuccess('¡Cambios guardados exitosamente!');
-      setTimeout(() => {
+      const id = setTimeout(() => {
         navigate('/feed');
       }, 1200);
+      setTimeoutId(id);
     } catch (err) {
       setError('Error al guardar los cambios. Intenta de nuevo.');
     } finally {
@@ -163,6 +165,9 @@ function EditarPublicacion() {
           onMouseOver={e => { e.currentTarget.style.background = '#ff6b6b22'; e.currentTarget.style.color = '#fff'; }}
           onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ff6b6b'; }}
           onClick={() => {
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
             localStorage.removeItem('token');
             navigate('/login');
           }}
