@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-export function RealtimeChat({ roomName, username, messages: initialMessages = [], onMessage }) {
+export function RealtimeChat({ roomName, username, user, userDestino, messages: initialMessages = [], onMessage }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
@@ -42,12 +42,22 @@ export function RealtimeChat({ roomName, username, messages: initialMessages = [
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    await supabase.from('messages').insert({
-      room: roomName,
-      content: input,
-      user: { name: username },
-      username,
-    });
+    // DEBUG: log username antes de enviar
+    console.log('Enviando mensaje con username:', username);
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        room: roomName,
+        content: input,
+        username: username, // nombre real del usuario
+        user_destino: userDestino,
+      })
+      .select();
+    console.log('insert result →', { data, error });
+    if (error) {
+      alert('Error al enviar mensaje: ' + error.message);
+      return;
+    }
     setInput('');
   };
 
