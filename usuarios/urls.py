@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import LoginView, UsuarioRegistroAPIView, verificar_correo, perfil_usuario_actual, UsuarioViewSet, registrar_usuario, cambiar_nombre_usuario, eliminar_cuenta, restablecer_contrasena
+from .views import LoginView, UsuarioRegistroAPIView, verificar_correo, perfil_usuario_actual, UsuarioViewSet, registrar_usuario, cambiar_nombre_usuario, eliminar_cuenta, restablecer_contrasena, get_csrf
 from rest_framework.routers import DefaultRouter
 
 urlpatterns = [
+    path('get_csrf/', get_csrf, name='get_csrf'),
     path('login/', LoginView.as_view(), name='login'),
     path('registrar/', registrar_usuario, name='registrar_usuario'),
     path('verificar-correo/', verificar_correo, name='verificar_correo'),
