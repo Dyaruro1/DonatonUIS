@@ -21,6 +21,12 @@ class Prenda(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='disponible')
 
+    UPLOAD_STATUS_CHOICES = [
+        ('En espera', 'En espera'),
+        ('Cargado', 'Cargado'),
+    ]
+    upload_status = models.CharField(max_length=20, choices=UPLOAD_STATUS_CHOICES, default='Cargado')
+
     def __str__(self):
         return self.nombre
 

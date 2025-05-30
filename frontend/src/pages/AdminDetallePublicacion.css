@@ -1,0 +1,76 @@
+/* Estilos básicos para AdminDetallePublicacion */
+.detalle-admin-container {
+  display: flex;
+  gap: 48px;
+  background: #23233a;
+  border-radius: 18px;
+  box-shadow: 0 2px 32px #0003;
+  padding: 2.5rem 2.5rem 2.5rem 2.5rem;
+  margin: 0 32px;
+}
+.detalle-admin-imgs {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+.detalle-admin-thumbs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.detalle-admin-thumbs img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #babcc4;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: border 0.18s, opacity 0.18s;
+}
+.detalle-admin-thumbs img.active {
+  border: 2px solid #21e058;
+  opacity: 1;
+}
+.detalle-admin-main-img img {
+  width: 340px;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 16px #0002;
+}
+.detalle-admin-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 18px;
+}
+.detalle-admin-modal-bg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(24,25,43,0.55);
+  backdrop-filter: blur(6px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.detalle-admin-modal {
+  background: #23233a;
+  border-radius: 18px;
+  box-shadow: 0 2px 32px #0004;
+  padding: 2.2rem 2.5rem 2rem 2.5rem;
+  min-width: 340px;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}

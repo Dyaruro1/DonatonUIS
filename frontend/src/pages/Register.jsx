@@ -20,6 +20,12 @@ function Register() {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    // Validación de dominio de correo
+    const emailTrimmed = email.trim().toLowerCase();
+    if (!emailTrimmed.endsWith('@correo.uis.edu.co') && !emailTrimmed.endsWith('@uis.edu.co')) {
+      setError('Solo se permite registrar cuentas institucionales @correo.uis.edu.co o @uis.edu.co de la Universidad Industrial de Santander.');
+      return;
+    }
     if (password.length < 8 || /^\s+$/.test(password)) {
       setError('La contraseña debe tener al menos 8 caracteres y no puede ser solo espacios.');
       return;
@@ -31,7 +37,7 @@ function Register() {
     setLoading(true);
     try {
       // Chequeo de correo duplicado usando el endpoint de verificación
-      const resp = await authService.checkEmail(email.trim().toLowerCase());
+      const resp = await authService.checkEmail(emailTrimmed);
       if (resp.data.exists) {
         setError('Ya existe una cuenta registrada con ese correo.');
         setLoading(false);
