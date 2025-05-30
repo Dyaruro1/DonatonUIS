@@ -14,6 +14,13 @@ function ChatDonante() {
     localStorage.setItem('username', 'Donante');
   }, []);
 
+  // Guardar info global para notificaciones en el chat (el donante no debe recibir notificación de sí mismo)
+  React.useEffect(() => {
+    window.currentUser = { id: prenda?.donante?.id, nombre: 'Donante' };
+    window.donanteId = prenda?.donante?.id;
+    window.prendaNombre = prenda?.nombre;
+  }, [prenda]);
+
   const { data: messages } = useMessagesQuery(roomName);
   const username = localStorage.getItem('username') || 'Donante';
 

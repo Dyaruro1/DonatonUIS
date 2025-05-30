@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './FeedPrendas.css';
 import { donatonService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import NotificationBell from '../components/NotificationBell';
+import { useNotifications } from '../hooks/use-notifications';
 
 function FeedPrendas() {
   const [prendas, setPrendas] = useState([]);
@@ -20,6 +22,7 @@ function FeedPrendas() {
   const { currentUser } = useContext(AuthContext);
   const userId = currentUser?.id;
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const notifications = useNotifications(userId, 3);
 
   const handleSidebarNav = (route) => {
     navigate(route);
@@ -107,6 +110,20 @@ function FeedPrendas() {
       }
     }
     navigate('/prenda-publica', { state: { prenda } });
+  };
+
+  // Maneja click en una notificación
+  const handleNotificationClick = notif => {
+    // Aquí podrías navegar al chat o prenda relacionada
+    if (notif.prenda_id) {
+      // Busca la prenda en el estado o haz fetch si es necesario
+      const prenda = prendas.find(p => p.id === notif.prenda_id);
+      if (prenda) {
+        navigate('/prenda-publica', { state: { prenda } });
+      }
+    }
+    // Opcional: marcar como leída en Supabase
+    // ...
   };
 
   return (
@@ -261,7 +278,7 @@ function FeedPrendas() {
             </select>
           )}
           <div className="feed-user-actions">
-            <span className="feed-bell"><i className="fa fa-bell"></i></span>
+            <NotificationBell notifications={notifications} onNotificationClick={handleNotificationClick} />
             <span className="feed-avatar"><img src="/logo-pequeno.svg" alt="avatar" /></span>
           </div>
         </header>

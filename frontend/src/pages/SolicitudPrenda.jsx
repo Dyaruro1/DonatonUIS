@@ -21,6 +21,13 @@ function SolicitudPrenda() {
     }
   }, [donante]);
 
+  // Guardar info global para notificaciones en el chat
+  useEffect(() => {
+    window.currentUser = prenda?.solicitante || null;
+    window.donanteId = donante?.id;
+    window.prendaNombre = prenda?.nombre;
+  }, [prenda, donante]);
+
   // Mensajes iniciales para el chat
   const { data: messages } = useMessagesQuery(roomName);
   const username = localStorage.getItem('username') || 'Invitado';
