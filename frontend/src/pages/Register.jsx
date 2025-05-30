@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { authService } from '../services/api';
@@ -16,6 +16,11 @@ function Register() {
   const { login } = authService;
   const [error, setError] = useState('');
 
+  // Elimina tokens viejos al entrar a la pantalla de registro
+  useEffect(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
