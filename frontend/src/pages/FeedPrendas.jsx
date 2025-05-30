@@ -281,6 +281,12 @@ function FeedPrendas() {
                     <div>Sexo <span>{prenda.sexo}</span></div>
                     <div>Uso <span>{prenda.uso}</span></div>
                   </div>
+                  {/* Estado de la prenda */}
+                  <div style={{ color: '#babcc4', fontWeight: 600, fontSize: '1.08rem', margin: '4px 0 0 0' }}>
+                    Estado <span style={{ color: prenda.status === 'disponible' ? '#21E058' : '#ffb300', fontWeight: 700, marginLeft: 8 }}>
+                      {prenda.status === 'disponible' ? 'Disponible' : prenda.status === 'en_solicitud' ? 'En solicitud' : prenda.status}
+                    </span>
+                  </div>
                   {tab === 'mis' ? (
                     <button className="feed-card-btn" onClick={() => navigate('/editar-publicacion', { state: { prenda } })}>Editar prenda</button>
                   ) : (
