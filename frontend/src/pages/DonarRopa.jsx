@@ -8,7 +8,8 @@ function DonarRopa() {
   // Form state
   const [nombre, setNombre] = useState('');
   const [talla, setTalla] = useState('');
-  const [uso, setUso] = useState('');
+  const [usoNumero, setUsoNumero] = useState('');
+  const [usoUnidad, setUsoUnidad] = useState('');
   const [fotos, setFotos] = useState([]); // ahora es array
   const [descripcion, setDescripcion] = useState('');
   const [sexo, setSexo] = useState('');
@@ -22,7 +23,7 @@ function DonarRopa() {
   };
 
   const validate = () => {
-    if (!nombre.trim() || !talla || !uso || fotos.length === 0 || !descripcion.trim() || !sexo) {
+    if (!nombre.trim() || !talla || !usoNumero || !usoUnidad || fotos.length === 0 || !descripcion.trim() || !sexo) {
       setError('Por favor completa todos los campos y sube al menos una foto.');
       return false;
     }
@@ -56,7 +57,7 @@ function DonarRopa() {
       const formData = new FormData();
       formData.append('nombre', nombre);
       formData.append('talla', talla);
-      formData.append('uso', uso);
+      formData.append('uso', `${usoNumero} ${usoUnidad}`);
       formData.append('descripcion', descripcion);
       formData.append('sexo', sexo);
       // Subir cada imagen en su campo correspondiente (foto1, foto2, foto3)
@@ -69,7 +70,7 @@ function DonarRopa() {
       setTimeout(() => {
         navigate('/feed');
       }, 800);
-      setNombre(''); setTalla(''); setUso(''); setFotos([]); setDescripcion(''); setSexo('');
+      setNombre(''); setTalla(''); setUsoNumero(''); setUsoUnidad(''); setFotos([]); setDescripcion(''); setSexo('');
     } catch (err) {
       if (err.response && err.response.data) {
         setError(
@@ -223,7 +224,21 @@ function DonarRopa() {
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: S, M, L, XL</span>
 
             <label style={{color: '#fff', fontWeight: 500}}>Tiempo de Uso</label>
-            <input type="text" value={uso} onChange={e => setUso(e.target.value)} placeholder="Ingrese el tiempo de uso en días" style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', marginBottom: 0, boxShadow: '0 1px 4px #0001'}} required />
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <select value={usoNumero} onChange={e => setUsoNumero(e.target.value)} style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', width: 90}} required>
+                <option value="">N°</option>
+                {[...Array(30)].map((_, i) => (
+                  <option key={i+1} value={i+1}>{i+1}</option>
+                ))}
+              </select>
+              <select value={usoUnidad} onChange={e => setUsoUnidad(e.target.value)} style={{background: '#fff', color: '#23244a', border: 'none', borderRadius: 8, padding: '0.8rem 1rem', fontSize: '1rem', width: 110}} required>
+                <option value="">Unidad</option>
+                <option value="horas">horas</option>
+                <option value="días">días</option>
+                <option value="meses">meses</option>
+                <option value="años">años</option>
+              </select>
+            </div>
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: 30 días</span>
 
             <label style={{color: '#fff', fontWeight: 500}}>Adjuntar Fotos</label>
@@ -312,7 +327,7 @@ function DonarRopa() {
             <span style={{color: '#b3b3b3', fontSize: '0.95rem', marginBottom: 8}}>Ejemplo: Masculino, Femenino, Otro</span>
 
             <div style={{display: 'flex', gap: 16, marginTop: 18}}>
-              <button type="button" onClick={() => { setNombre(''); setTalla(''); setUso(''); setFotos([]); setDescripcion(''); setSexo(''); setError(''); setSuccess(''); }} style={{flex: 1, background: 'transparent', color: '#fff', border: '1.5px solid #23244a', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, fontSize: '1.08rem', cursor: 'pointer', transition: 'background 0.2s'}}>Cancelar</button>
+              <button type="button" onClick={() => { setNombre(''); setTalla(''); setUsoNumero(''); setUsoUnidad(''); setFotos([]); setDescripcion(''); setSexo(''); setError(''); setSuccess(''); }} style={{flex: 1, background: 'transparent', color: '#fff', border: '1.5px solid #23244a', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, fontSize: '1.08rem', cursor: 'pointer', transition: 'background 0.2s'}}>Cancelar</button>
               <button type="submit" className="feed-card-btn" style={{flex: 1, fontSize: '1.08rem', padding: '0.8rem 0'}} disabled={loading}>{loading ? 'Publicando...' : 'Publicar'}</button>
             </div>
             {error && <div style={{ color: '#ff6b6b', textAlign: 'center', fontSize: '1rem', marginTop: 4 }}>{error}</div>}

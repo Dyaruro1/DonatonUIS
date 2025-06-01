@@ -17,7 +17,10 @@ function EditarPublicacion() {
   // Estado de los campos
   const [nombre, setNombre] = useState(prenda.nombre || '');
   const [talla, setTalla] = useState(prenda.talla || '');
-  const [uso, setUso] = useState(prenda.uso || '');
+  // Separar uso en número y unidad si es posible
+  const usoMatch = (prenda.uso || '').match(/^(\d+)\s*(horas|días|meses|años)$/i);
+  const [usoNumero, setUsoNumero] = useState(usoMatch ? usoMatch[1] : '');
+  const [usoUnidad, setUsoUnidad] = useState(usoMatch ? usoMatch[2] : '');
   const [sexo, setSexo] = useState(prenda.sexo || '');
   const [descripcion, setDescripcion] = useState(prenda.descripcion || '');
   const [status, setStatus] = useState(prenda.status || 'disponible');
@@ -63,7 +66,7 @@ function EditarPublicacion() {
     e.preventDefault();
     setError('');
     setSuccess('');
-    if (!nombre.trim() || !talla || !uso || !sexo || !descripcion.trim() || (fotos.length + nuevasFotos.length) === 0) {
+    if (!nombre.trim() || !talla || !usoNumero || !usoUnidad || !sexo || !descripcion.trim() || (fotos.length + nuevasFotos.length) === 0) {
       setError('Por favor completa todos los campos y sube al menos una foto.');
       return;
     }
@@ -77,7 +80,7 @@ function EditarPublicacion() {
       const formData = new FormData();
       formData.append('nombre', nombre);
       formData.append('talla', talla);
-      formData.append('uso', uso);
+      formData.append('uso', `${usoNumero} ${usoUnidad}`);
       formData.append('sexo', sexo);
       formData.append('descripcion', descripcion);
       // Solo el dueño puede editar status
@@ -203,7 +206,21 @@ function EditarPublicacion() {
           <span className="editar-ejemplo">Ejemplo: S, M, L, XL</span>
 
           <label className="editar-label">Tiempo de Uso</label>
-          <input type="text" value={uso} onChange={e => setUso(e.target.value)} placeholder="Ejemplo: 30 días" className="editar-input" required />
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <select value={usoNumero} onChange={e => setUsoNumero(e.target.value)} className="editar-select" style={{ width: 90 }} required>
+              <option value="">N°</option>
+              {[...Array(30)].map((_, i) => (
+                <option key={i+1} value={i+1}>{i+1}</option>
+              ))}
+            </select>
+            <select value={usoUnidad} onChange={e => setUsoUnidad(e.target.value)} className="editar-select" style={{ width: 110 }} required>
+              <option value="">Unidad</option>
+              <option value="horas">horas</option>
+              <option value="días">días</option>
+              <option value="meses">meses</option>
+              <option value="años">años</option>
+            </select>
+          </div>
           <span className="editar-ejemplo">Ejemplo: 30 días</span>
 
           <label className="editar-label">Sexo</label>

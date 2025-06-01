@@ -127,6 +127,24 @@ function FeedPrendas() {
     // ...
   };
 
+  // Nueva función para recargar prendas desde cero
+  const reloadPrendas = useCallback(async () => {
+    setLoading(true);
+    setSkip(0);
+    setHasMore(true);
+    try {
+      const resp = await donatonService.getPrendasDisponibles(0, limit);
+      setPrendas(resp.data);
+      if (resp.data.length < limit) setHasMore(false);
+      else setHasMore(true);
+      setSkip(limit);
+    } catch (e) {
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
   return (
     <div className={`feed-root`}>
       {/* MODAL DE CONFIRMACIÓN LOGOUT */}
@@ -286,8 +304,8 @@ function FeedPrendas() {
         <div className="feed-publicaciones-row" style={{ justifyContent: 'flex-start', gap: '2.5rem' }}>
           <span className="feed-publicaciones-title" style={{ marginRight: '2.5rem' }}>Prendas disponibles</span>
           <div className="feed-publicaciones-tabs">
-            <span className={`feed-tab${tab === 'disponibles' ? ' feed-tab-active' : ''}`} onClick={() => setTab('disponibles')}>Disponibles</span>
-            <span className={`feed-tab${tab === 'mis' ? ' feed-tab-active' : ''}`} onClick={() => setTab('mis')}>Mis publicaciones</span>
+            <span className={`feed-tab${tab === 'disponibles' ? ' feed-tab-active' : ''}`} onClick={() => { setTab('disponibles'); reloadPrendas(); }}>Disponibles</span>
+            <span className={`feed-tab${tab === 'mis' ? ' feed-tab-active' : ''}`} onClick={() => { setTab('mis'); reloadPrendas(); }}>Mis publicaciones</span>
           </div>
         </div>
         <section className="feed-grid">
