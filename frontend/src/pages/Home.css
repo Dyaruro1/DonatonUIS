@@ -147,6 +147,7 @@
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
+  margin-top: 10rem; /* Bajar el texto "¿Cómo comenzar?" */
 }
 .auth-buttons {
   display: flex;
@@ -158,12 +159,14 @@
   text-align: center;
 }
 .footer-links img.small-logo-footer {
-  width: 100px; /* Aumentar el tamaño del logo */
-  margin-bottom: 0.5rem;
+  width: 150px; /* Aumentar el tamaño del logo */
+  transform: translateY(1em);
+
 }
 .footer-links p {
   font-size: 0.9rem;
   color: #b6ffb6;
+  transform: translateY(2em);
 }
 .footer-links a {
   color: #b6ffb6;
