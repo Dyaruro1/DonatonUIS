@@ -12,6 +12,7 @@ function ChatDonante() {
 
   // Mensajes iniciales para el chat
   const { data: messages } = useMessagesQuery(roomName);
+  console.log('DEBUG ChatDonante prenda:', roomName);
 
   // Obtener username actual y username del donante
   let [username, setUsername] = useState();
@@ -59,8 +60,7 @@ function ChatDonante() {
         setLoading(false);
       });
     }
-  }, []);
-  // Para el campo user, pasar el objeto userObj si existe, si no, solo el username
+  }, []);  // Para el campo user, pasar el objeto userObj si existe, si no, solo el username
   const user = userObj ? userObj : { name: username };
   const userDestino = prenda?.solicitante?.username || prenda?.solicitante?.nombre || '';
 

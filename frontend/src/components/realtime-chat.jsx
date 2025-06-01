@@ -38,12 +38,11 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    // DEBUG: log username antes de enviar
-    console.log('Enviando mensaje con username:', username);
+    
+    // Solo insertar el mensaje en Supabase
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -53,6 +52,7 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
         user_destino: userDestino,
       })
       .select();
+      
     console.log('insert result →', { data, error });
     if (error) {
       alert('Error al enviar mensaje: ' + error.message);

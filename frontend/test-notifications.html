@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notifications System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #18192b;
+            color: white;
+        }
+        .test-section {
+            background: #23233a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #21e058;
+            color: #18192b;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #1bc048;
+        }
+        .log {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: #21e058; }
+        .error { color: #ff6b6b; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Test del Sistema de Notificaciones</h1>
+    
+    <div class="test-section">
+        <h2>Estado del Sistema</h2>
+        <div id="status">Verificando conexión con Supabase...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Pruebas de Funcionalidad</h2>
+        <button onclick="testSupabaseConnection()">1. Probar Conexión Supabase</button>
+        <button onclick="testNotificationsTable()">2. Verificar Tabla Notifications</button>
+        <button onclick="testCreateNotification()">3. Crear Notificación de Prueba</button>
+        <button onclick="testRealtimeSubscription()">4. Probar Suscripción en Tiempo Real</button>
+        <button onclick="clearLogs()">Limpiar Logs</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Logs del Sistema</h2>
+        <div id="logs" class="log">Esperando pruebas...</div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
+        
+        // Configuración de Supabase (usar las mismas credenciales que en el proyecto)
+        const supabaseUrl = 'https://your-supabase-url.supabase.co';
+        const supabaseKey = 'your-supabase-anon-key';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let logsElement = document.getElementById('logs');
+        let statusElement = document.getElementById('status');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            logsElement.innerHTML += `<span class="${type}">${logEntry}</span>`;
+            logsElement.scrollTop = logsElement.scrollHeight;
+        }
+
+        function clearLogs() {
+            logsElement.innerHTML = 'Logs limpiados...\n';
+        }
+
+        // Función para probar la conexión con Supabase
+        window.testSupabaseConnection = async function() {
+            log('🔍 Probando conexión con Supabase...', 'info');
+            try {
+                const { data, error } = await supabase.from('messages').select('count').limit(1);
+                if (error) {
+                    log(`❌ Error de conexión: ${error.message}`, 'error');
+                    statusElement.innerHTML = '<span class="error">❌ Conexión fallida</span>';
+                } else {
+                    log('✅ Conexión con Supabase exitosa', 'success');
+                    statusElement.innerHTML = '<span class="success">✅ Conectado a Supabase</span>';
+                }
+            } catch (err) {
+                log(`❌ Error inesperado: ${err.message}`, 'error');
+                statusElement.innerHTML = '<span class="error">❌ Error de conexión</span>';
+            }
+        };
+
+        // Función para verificar si existe la tabla notifications
+        window.testNotificationsTable = async function() {
+            log('🔍 Verificando tabla notifications...', 'info');
+            try {
+                const { data, error } = await supabase
+                    .from('notifications')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    log(`❌ Error al acceder a la tabla notifications: ${error.message}`, 'error');
+                    if (error.code === 'PGRST116') {
+                        log('💡 La tabla notifications no existe. Ejecuta el script SQL de configuración.', 'info');
+                    }
+                } else {
+                    log('✅ Tabla notifications accesible', 'success');
+                }
+            } catch (err) {
+                log(`❌ Error inesperado: ${err.message}`, 'error');
+            }
+        };
+
+        // Función para crear una notificación de prueba
+        window.testCreateNotification = async function() {
+            log('🔍 Creando notificación de prueba...', 'info');
+            try {
+                const testNotification = {
+                    user_id: 1, // ID de prueba
+                    sender_id: 2, // ID de prueba
+                    prenda_id: 1, // ID de prueba
+                    message: 'Mensaje de prueba del sistema de notificaciones',
+                    read: false,
+                    created_at: new Date().toISOString()
+                };
+
+                const { data, error } = await supabase
+                    .from('notifications')
+                    .insert(testNotification)
+                    .select();
+
+                if (error) {
+                    log(`❌ Error al crear notificación: ${error.message}`, 'error');
+                } else {
+                    log(`✅ Notificación creada exitosamente: ${JSON.stringify(data[0], null, 2)}`, 'success');
+                }
+            } catch (err) {
+                log(`❌ Error inesperado: ${err.message}`, 'error');
+            }
+        };
+
+        // Función para probar la suscripción en tiempo real
+        window.testRealtimeSubscription = async function() {
+            log('🔍 Probando suscripción en tiempo real...', 'info');
+            try {
+                const channel = supabase
+                    .channel('realtime:notifications-test')
+                    .on('postgres_changes', { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'notifications' 
+                    }, (payload) => {
+                        log(`🔔 Nueva notificación recibida en tiempo real: ${JSON.stringify(payload.new, null, 2)}`, 'success');
+                    })
+                    .subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            log('✅ Suscripción en tiempo real activa', 'success');
+                        } else {
+                            log(`⚠️ Estado de suscripción: ${status}`, 'info');
+                        }
+                    });
+
+                // Limpiar suscripción después de 30 segundos
+                setTimeout(() => {
+                    supabase.removeChannel(channel);
+                    log('🔇 Suscripción en tiempo real desactivada', 'info');
+                }, 30000);
+
+            } catch (err) {
+                log(`❌ Error en suscripción: ${err.message}`, 'error');
+            }
+        };
+
+        // Verificar conexión al cargar la página
+        window.onload = function() {
+            testSupabaseConnection();
+        };
+    </script>
+</body>
+</html>

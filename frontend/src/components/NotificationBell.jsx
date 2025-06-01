@@ -31,7 +31,7 @@ export default function NotificationBell({ notifications, onNotificationClick })
             notifications.map((n, idx) => (
               <div key={n.id || idx} className="notification-item" onClick={() => onNotificationClick(n)}>
                 <div className="notification-msg">{n.message}</div>
-                <div className="notification-date">{new Date(n.created_at).toLocaleString()}</div>
+                <div className="notification-date">{new Date(n.created_ad).toLocaleString()}</div>
               </div>
             ))
           ) : (

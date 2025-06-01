@@ -19,8 +19,7 @@ const initialUser = {
 function PerfilUsuario() {
   const { currentUser, loading, error, updateProfile, cambiarContrasena } = useContext(AuthContext);
   const [user, setUser] = useState(initialUser);
-  const [foto, setFoto] = useState(user.foto);
-  const navigate = useNavigate();
+  const [foto, setFoto] = useState(user.foto);  const navigate = useNavigate();
 
   // Para el demo, los campos estarán deshabilitados
   const [editable, setEditable] = useState(false);
