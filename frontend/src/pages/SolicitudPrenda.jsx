@@ -9,7 +9,6 @@ function SolicitudPrenda() {
   const location = useLocation();
   const navigate = useNavigate();
   const prenda = location.state?.prenda;
-  console.log('DEBUG SolicitudPrenda prenda:', prenda);
   const roomName = prenda?.id?.toString();
   const [donante, setDonante] = useState(prenda?.donante || null);
   const [now, setNow] = useState(Date.now());
@@ -66,7 +65,7 @@ function SolicitudPrenda() {
           setUsername(data.username);
           setUserObj({ name: data.username, ...data });
           // Opcional: guardar en localStorage para futuras sesiones
-          localStorage.setItem('username', data.username);
+          // localStorage.setItem('username', data.username);
           // localStorage.setItem('currentUser', JSON.stringify(data));
         } else {
           setUsername('Invitado');

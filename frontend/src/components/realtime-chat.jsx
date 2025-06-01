@@ -41,19 +41,42 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    let numericPrendaId = null;
+    // Check if roomName is a non-empty string that can be parsed as a number, or a number itself
+    if (roomName !== null && roomName !== undefined && String(roomName).trim() !== '') {
+      const parsedId = parseInt(String(roomName), 10); // Ensure roomName is stringified before parsing
+      if (!isNaN(parsedId)) {
+        numericPrendaId = parsedId;
+        console.log('Successfully parsed prenda_id from roomName:', numericPrendaId);
+      } else {
+        console.error('roomName was provided ("' + roomName + '") but is not a valid number to be used as prenda_id.');
+      }
+    } else {
+      console.warn('roomName is null, undefined, or empty. Cannot determine prenda_id for the message.');
+    }
+    
+    const messagePayload = {
+      room: roomName, // This remains as is, for the Supabase 'room' column
+      content: input,
+      username: username, // nombre real del usuario (sender)
+      user_destino: userDestino, // recipient
+    };
+
+    if (numericPrendaId !== null) {
+      messagePayload.prenda_id = numericPrendaId;
+    } else {
+      // Warning if prenda_id could not be determined (either roomName was invalid or not provided)
+      console.warn('prenda_id will not be set for this message as it could not be derived from roomName.');
+    }
     
     // Solo insertar el mensaje en Supabase
     const { data, error } = await supabase
       .from('messages')
-      .insert({
-        room: roomName,
-        content: input,
-        username: username, // nombre real del usuario
-        user_destino: userDestino,
-      })
+      .insert(messagePayload)
       .select();
       
-    console.log('insert result →', { data, error });
+    console.log('Message insert result →', { data, error, insertedPayload: messagePayload });
     if (error) {
       alert('Error al enviar mensaje: ' + error.message);
       return;

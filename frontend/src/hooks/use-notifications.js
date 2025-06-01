@@ -32,9 +32,8 @@ export function useNotifications(username, limit = 3, roomIds = []) {
         // Registrar notificación en la tabla notifications
         await supabase
           .from('notifications')
-          .insert({
-            user_destiny: username,
-            user_sender: payload.new.username, // o el campo correcto del remitente
+          .insert({            user_destiny: payload.new.user_destino, // igual que en messages
+            user_sender: payload.new.username, // igual que en messages
             prenda_id: payload.new.prenda_id, // o el campo correcto de la prenda
             tipo: 'mensaje',
             texto: `Nuevo mensaje de ${payload.new.username}`,
