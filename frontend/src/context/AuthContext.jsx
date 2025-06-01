@@ -25,8 +25,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   }, []);
-  
-  // Función para iniciar sesión
+    // Función para iniciar sesión
   const login = async (correo, contrasena) => {
     // Eliminar cualquier token previo antes de intentar login
     localStorage.removeItem('token');
@@ -36,9 +35,17 @@ export function AuthProvider({ children }) {
       // Fetch the current user from backend to ensure fresh data
       const userRes = await authService.getCurrentUser();
       setCurrentUser(userRes.data);
-      return true;
+      return { success: true };
     } catch (error) {
-      return false;
+      // Propagar el error específico para manejo en el componente Login
+      if (error.response?.status === 403) {
+        return { 
+          success: false, 
+          error: 'ACCOUNT_BLOCKED', 
+          message: error.response?.data?.detail || 'La cuenta está inactiva. Contacta al administrador.' 
+        };
+      }
+      return { success: false, error: 'LOGIN_FAILED', message: 'Credenciales incorrectas' };
     }
   };
   

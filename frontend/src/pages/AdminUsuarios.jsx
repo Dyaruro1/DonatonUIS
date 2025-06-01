@@ -41,17 +41,17 @@ function UsuariosAdmin() {
   const handleCloseConfirm = () => {
     setShowConfirm(false);
     setSelectedUser(null);
-  };
-
-  const handleDeleteUser = async () => {
+  };  // Bloquear/Desbloquear usuario
+  const handleToggleUserStatus = async () => {
     if (!selectedUser) return;
+    const newStatus = !selectedUser.is_active;
     try {
-      await api.delete(`/api/usuarios/${selectedUser.id}/`);
-      setUsuarios(usuarios.filter(u => u.id !== selectedUser.id));
+      await api.patch(`/api/usuarios/${selectedUser.id}/`, { is_active: newStatus });
+      setUsuarios(usuarios.map(u => u.id === selectedUser.id ? { ...u, is_active: newStatus } : u));
       setShowConfirm(false);
       setSelectedUser(null);
     } catch (err) {
-      setError("No se pudo eliminar el usuario. Intenta de nuevo.");
+      setError(`No se pudo ${newStatus ? 'desbloquear' : 'bloquear'} el usuario. Intenta de nuevo.`);
       setShowConfirm(false);
       setSelectedUser(null);
     }
@@ -62,55 +62,56 @@ function UsuariosAdmin() {
       <AdminSidebar />
       <div style={{ flex: 1, marginLeft: 78 }}>
         <div className="admin-usuarios-container">
-          <h2 className="admin-usuarios-title">Usuarios activos</h2>
-          {loading ? <div style={{color:'#fff'}}>Cargando...</div> : error ? <div style={{color:'#ff6b6b'}}>{error}</div> : (
-          <table className="admin-usuarios-table">
-            <thead>
+          <h2 className="admin-usuarios-title">Usuarios activos</h2>          {loading ? <div style={{color:'#fff'}}>Cargando...</div> : error ? <div style={{color:'#ff6b6b'}}>{error}</div> : (
+          <table className="admin-usuarios-table"><thead>
               <tr>
                 <th><input type="checkbox" disabled /></th>
                 <th>Lista de usuarios</th>
                 <th>Última vez activo</th>
-                <th>Estado</th>
+                <th>Estado conexión</th>
+                <th>Estado cuenta</th>
                 <th>Contactar</th>
                 <th>Action</th>
               </tr>
-            </thead>
-            <tbody>
+            </thead><tbody>
               {usuarios.map(u => (
-                <tr key={u.id}>
-                  <td><input type="checkbox" /></td>
-                  <td style={{display:'flex',alignItems:'center',gap:12}}>
+                <tr key={u.id}><td><input type="checkbox" /></td><td style={{display:'flex',alignItems:'center',gap:12}}>
                     <img src={u.foto || '/logo-pequeno.svg'} alt="avatar" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',background:'#23233a'}} />
                     <span style={{fontWeight:600, cursor:'pointer', color:'#21e058'}} onClick={()=>navigate(`/admin/users/${u.id}`)}>{u.nombre} {u.apellido}</span>
-                  </td>
-                  <td>{u.last_active ? new Date(u.last_active).toLocaleDateString() === new Date().toLocaleDateString() ? 'Hoy' : new Date(u.last_active).toLocaleDateString() : 'Desconocido'}</td>
-                  <td>
+                  </td><td>{u.last_active ? new Date(u.last_active).toLocaleDateString() === new Date().toLocaleDateString() ? 'Hoy' : new Date(u.last_active).toLocaleDateString() : 'Desconocido'}</td><td>
                     <span style={{background:isOnline(u.last_active)?"#21e058":"#babcc4",color:isOnline(u.last_active)?"#fff":"#23233a",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
                       {isOnline(u.last_active) ? "En línea" : "Desconectado"}
                     </span>
-                  </td>
-                  <td>
+                  </td><td>
+                    <span style={{background:u.is_active?"#21e058":"#ff6b6b",color:"#fff",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
+                      {u.is_active ? "Activo" : "Bloqueado"}
+                    </span>
+                  </td><td>
                     <button 
                       style={{background:'none',color:'#21e058',border:'none',fontWeight:600,cursor:'pointer'}}
                       onClick={() => window.location.href = `/admin/contactar-usuario/${u.id}`}
                     >
                       Contactar usuario
                     </button>
-                  </td>
-                  <td>
-                    <button onClick={()=>handleShowConfirm(u)} className="admin-block-btn" title="Bloquear usuario">
-                      {/* Ícono de candado cerrado */}
-                      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#ff6b6b" strokeWidth="2"/>
-                        <path d="M9 12V9a5 5 0 0 1 10 0v3" stroke="#ff6b6b" strokeWidth="2" fill="none"/>
-                        <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
-                      </svg>
+                  </td><td>
+                    <button onClick={()=>handleShowConfirm(u)} className="admin-block-btn" title={u.is_active ? "Bloquear usuario" : "Desbloquear usuario"}>
+                      {u.is_active ? (
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#21e058" strokeWidth="2"/>
+                          <path d="M9 12V9a5 5 0 0 1 10 0v2" stroke="#21e058" strokeWidth="2" fill="none"/>
+                          <circle cx="14" cy="18" r="2" fill="#21e058" />
+                        </svg>
+                      ) : (
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#ff6b6b" strokeWidth="2"/>
+                          <path d="M9 12V9a5 5 0 0 1 10 0v3" stroke="#ff6b6b" strokeWidth="2" fill="none"/>
+                          <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
+                        </svg>
+                      )}
                     </button>
-                  </td>
-                </tr>
+                  </td></tr>
               ))}
-            </tbody>
-          </table>
+            </tbody></table>
           )}
           {/* Modal de confirmación de bloqueo */}
           {showConfirm && (
@@ -147,13 +148,17 @@ function UsuariosAdmin() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  textAlign: 'center',
-                }}>
-                  <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
-                    ¿Seguro que deseas bloquear a {selectedUser?.nombre} {selectedUser?.apellido}?
+                  textAlign: 'center',                }}>                  <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                    {selectedUser?.is_active 
+                      ? `¿Seguro que deseas bloquear a ${selectedUser?.nombre} ${selectedUser?.apellido}?`
+                      : `¿Seguro que deseas desbloquear a ${selectedUser?.nombre} ${selectedUser?.apellido}?`
+                    }
                   </div>
                   <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
-                    Esta acción impedirá que el usuario acceda a la plataforma hasta que sea desbloqueado.
+                    {selectedUser?.is_active 
+                      ? "Esta acción impedirá que el usuario acceda a la plataforma hasta que sea desbloqueado."
+                      : "Esta acción permitirá que el usuario vuelva a acceder a la plataforma."
+                    }
                   </div>
                   <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
                     <button
@@ -161,12 +166,11 @@ function UsuariosAdmin() {
                       onClick={handleCloseConfirm}
                     >
                       Cancelar
-                    </button>
-                    <button
+                    </button>                    <button
                       style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
-                      onClick={handleDeleteUser}
+                      onClick={handleToggleUserStatus}
                     >
-                      Bloquear
+                      {selectedUser?.is_active ? 'Bloquear' : 'Desbloquear'}
                     </button>
                   </div>
                 </div>

@@ -23,7 +23,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'nombre_usuario', 'nombre', 'apellido', 'correo', 'contrasena',
             'sexo', 'fecha_nacimiento', 'telefono', 'foto', 'first_name', 'last_name', 'email',
-            'descripcion', 'contacto1', 'contacto2', 'tipoUsuario', 'last_active'
+            'descripcion', 'contacto1', 'contacto2', 'tipoUsuario', 'last_active', 'is_active'
         ]
         extra_kwargs = {
             'username': {'read_only': True},

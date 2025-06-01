@@ -22,7 +22,6 @@ function Login() {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
   }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -30,8 +29,8 @@ function Login() {
     try {
       // Normaliza el correo antes de enviarlo
       const correo = email.trim().toLowerCase();
-      const success = await login(correo, password);
-      if (success) {
+      const result = await login(correo, password);
+      if (result.success) {
         // Obtener usuario actual para saber tipoUsuario
         const userResp = await authService.getCurrentUser();
         const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
@@ -41,7 +40,12 @@ function Login() {
           navigate('/feed');
         }
       } else {
-        setLoginError('Correo o contraseña incorrectos.');
+        // Manejar diferentes tipos de errores
+        if (result.error === 'ACCOUNT_BLOCKED') {
+          setLoginError('Tu cuenta ha sido desactivada. Contacta al soporte técnico para más información.');
+        } else {
+          setLoginError('Correo o contraseña incorrectos.');
+        }
       }
     } catch (err) {
       setLoginError('Error al iniciar sesión. Intenta de nuevo.');
@@ -70,10 +74,9 @@ function Login() {
         setMsalError('No existe una cuenta con ese correo. Regístrate primero.');
         setLoading(false);
         return;
-      }
-      // Realiza login con backend usando correo y una contraseña especial
-      const success = await login(email, 'MICROSOFT_AUTH');
-      if (success) {
+      }      // Realiza login con backend usando correo y una contraseña especial
+      const result = await login(email, 'MICROSOFT_AUTH');
+      if (result.success) {
         // Obtener usuario actual para saber tipoUsuario
         const userResp = await authService.getCurrentUser();
         const tipoUsuario = userResp?.data?.tipoUsuario || userResp?.data?.tipousuario;
@@ -83,7 +86,12 @@ function Login() {
           navigate('/feed');
         }
       } else {
-        setMsalError('Error al iniciar sesión con Microsoft.');
+        // Manejar diferentes tipos de errores
+        if (result.error === 'ACCOUNT_BLOCKED') {
+          setMsalError('Tu cuenta ha sido desactivada. Contacta al soporte técnico para más información.');
+        } else {
+          setMsalError('Error al iniciar sesión con Microsoft.');
+        }
         // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
       }
     } catch (err) {
