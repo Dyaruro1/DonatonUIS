@@ -28,7 +28,9 @@ export default function NotificationBell({ notifications, onNotificationClick })
       const namesMap = {};
       for (const id of uniqueIds) {
         try {
-          const response = await fetch(`/prendas/${id}/nombre/`);
+          console.log(`Fetching prenda name for ID: ${id}`);
+          const response = await fetch(`http://localhost:8000/api/prendas/${id}/nombre/`);
+          console.log(`Response for ID ${id}:`, response);
           if (response.ok) {
             const data = await response.json();
             namesMap[id] = data.nombre;

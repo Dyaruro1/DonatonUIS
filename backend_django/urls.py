@@ -20,7 +20,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('usuarios.urls')),
     path('api/', include(router.urls)),
-    path('', include('prendas.urls')),  # <-- Agregado para exponer las rutas de prendas
+    path('api/', include('prendas.urls')),
 ]
 
 if settings.DEBUG:
