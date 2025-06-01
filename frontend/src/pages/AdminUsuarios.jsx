@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./AdminUsuarios.css";
 import api from '../services/api';
 import AdminSidebar from '../components/AdminSidebar';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState([]);
@@ -12,19 +13,31 @@ function UsuariosAdmin() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
+  const { currentUser } = useContext(AuthContext);
 
   // Actualiza el tiempo cada 30 segundos para refrescar el estado en línea
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(interval);
   }, []);
-
   useEffect(() => {
     api.get('/api/usuarios/')
       .then(res => setUsuarios(res.data))
       .catch(() => setError("No se pudieron cargar los usuarios."))
       .finally(() => setLoading(false));
   }, []);
+  // Filtrar usuarios para excluir al usuario actual y al superusuario "juls"
+  const filteredUsuarios = usuarios.filter(user => {
+    // Excluir al usuario actual si existe
+    if (currentUser && user.id === currentUser.id) {
+      return false;
+    }
+    // Excluir usuarios con staff status (administradores y superusuarios)
+    if (user.is_staff || user.is_superuser) {
+      return false;
+    }
+    return true;
+  });
 
   // Considera en línea si el usuario actualizó su actividad en los últimos 2 minutos
   const isOnline = (lastActive) => {
@@ -62,8 +75,8 @@ function UsuariosAdmin() {
       <AdminSidebar />
       <div style={{ flex: 1, marginLeft: 78 }}>
         <div className="admin-usuarios-container">
-          <h2 className="admin-usuarios-title">Usuarios activos</h2>          {loading ? <div style={{color:'#fff'}}>Cargando...</div> : error ? <div style={{color:'#ff6b6b'}}>{error}</div> : (
-          <table className="admin-usuarios-table"><thead>
+          <h2 className="admin-usuarios-title">Usuarios activos</h2>          {loading ? <div style={{color:'#fff'}}>Cargando...</div> : error ? <div style={{color:'#ff6b6b'}}>{error}</div> : (          <table className="admin-usuarios-table">
+            <thead>
               <tr>
                 <th><input type="checkbox" disabled /></th>
                 <th>Lista de usuarios</th>
@@ -73,8 +86,9 @@ function UsuariosAdmin() {
                 <th>Contactar</th>
                 <th>Action</th>
               </tr>
-            </thead><tbody>
-              {usuarios.map(u => (
+            </thead>
+            <tbody>
+              {filteredUsuarios.map(u => (
                 <tr key={u.id}><td><input type="checkbox" /></td><td style={{display:'flex',alignItems:'center',gap:12}}>
                     <img src={u.foto || '/logo-pequeno.svg'} alt="avatar" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',background:'#23233a'}} />
                     <span style={{fontWeight:600, cursor:'pointer', color:'#21e058'}} onClick={()=>navigate(`/admin/users/${u.id}`)}>{u.nombre} {u.apellido}</span>
@@ -108,10 +122,11 @@ function UsuariosAdmin() {
                           <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
                         </svg>
                       )}
-                    </button>
-                  </td></tr>
+                    </button>                  </td>
+                </tr>
               ))}
-            </tbody></table>
+            </tbody>
+          </table>
           )}
           {/* Modal de confirmación de bloqueo */}
           {showConfirm && (
