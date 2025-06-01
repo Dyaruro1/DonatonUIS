@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 import './NotificationBell.css';
 
 
@@ -28,9 +29,9 @@ export default function NotificationBell({ notifications, onNotificationClick })
       const namesMap = {};
       for (const id of uniqueIds) {
         try {
-          console.log(`Fetching prenda name for ID: ${id}`);
+          // console.log(`Fetching prenda name for ID: ${id}`);
           const response = await fetch(`http://localhost:8000/api/prendas/${id}/nombre/`);
-          console.log(`Response for ID ${id}:`, response);
+          // console.log(`Response for ID ${id}:`, response);
           if (response.ok) {
             const data = await response.json();
             namesMap[id] = data.nombre;
@@ -53,17 +54,29 @@ export default function NotificationBell({ notifications, onNotificationClick })
     <div className="notification-bell-container" ref={bellRef}>
       <button className="notification-bell-btn" onClick={() => setOpen((v) => !v)}>
         <span role="img" aria-label="notificaciones" style={{ fontSize: 26 }}>🔔</span>
-        {notifications && notifications.length > 0 && (
-          <span className="notification-bell-badge">{notifications.length}</span>
+        {notifications && notifications.filter(n => !n.read).length > 0 && (
+          <span className="notification-bell-badge">{notifications.filter(n => !n.read).length}</span>
         )}
       </button>
       {open && (
         <div className="notification-dropdown">
           <div className="notification-dropdown-title">Notificaciones</div>
-          {notifications && notifications.length > 0 ? (
-            notifications.map((n, idx) => (
-              <div key={n.id || idx} className="notification-item" onClick={() => onNotificationClick(n)}>
-                {console.log('Notificación:', n)}
+          {notifications && notifications.filter(n => !n.read).length > 0 ? (
+            notifications.filter(n => !n.read).map((n, idx) => (
+              <div key={n.id || idx} className="notification-item" onClick={async () => {
+                n.read = true;
+                console.log('CLICK EN NOTIFICACIÓN:', n);
+                // Actualizar en la base de datos
+                const { error } = await supabase
+                  .from('notifications')
+                  .update({ read: true })
+                  .eq('id', n.id);
+                if (error) {
+                  console.error('Error actualizando notificación en la base de datos:', error);
+                }
+                onNotificationClick(n);
+              }}>
+                {/* {console.log('Notificación:', n)} */}
                 <div className="notification-msg">
                   {n.user_sender
                     ? `${n.user_sender} te ha enviado un mensaje sobre la publicación "${prendaNames[n.prenda_id] || 'Cargando...'}"!`
