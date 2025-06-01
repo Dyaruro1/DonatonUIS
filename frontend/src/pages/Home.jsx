@@ -1,6 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
+
+function AnimatedText() {
+  const texts = ["tus compañeros", "tus amigos", "tu comunidad UIS"];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [displayTexts, setDisplayTexts] = useState([
+    { text: texts[0], state: 'current', key: 0 }
+  ]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      
+      // Preparar el siguiente texto
+      const nextIndex = (currentIndex + 1) % texts.length;
+      const nextKey = Date.now();
+      
+      // Agregar el nuevo texto que entra desde arriba
+      setDisplayTexts(prev => [
+        { ...prev[0], state: 'exiting' }, // El actual se va hacia abajo
+        { text: texts[nextIndex], state: 'entering', key: nextKey } // El nuevo entra desde arriba
+      ]);
+      
+      // Después de la animación, limpiar y preparar para el siguiente
+      setTimeout(() => {
+        setDisplayTexts([
+          { text: texts[nextIndex], state: 'current', key: nextKey }
+        ]);
+        setCurrentIndex(nextIndex);
+        setIsAnimating(false);
+      }, 600); // Duración de la animación
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex, texts]);
+
+  return (
+    <span className="highlight animated-text">
+      {displayTexts.map((item) => (
+        <span
+          key={item.key}
+          className={`text-item ${item.state}`}
+        >
+          {item.text}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function Home() {
   return (
@@ -12,7 +61,7 @@ function Home() {
           <div className="logo-main">DONATON <span>UIS</span></div>
           <p className="subtitle-logo">Donando ropa para nuestros compañeros</p>
           <h1>¡Bienvenido, estudiante UIS!</h1>
-          <p className="main-cta">Dona ropa y ayuda a <span className="highlight">tus compañeros</span></p>
+          <p className="main-cta">Dona ropa y ayuda a <AnimatedText /></p>
         </div>
         <div className="home-right-panel">
           <h2>¿Cómo comenzar?</h2>
