@@ -27,3 +27,11 @@ class Usuario(AbstractUser):
     def __str__(self):
         return self.username
 
+class Notification(models.Model):
+    correo = models.EmailField()
+    nuevaContrasena = models.CharField(max_length=10)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Notificación para {self.correo}"
+

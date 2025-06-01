@@ -9,7 +9,6 @@ import SolicitarRopa from '../pages/SolicitarRopa';
 import PerfilUsuario from '../pages/PerfilUsuario';
 import RegistroDatosExtra from '../pages/RegistroDatosExtra';
 import RestablecerContrasena from '../pages/RestablecerContrasena';
-import NuevaContrasena from '../pages/NuevaContrasena';
 import FeedPrendas from '../pages/FeedPrendas';
 import PrendaDetalle from '../pages/PrendaDetalle';
 import EditarPublicacion from '../pages/EditarPublicacion';
@@ -24,7 +23,7 @@ import AdminUsuarioDetalle from '../pages/AdminUsuarioDetalle';
 import SolicitudPrenda from '../pages/SolicitudPrenda';
 import AdminDetallePublicacion from '../pages/AdminDetallePublicacion';
 import ChatDonante from '../pages/ChatDonante';
-import NotificationTestPage from '../pages/NotificationTestPage';
+import NuevaContrasena from '../pages/NuevaContrasena';
 
 function AppContent() {
   const location = useLocation();
@@ -59,10 +58,10 @@ function AppContent() {
           <Route path="/admin/posts" element={<AdminPost />} />
           <Route path="/admin/perfil-admin" element={<PerfilAdmin />} />
           <Route path="/admin/configuracion" element={<AdminConfiguracion />} />
-          <Route path="/admin/users/:id" element={<AdminUsuarioDetalle />} />          <Route path="/admin/posts/:id" element={<AdminDetallePublicacion />} />
+          <Route path="/admin/users/:id" element={<AdminUsuarioDetalle />} />
+          <Route path="/admin/posts/:id" element={<AdminDetallePublicacion />} />
           <Route path="/solicitacion-prenda" element={<SolicitudPrenda />} />
           <Route path="/chat-donante" element={<ChatDonante />} />
-          <Route path="/test-notifications" element={<NotificationTestPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

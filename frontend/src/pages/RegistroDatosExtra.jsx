@@ -2,12 +2,13 @@ import React, { useState, useRef, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import { supabase } from '../supabaseClient'; // Ensure supabase is imported
 import './RegistroDatosExtra.css';
 
 function RegistroDatosExtra() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { email, password } = location.state || {};
+  const { email: initialEmail, password: initialPassword } = location.state || {}; // Renamed to avoid conflict
   const { refreshUser } = useContext(AuthContext);
 
   const [nombres, setNombres] = useState('');
@@ -16,7 +17,8 @@ function RegistroDatosExtra() {
   const [sexo, setSexo] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [correo, setCorreo] = useState(email || '');
+  const [correo, setCorreo] = useState(initialEmail || ''); // Use renamed initialEmail
+  // Note: 'password' from location.state is used directly in handleSubmit
   const [foto, setFoto] = useState(null);
   const [contacto1, setContacto1] = useState('');
   const [contacto2, setContacto2] = useState('');
@@ -42,6 +44,9 @@ function RegistroDatosExtra() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    // Use initialPassword from location.state directly for logic
+    const currentPassword = initialPassword; 
+
     // Validación de fecha de nacimiento: no futura y al menos 12 años
     if (fechaNacimiento) {
       const partes = fechaNacimiento.split('-');
@@ -61,62 +66,69 @@ function RegistroDatosExtra() {
         }
       }
     }
+
     try {
       const formData = new FormData();
       formData.append('nombre', nombres);
       formData.append('apellido', apellidos);
       formData.append('correo', correo);
-      formData.append('contrasena', password);
+      formData.append('contrasena', currentPassword); // Use currentPassword
       formData.append('nombre_usuario', nombreUsuario);
       formData.append('sexo', sexo);
       formData.append('fecha_nacimiento', fechaNacimiento);
       formData.append('telefono', telefono);
       formData.append('contacto1', contacto1);
       formData.append('contacto2', contacto2);
-      formData.append('descripcion', descripcion); // Asegura que la descripción se envía al backend
-      
+      formData.append('descripcion', descripcion);
       if (foto) formData.append('foto', foto);
 
       await authService.register(formData);
 
-      // Si llegamos aquí fue OK
-      const loginResp = password === 'MICROSOFT_AUTH'
+      const loginResp = currentPassword === 'MICROSOFT_AUTH'
         ? await authService.login(correo, 'MICROSOFT_AUTH')
-        : await authService.login(correo, password);
+        : await authService.login(correo, currentPassword); // Use currentPassword
 
       localStorage.setItem('token', loginResp.data.token);
       await refreshUser();
+
+      // Create user in Supabase Authentication if not a Microsoft Auth flow
+      if (currentPassword !== 'MICROSOFT_AUTH') { // Use currentPassword
+        try {
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: correo,
+            password: currentPassword, // Use currentPassword
+          });
+
+          if (authError) {
+            console.error('Error creating Supabase Auth user:', authError);
+            // setError(prevError => prevError + `\nError en registro con Supabase: ${authError.message}`);
+          } else {
+            console.log('Supabase Auth user created/signed up successfully:', authData);
+          }
+        } catch (supabaseAuthError) {
+          console.error('Exception during Supabase Auth user creation:', supabaseAuthError);
+        }
+      }
+
       navigate('/feed');
 
     } catch (err) {
       console.log('❌ /api/registrar/ error:', err.response?.data);
-
-      // 1) Mensaje por defecto
       let msg = 'Error al registrar usuario.';
-
       const data = err.response?.data;
       if (data) {
-        // 2) Si viene validación por nombre_usuario:
         if (Array.isArray(data.nombre_usuario) && data.nombre_usuario.length) {
           msg = data.nombre_usuario[0];
-        }
-        // 3) Otras claves que quieras capturar:
-        else if (Array.isArray(data.username) && data.username.length) {
+        } else if (Array.isArray(data.username) && data.username.length) {
           msg = data.username[0];
-        }
-        // 4) O detalle genérico:
-        else if (typeof data.detail === 'string') {
+        } else if (typeof data.detail === 'string') {
           msg = data.detail;
-        }
-        // 5) Cualquier otro array de errores:
-        else {
+        } else {
           const flat = Object.values(data).flat();
           if (flat.length) msg = flat.join(' ');
         }
       }
-
       setError(msg);
-
     } finally {
       setLoading(false);
     }

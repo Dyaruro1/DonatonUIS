@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>CORS Test for Password Sync</h1>
+    <button id="testCors">Test CORS Request</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('testCors').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/sincronizar-contrasena-supabase/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        correo: 'test@example.com',
+                        nueva_contrasena: 'test123'
+                    })
+                });
+                
+                const data = await response.text();
+                resultDiv.innerHTML = `
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong> ${data}</p>
+                    <p><strong>CORS Headers:</strong></p>
+                    <ul>
+                        <li>Access-Control-Allow-Origin: ${response.headers.get('Access-Control-Allow-Origin') || 'Not set'}</li>
+                        <li>Access-Control-Allow-Credentials: ${response.headers.get('Access-Control-Allow-Credentials') || 'Not set'}</li>
+                        <li>Access-Control-Allow-Methods: ${response.headers.get('Access-Control-Allow-Methods') || 'Not set'}</li>
+                    </ul>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${error.message}</p>`;
+                console.error('CORS Test Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/api';
 import { supabase } from '../supabaseClient';
 import './Login.css';
 
@@ -10,15 +11,21 @@ function RestablecerContrasena() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // El flujo ahora es 100% Supabase, no necesitas CSRF ni llamada al backend
+    // Puedes eliminar esta función para evitar errores de red
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(correo, {
-        redirectTo: 'http://localhost:5173/nueva-contrasena' // Cambia por tu URL de redirección
+      // Enviar email de recuperación usando Supabase directamente desde el frontend
+      const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(correo, {
+        redirectTo: window.location.origin + '/nueva-contrasena'
       });
-      if (error) {
+      if (supabaseError) {
         setError('No se pudo enviar el correo. Intenta de nuevo.');
       } else {
         setEnviado(true);
@@ -47,7 +54,7 @@ function RestablecerContrasena() {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(24,25,43,0.58)', // overlay azul oscuro semitransparente
+          background: 'rgba(24,25,43,0.58)',
           zIndex: 0,
         }}
       ></div>
@@ -80,7 +87,10 @@ function RestablecerContrasena() {
         <h2 style={{ textAlign: 'center', fontSize: '1.35rem', fontWeight: 600, marginBottom: '1.2rem', color: '#222' }}>Restablece tu contraseña</h2>
         {enviado ? (
           <div style={{textAlign: 'center', color: '#21E058', fontWeight: 500, margin: '1.5rem 0'}}>
-            ¡Revisa tu correo para continuar con el restablecimiento!
+            ¡Te hemos enviado un correo con instrucciones para restablecer tu contraseña!<br />
+            <span style={{color: '#222', marginTop: '1.2rem', fontWeight: 400, display: 'block'}}>
+              Revisa tu bandeja de entrada y sigue el enlace para crear una nueva contraseña.
+            </span>
           </div>
         ) : (
           <>
