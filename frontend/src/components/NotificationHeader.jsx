@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useNotifications } from '../hooks/use-notifications';
+import { useUserRooms } from '../hooks/use-user-rooms';
 import NotificationBell from './NotificationBell';
 import './NotificationHeader.css';
 
@@ -12,8 +13,10 @@ import './NotificationHeader.css';
 function NotificationHeader({ title = "DonatonUIS", showBackButton = false }) {
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
-    // Obtener notificaciones del usuario actual
-  const notifications = useNotifications(currentUser?.id, 5);
+  // Obtener rooms del usuario
+  const userRooms = useUserRooms(currentUser?.username);
+  // Obtener notificaciones del usuario actual y rooms
+  const notifications = useNotifications(currentUser?.username, 5, userRooms);
   
   // Manejar click en notificación
   const handleNotificationClick = (notification) => {

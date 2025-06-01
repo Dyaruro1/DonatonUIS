@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Prenda, ImagenPrenda
 from .serializers import PrendaSerializer, PrendaAdminSerializer, ImagenPrendaSerializer
 import os
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
@@ -125,3 +127,11 @@ class PrendaViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
+
+@csrf_exempt
+def get_prenda_name(request, prenda_id):
+    try:
+        prenda = Prenda.objects.get(id=prenda_id)
+        return JsonResponse({"id": prenda.id, "nombre": prenda.nombre})
+    except Prenda.DoesNotExist:
+        return JsonResponse({"error": "Prenda no encontrada"}, status=404)

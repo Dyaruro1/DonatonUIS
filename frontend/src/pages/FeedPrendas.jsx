@@ -21,8 +21,9 @@ function FeedPrendas() {
   const [tab, setTab] = useState("disponibles");
   const { currentUser } = useContext(AuthContext);
   const userId = currentUser?.id;
+  const username = currentUser?.username;
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const notifications = useNotifications(userId, 3);
+  const notifications = useNotifications(username, 3);
 
   const handleSidebarNav = (route) => {
     navigate(route);
