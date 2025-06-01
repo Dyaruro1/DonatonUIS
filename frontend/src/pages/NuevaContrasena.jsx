@@ -12,6 +12,8 @@ function NuevaContrasena() {
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false); // To track if Supabase processed the recovery token
   const [userEmail, setUserEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -151,27 +153,55 @@ function NuevaContrasena() {
           <form style={{ width: '100%' }} onSubmit={handleSubmit}>
             <div style={{color: '#333', fontSize: '1rem', textAlign: 'center', marginBottom: '1.2rem'}}>
               Ingresa tu nueva contraseña para tu cuenta.
+            </div>            <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="password">Nueva contraseña</label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.6rem 3.2rem 0.6rem 0.9rem', fontSize: '1rem', outline: 'none', marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                disabled={!sessionReady || loading} // Disable if session not ready
+              />
+              <span
+                onClick={() => setShowPassword(v => !v)}
+                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#babcc4', fontSize: 22 }}
+                tabIndex={0}
+                role="button"
+                aria-label="Mostrar/ocultar contraseña"
+              >
+                {showPassword ? (
+                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#babcc4" strokeWidth="2"/><circle cx="12" cy="12" r="3.5" stroke="#babcc4" strokeWidth="2"/></svg>
+                ) : (
+                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.77 21.77 0 0 1 5.06-6.06M1 1l22 22" stroke="#babcc4" strokeWidth="2"/></svg>
+                )}
+              </span>
+            </div>            <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="confirmPassword">Confirmar contraseña</label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.6rem 3.2rem 0.6rem 0.9rem', fontSize: '1rem', outline: 'none', marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                disabled={!sessionReady || loading} // Disable if session not ready
+              />
+              <span
+                onClick={() => setShowConfirmPassword(v => !v)}
+                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#babcc4', fontSize: 22 }}
+                tabIndex={0}
+                role="button"
+                aria-label="Mostrar/ocultar contraseña"
+              >
+                {showConfirmPassword ? (
+                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#babcc4" strokeWidth="2"/><circle cx="12" cy="12" r="3.5" stroke="#babcc4" strokeWidth="2"/></svg>
+                ) : (
+                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.77 21.77 0 0 1 5.06-6.06M1 1l22 22" stroke="#babcc4" strokeWidth="2"/></svg>
+                )}
+              </span>
             </div>
-            <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="password">Nueva contraseña</label>
-            <input
-              id="password"
-              type="password"
-              style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.6rem 0.9rem', fontSize: '1rem', outline: 'none', marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              disabled={!sessionReady || loading} // Disable if session not ready
-            />
-            <label style={{ fontSize: '0.95rem', color: '#21E058', fontWeight: 500, marginBottom: 4, marginTop: 8 }} htmlFor="confirmPassword">Confirmar contraseña</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              style={{ border: '1.5px solid #e0e0e0', borderRadius: 8, padding: '0.6rem 0.9rem', fontSize: '1rem', outline: 'none', marginBottom: 8, width: '100%', boxSizing: 'border-box' }}
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              required
-              disabled={!sessionReady || loading} // Disable if session not ready
-            />
             <button style={{ width: '100%', background: '#21E058', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.7rem 0', marginTop: 8, marginBottom: 4, cursor: 'pointer', transition: 'background 0.2s' }} type="submit" disabled={!sessionReady || loading}>{loading ? 'Actualizando...' : 'Actualizar contraseña'}</button>
             {error && <div style={{ color: 'red', margin: '0.5rem 0', textAlign: 'center', fontSize: '0.98rem' }}>{error}</div>}
             {!sessionReady && !loading && !success && <div style={{ color: 'orange', margin: '0.5rem 0', textAlign: 'center', fontSize: '0.98rem' }}>Procesando enlace de recuperación...</div>}

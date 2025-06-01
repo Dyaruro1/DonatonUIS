@@ -154,7 +154,7 @@ function AdminConfiguracion() {
         )}
         <main className="feed-main" style={{ minHeight: '100vh', background: '#18192b', paddingTop: 0 }}>
           <div style={{ maxWidth: 700, margin: '0 auto', marginTop: '2.5rem', padding: '0 2.5rem' }}>
-            <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '2.5rem' }}>Configuración de administrador</h1>
+            <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '2.5rem' }}>Configuración de cuenta</h1>
             <div style={{ marginBottom: '2.5rem' }}>
               <div style={{ color: '#fff', fontWeight: 600, fontSize: '1.25rem', marginBottom: 18 }}>Cambiar nombre de usuario</div>
               <form onSubmit={handleUsernameSubmit} style={{ background: '#23233a', borderRadius: 14, padding: '1.2rem 1.2rem 1.2rem 1.2rem', marginBottom: 18 }}>

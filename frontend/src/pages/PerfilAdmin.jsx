@@ -184,12 +184,6 @@ function PerfilAdmin() {
                 <input className="perfil-input" name="descripcion" value={user.descripcion || ''} placeholder="Descripción" maxLength={60} disabled={!editable} onChange={handleInputChange} />
                 <span className="perfil-charcount">{(user.descripcion || '').length} / 60 caracteres</span>
               </div>
-              <div className="perfil-card perfil-card-md">
-                <label className="perfil-label">Teléfono</label>
-                <input className="perfil-input" name="telefono" value={user.telefono || ''} placeholder="Teléfono" disabled={!editable} onChange={handleInputChange} />
-                <label className="perfil-label">Correo electrónico</label>
-                <input className="perfil-input" name="correo" value={user.correo || ''} placeholder="Correo" disabled readOnly />
-              </div>
             </div>
           </div>
         </div>
