@@ -82,7 +82,6 @@ function Register() {
     } catch (err) {
       setMsalError('Error al registrar con Microsoft');
       // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
-      await instance.logoutPopup();
     } finally {
       setLoading(false);
     }

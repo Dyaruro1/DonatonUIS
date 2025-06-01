@@ -85,7 +85,6 @@ function Login() {
       } else {
         setMsalError('Error al iniciar sesión con Microsoft.');
         // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
-        await instance.logoutPopup();
       }
     } catch (err) {
       setMsalError('Error al iniciar sesión con Microsoft');

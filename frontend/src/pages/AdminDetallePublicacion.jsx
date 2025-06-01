@@ -103,7 +103,15 @@ function AdminDetallePublicacion() {
   // Status color helpers
   const statusColor = prenda.status === 'disponible' ? '#21E058' : '#ffb300';
   const uploadStatusColor = prenda.upload_status === 'Cargado' ? '#21E058' : '#ffb300';
-
+  let prenda_status = '';
+  if (prenda.status === 'disponible') {
+    prenda_status = 'Disponible';
+  } else if (prenda.status === 'en_solicitud') {
+    prenda_status = 'En solicitud';
+  } else {
+    // Capitaliza el primer carácter y reemplaza guiones bajos por espacios
+    prenda_status = prenda.status.charAt(0).toUpperCase() + prenda.status.slice(1).replace('_', ' ');
+  }
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#18192b" }}>
       <AdminSidebar />
@@ -144,7 +152,7 @@ function AdminDetallePublicacion() {
               <div style={{color:'#babcc4'}}>Uso <span style={{color:'#7b5cff',fontWeight:700}}>{prenda.uso}</span></div>
             </div>
             <div style={{display:'flex',gap:32,marginBottom:18}}>
-              <div style={{color:'#babcc4'}}>Estado <span style={{color:statusColor,fontWeight:700,marginLeft:8}}>{prenda.status}</span></div>
+              <div style={{color:'#babcc4'}}>Estado <span style={{color:statusColor,fontWeight:700,marginLeft:8}}>{prenda_status}</span></div>
               <div style={{color:'#babcc4'}}>Upload status <span style={{color:uploadStatusColor,fontWeight:700,marginLeft:8}}>{prenda.upload_status}</span></div>
             </div>
             <div style={{marginBottom:24}}>
