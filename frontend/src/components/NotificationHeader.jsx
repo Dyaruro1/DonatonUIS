@@ -12,15 +12,18 @@ import './NotificationHeader.css';
  */
 function NotificationHeader({ title = "DonatonUIS", showBackButton = false }) {
   const { currentUser } = useContext(AuthContext);
-  const navigate = useNavigate();
-  // Obtener rooms del usuario
+  const navigate = useNavigate();  // Obtener rooms del usuario
   const userRooms = useUserRooms(currentUser?.username);
   // Obtener notificaciones del usuario actual y rooms
-  const notifications = useNotifications(currentUser?.username, 5, userRooms);
-  
-  // Manejar click en notificación
-  const handleNotificationClick = (notification) => {
+  const { notifications, markAsRead } = useNotifications(currentUser?.username, 5, userRooms);
+    // Manejar click en notificación
+  const handleNotificationClick = async (notification) => {
     console.log('Notificación clickeada:', notification);
+    
+    // Marcar como leída si no lo está
+    if (!notification.read && markAsRead) {
+      await markAsRead(notification.id);
+    }
     
     // Si la notificación tiene prenda_id, navegar al chat correspondiente
     if (notification.prenda_id) {
@@ -32,9 +35,6 @@ function NotificationHeader({ title = "DonatonUIS", showBackButton = false }) {
         } 
       });
     }
-    
-    // Opcional: marcar como leída
-    // markNotificationAsRead(notification.id);
   };
 
   const handleBackButton = () => {
@@ -78,11 +78,11 @@ function NotificationHeader({ title = "DonatonUIS", showBackButton = false }) {
             />
             <span className="notification-header-username">{currentUser.username}</span>
           </div>
-          
-          {/* Campana de notificaciones */}
+            {/* Campana de notificaciones */}
           <NotificationBell 
             notifications={notifications.filter(n => !n.read)} // solo no leídas
             onNotificationClick={handleNotificationClick}
+            markAsRead={markAsRead}
           />
         </div>
       </div>

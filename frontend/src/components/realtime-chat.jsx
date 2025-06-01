@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-export function RealtimeChat({ roomName, username, user, userDestino, messages: initialMessages = [], onMessage }) {
+export function RealtimeChat({ roomName, username, user, userDestino, messages: initialMessages = [], onMessage, actualPrendaId }) {
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
-
+  console.log('DEBUG RealtimeChat roomName:', roomName, 'username:', username, 'userDestino:', userDestino, 'actualPrendaId:', actualPrendaId);
   // Load initial messages if not provided
   useEffect(() => {
     if (initialMessages.length === 0) {
@@ -42,33 +42,28 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
     e.preventDefault();
     if (!input.trim()) return;
 
-    let numericPrendaId = null;
-    // Check if roomName is a non-empty string that can be parsed as a number, or a number itself
-    if (roomName !== null && roomName !== undefined && String(roomName).trim() !== '') {
-      const parsedId = parseInt(String(roomName), 10); // Ensure roomName is stringified before parsing
-      if (!isNaN(parsedId)) {
-        numericPrendaId = parsedId;
-        console.log('Successfully parsed prenda_id from roomName:', numericPrendaId);
-      } else {
-        console.error('roomName was provided ("' + roomName + '") but is not a valid number to be used as prenda_id.');
-      }
-    } else {
-      console.warn('roomName is null, undefined, or empty. Cannot determine prenda_id for the message.');
+    // Ya no se deriva prendaId de roomName. Se usa la prop 'actualPrendaId'.
+    // Validar que actualPrendaId sea un número válido.
+    if (actualPrendaId === null || actualPrendaId === undefined || isNaN(parseInt(String(actualPrendaId), 10))) {
+      console.error(
+        'Error crítico: actualPrendaId no es un número válido o no fue proporcionado. ' +
+        `Valor recibido: \"${actualPrendaId}\". El mensaje no se enviará.`
+      );
+      alert(
+        'Error: No se pudo asociar este chat con una prenda específica (ID de prenda inválido). El mensaje no fue enviado. ' +
+        'Por favor, verifica que la información de la prenda sea correcta.'
+      );
+      return; // Detener la ejecución si actualPrendaId no es válido
     }
-    
-    const messagePayload = {
-      room: roomName, // This remains as is, for the Supabase 'room' column
+      const messagePayload = {
+      room: roomName, // roomName es la cadena que identifica la sala de chat
       content: input,
       username: username, // nombre real del usuario (sender)
       user_destino: userDestino, // recipient
+      prenda_id: parseInt(String(actualPrendaId), 10), // Usar la prop directa, asegurando que sea un entero
     };
-
-    if (numericPrendaId !== null) {
-      messagePayload.prenda_id = numericPrendaId;
-    } else {
-      // Warning if prenda_id could not be determined (either roomName was invalid or not provided)
-      console.warn('prenda_id will not be set for this message as it could not be derived from roomName.');
-    }
+    
+    console.log('💬 MESSAGE DEBUG: Enviando mensaje con payload:', messagePayload);
     
     // Solo insertar el mensaje en Supabase
     const { data, error } = await supabase
@@ -76,7 +71,7 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
       .insert(messagePayload)
       .select();
       
-    console.log('Message insert result →', { data, error, insertedPayload: messagePayload });
+    console.log('💬 MESSAGE DEBUG: Resultado de inserción en messages:', { data, error });
     if (error) {
       alert('Error al enviar mensaje: ' + error.message);
       return;
