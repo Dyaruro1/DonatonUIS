@@ -63,7 +63,7 @@ function FeedPrendas() {
   }, [loader, loadMore, hasMore, loading]);
 
   useEffect(() => {
-    console.log("sidebarOpen es:", sidebarOpen);
+    // console.log("sidebarOpen es:", sidebarOpen);
   }, [sidebarOpen]);
 
   // Filtros y búsqueda

@@ -64,8 +64,8 @@ export default function NotificationBell({ notifications, onNotificationClick })
           {notifications && notifications.filter(n => !n.read).length > 0 ? (
             notifications.filter(n => !n.read).map((n, idx) => (
               <div key={n.id || idx} className="notification-item" onClick={async () => {
-                n.read = true;
-                console.log('CLICK EN NOTIFICACIÓN:', n);
+                // n.read = true;
+                // console.log('CLICK EN NOTIFICACIÓN:', n);
                 // Actualizar en la base de datos
                 const { error } = await supabase
                   .from('notifications')

@@ -58,8 +58,9 @@ export function useNotifications(username, limit = 3, roomIds = []) {
     const msgChannel = supabase
       .channel('realtime:messages-notif')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `user_destino=eq.${username}` }, async (payload) => {
-        console.log('🔔 NOTIF DEBUG: Nuevo mensaje recibido para crear notificación:', payload.new);
-        console.log('🔔 NOTIF DEBUG: Filtro aplicado - user_destino=eq.' + username);        const notificationData = {
+        // console.log('🔔 NOTIF DEBUG: Nuevo mensaje recibido para crear notificación:', payload.new);
+        // console.log('🔔 NOTIF DEBUG: Filtro aplicado - user_destino=eq.' + username);        
+        const notificationData = {
           user_destiny: payload.new.user_destino, // igual que en messages
           user_sender: payload.new.username, // igual que en messages
           prenda_id: payload.new.prenda_id, // o el campo correcto de la prenda
@@ -67,7 +68,7 @@ export function useNotifications(username, limit = 3, roomIds = []) {
           created_at: new Date().toISOString(), // timestamp requerido por Supabase
         };
         
-        console.log('🔔 NOTIF DEBUG: Datos de notificación a insertar:', notificationData);
+        // console.log('🔔 NOTIF DEBUG: Datos de notificación a insertar:', notificationData);
         
         // Registrar notificación en la tabla notifications
         const { data: notifResult, error: notifError } = await supabase
@@ -75,7 +76,7 @@ export function useNotifications(username, limit = 3, roomIds = []) {
           .insert(notificationData, { upsert: true })
           .select();
           
-        console.log('🔔 NOTIF DEBUG: Resultado de inserción en notifications:', { data: notifResult, error: notifError });
+        // console.log('🔔 NOTIF DEBUG: Resultado de inserción en notifications:', { data: notifResult, error: notifError });
         // Refrescar notificaciones
         supabase
           .from('notifications')

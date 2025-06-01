@@ -5,7 +5,7 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
-  console.log('DEBUG RealtimeChat roomName:', roomName, 'username:', username, 'userDestino:', userDestino, 'actualPrendaId:', actualPrendaId);
+  // console.log('DEBUG RealtimeChat roomName:', roomName, 'username:', username, 'userDestino:', userDestino, 'actualPrendaId:', actualPrendaId);
   // Load initial messages if not provided
   useEffect(() => {
     if (initialMessages.length === 0) {
@@ -63,7 +63,7 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
       prenda_id: parseInt(String(actualPrendaId), 10), // Usar la prop directa, asegurando que sea un entero
     };
     
-    console.log('💬 MESSAGE DEBUG: Enviando mensaje con payload:', messagePayload);
+    // console.log('💬 MESSAGE DEBUG: Enviando mensaje con payload:', messagePayload);
     
     // Solo insertar el mensaje en Supabase
     const { data, error } = await supabase
@@ -71,7 +71,7 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
       .insert(messagePayload)
       .select();
       
-    console.log('💬 MESSAGE DEBUG: Resultado de inserción en messages:', { data, error });
+    // console.log('💬 MESSAGE DEBUG: Resultado de inserción en messages:', { data, error });
     if (error) {
       alert('Error al enviar mensaje: ' + error.message);
       return;
