@@ -138,6 +138,7 @@ function SolicitudPrenda() {
           user={user}
           userDestino={userDestino}
           messages={messages}
+          actualPrendaId = {prenda.id}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24  }}>
           <button style={{ background: '#23244a', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, fontSize: '0.98rem', cursor: 'pointer', minWidth: 80 }} onClick={() => navigate(-1)}>

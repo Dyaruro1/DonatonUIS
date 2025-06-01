@@ -36,13 +36,12 @@ export function useNotifications(username, limit = 3, roomIds = []) {
 
   useEffect(() => {
     if (!username) return;
-    // Consultar mensajes donde el usuario es destinatario
-    // (Eliminado el bloque que insertaba notificaciones por cada mensaje)
-    // Cargar notificaciones iniciales
+    // Cargar solo notificaciones no leídas
     supabase
       .from('notifications')
       .select('*')
       .eq('user_destiny', username)
+      .eq('read', false)
       .order('created_at', { ascending: false })
       .limit(limit)
       .then(({ data }) => {
@@ -52,9 +51,20 @@ export function useNotifications(username, limit = 3, roomIds = []) {
     const notifChannel = supabase
       .channel('realtime:notifications')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_destiny=eq.${username}` }, (payload) => {
-        setNotifications((prev) => [payload.new, ...prev].slice(0, limit));
+        // Refrescar solo no leídas
+        supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_destiny', username)
+          .eq('read', false)
+          .order('created_at', { ascending: false })
+          .limit(limit)
+          .then(({ data }) => {
+            if (data) setNotifications(data);
+          });
       })
-      .subscribe();    // Suscripción en tiempo real a mensajes recibidos
+      .subscribe();
+    // Suscripción en tiempo real a mensajes recibidos
     const msgChannel = supabase
       .channel('realtime:messages-notif')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `user_destino=eq.${username}` }, async (payload) => {
@@ -82,11 +92,17 @@ export function useNotifications(username, limit = 3, roomIds = []) {
           .from('notifications')
           .select('*')
           .eq('user_destiny', username)
+          .eq('read', false)
           .order('created_at', { ascending: false })
           .limit(limit)
           .then(({ data }) => {
             if (data) setNotifications(data);
           });
+
+        supabase
+          .from('notifications')
+          .insert(notificationData, { upsert: true })
+          .select();
       })
       .subscribe();
     // Suscripciones a todos los rooms (messages)
@@ -101,6 +117,7 @@ export function useNotifications(username, limit = 3, roomIds = []) {
               .from('notifications')
               .select('*')
               .eq('user_destiny', username)
+              .eq('read', false)
               .order('created_at', { ascending: false })
               .limit(limit)
               .then(({ data }) => {
