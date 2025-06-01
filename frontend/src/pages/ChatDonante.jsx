@@ -12,7 +12,7 @@ function ChatDonante() {
 
   // Mensajes iniciales para el chat
   const { data: messages } = useMessagesQuery(roomName);
-  console.log('DEBUG ChatDonante prenda:', roomName);
+  // console.log('DEBUG ChatDonante prenda:', roomName);
 
   // Obtener username actual y username del donante
   let [username, setUsername] = useState();
@@ -47,7 +47,7 @@ function ChatDonante() {
           setUsername(data.username);
           setUserObj({ name: data.username, ...data });
           // Opcional: guardar en localStorage para futuras sesiones
-          localStorage.setItem('username', data.username);
+          // localStorage.setItem('username', data.username); 
           // localStorage.setItem('currentUser', JSON.stringify(data));
         } else {
           setUsername('Invitado');
@@ -62,8 +62,17 @@ function ChatDonante() {
     }
   }, []);  // Para el campo user, pasar el objeto userObj si existe, si no, solo el username
   const user = userObj ? userObj : { name: username };
-  const userDestino = prenda?.solicitante?.username || prenda?.solicitante?.nombre || '';
-
+  // El userDestino debe ser el username del otro participante del chat (no el propio)
+  // Si el usuario actual es el donante, el destino es el username del último solicitante en los mensajes
+  let userDestino = '';
+  if (messages && messages.length > 0) {
+    // Buscar el username más reciente distinto al actual
+    const lastOtherMsg = [...messages].reverse().find(m => m.username && m.username !== username);
+    if (lastOtherMsg) {
+      userDestino = lastOtherMsg.username;
+    }
+  }
+  
   if (!prenda) {
     return (
       <div style={{ color: '#fff', background: '#18192b', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -83,7 +92,6 @@ function ChatDonante() {
         <RealtimeChat
           roomName={roomName}
           username={username}
-          user={user}
           userDestino={userDestino}
           messages={messages}
         />
