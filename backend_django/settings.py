@@ -188,3 +188,12 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
 ]
+
+# Configuración de email para envío de denuncias con Outlook/Office 365 institucional UIS
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'daniel2220088@correo.uis.edu.co' 
+EMAIL_HOST_PASSWORD = 'Esteban2001' 
+DEFAULT_FROM_EMAIL = 'daniel2220088@correo.uis.edu.co'

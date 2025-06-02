@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../pages/FeedPrendas.css';
 
@@ -6,6 +6,11 @@ function PrendaPublicaDetalle() {
   const location = useLocation();
   const navigate = useNavigate();
   const prenda = location.state?.prenda;
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  const [confirmMsg, setConfirmMsg] = useState('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   if (!prenda) {
     navigate('/feed');
@@ -37,6 +42,36 @@ function PrendaPublicaDetalle() {
   // Obtener nombre del donante
   const nombreDonante = prenda.donante?.username || prenda.donante?.nombre || prenda.usuario_nombre || 'Usuario';
 
+  // Función para enviar la denuncia (conecta con el backend Django)
+  const handleReport = async () => {
+    try {
+      // Cambia la URL para apuntar al backend Django (por ejemplo, puerto 8000)
+      const response = await fetch('http://localhost:8000/api/denunciar-prenda/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prendaId: prenda.id,
+          motivo,
+          prendaNombre: prenda.nombre,
+          prendaTalla: prenda.talla,
+          prendaSexo: prenda.sexo,
+          prendaEstado: prenda.status,
+        }),
+      });
+      if (response.ok) {
+        setShowReportModal(false);
+        setMotivo('');
+        setConfirmMsg('¡Denuncia enviada! Los administradores han sido notificados.');
+      } else {
+        setShowReportModal(false);
+        setConfirmMsg('Error al enviar la denuncia. Intenta de nuevo.');
+      }
+    } catch (e) {
+      setShowReportModal(false);
+      setConfirmMsg('Error al enviar la denuncia. Intenta de nuevo.');
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#18192b', padding: 0 }}>
       {/* BOTONES DE NAVEGACIÓN SUPERIOR */}
@@ -60,15 +95,76 @@ function PrendaPublicaDetalle() {
         <button
           className="feed-navbar-btn feed-navbar-btn-logout"
           style={{ background: 'transparent', color: '#ff6b6b', border: 'none', borderRadius: '50%', padding: '0.7rem', fontWeight: 600, fontSize: '1.55rem', marginLeft: '2.5rem', cursor: 'pointer' }}
-          onClick={() => {
-            localStorage.removeItem('token');
-            navigate('/login');
-          }}
+          onClick={() => setShowLogoutModal(true)}
           title="Cerrar sesión"
         >
           <i className="fa fa-sign-out-alt" style={{ fontSize: 28 }}></i>
         </button>
       </div>
+      {/* MODAL DE CONFIRMACIÓN LOGOUT */}
+      {showLogoutModal && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(24,25,43,0.55)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 200,
+          }}></div>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 201,
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 18,
+              boxShadow: '0 2px 32px 0 #0004',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 340,
+              maxWidth: 400,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}>
+              <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                ¿Seguro que deseas cerrar sesión?
+              </div>
+              <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                Se cerrará tu sesión y perderás el acceso temporal a tu cuenta. Puedes volver a iniciar sesión cuando lo necesites.
+              </div>
+              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                <button
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                  }}
+                >
+                  Sí
+                </button>
+                <button
+                  style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => setShowLogoutModal(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       {/* Contenido principal */}
       <div style={{ display: 'flex', gap: '2.5rem', width: '90%', maxWidth: 1100, margin: '0 auto', background: 'transparent' }}>
         {/* Miniaturas */}
@@ -128,7 +224,8 @@ function PrendaPublicaDetalle() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          <button style={{ background: '#0d1b36', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, fontSize: '0.98rem', cursor: 'pointer', minWidth: 120, marginTop: 8 }}>
+          <button style={{ background: '#0d1b36', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, fontSize: '0.98rem', cursor: 'pointer', minWidth: 120, marginTop: 8 }}
+            onClick={() => setShowReportModal(true)}>
             Denunciar publicación
           </button>
           <button style={{ background: '#23244a', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, fontSize: '0.98rem', cursor: 'pointer', minWidth: 80, marginTop: 8 }} onClick={() => navigate(-1)}>
@@ -136,6 +233,68 @@ function PrendaPublicaDetalle() {
           </button>
         </div>
       </div>
+      {/* MODAL DE DENUNCIA */}
+      {showReportModal && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0, top: 0, width: '100vw', height: '100vh',
+            background: 'rgba(24,25,43,0.55)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 200
+          }} />
+          <div style={{
+            position: 'fixed',
+            left: 0, top: 0, width: '100vw', height: '100vh',
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+            zIndex: 201
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 18,
+              boxShadow: '0 2px 32px 0 #0004',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 340, maxWidth: 400, width: '100%',
+              display: 'flex', flexDirection: 'column', alignItems: 'center'
+            }}>
+              <img src={prenda.foto1_url || prenda.foto1} alt={prenda.nombre} style={{ width: 90, borderRadius: 8, marginBottom: 12 }} />
+              <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.18rem', marginBottom: 6 }}>{prenda.nombre}</div>
+              <div style={{ color: '#babcc4', marginBottom: 8 }}>
+                Talla: <b>{prenda.talla}</b> | Sexo: <b>{prenda.sexo}</b> | Estado: <b>{prenda.status}</b>
+              </div>
+              <textarea
+                placeholder="Describe el motivo de la denuncia..."
+                value={motivo}
+                onChange={e => setMotivo(e.target.value)}
+                style={{
+                  width: '100%', minHeight: 70, borderRadius: 8, border: '1px solid #444', marginBottom: 18, padding: 8, fontSize: 15
+                }}
+              />
+              <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+                <button
+                  style={{ flex: 1, background: '#0d1b36', color: '#fff', border: 'none', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={() => setShowReportModal(false)}
+                >Cancelar</button>
+                <button
+                  style={{ flex: 1, background: '#ff3b3b', color: '#fff', border: 'none', borderRadius: 8, padding: '0.8rem 0', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={handleReport}
+                  disabled={!motivo.trim()}
+                >Denunciar</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {/* MENSAJE DE CONFIRMACIÓN */}
+      {confirmMsg && (
+        <div style={{
+          position: 'fixed', top: 30, left: '50%', transform: 'translateX(-50%)',
+          background: '#23233a', color: '#fff', padding: '1rem 2rem', borderRadius: 10, zIndex: 300, fontWeight: 600
+        }}>
+          {confirmMsg}
+          <button style={{ marginLeft: 16, background: 'none', color: '#fff', border: 'none', cursor: 'pointer' }} onClick={() => setConfirmMsg('')}>X</button>
+        </div>
+      )}
     </div>
   );
 }

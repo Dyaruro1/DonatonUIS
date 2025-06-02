@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/', include('usuarios.urls')),
     path('api/', include(router.urls)),
     path('api/', include('prendas.urls')),
+    path('api/', include('donaciones.urls')),  # <-- Agregado para endpoint de denuncia
 ]
 
 if settings.DEBUG:
