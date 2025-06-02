@@ -115,12 +115,14 @@ function FeedPrendas() {
 
   // Maneja click en una notificación
   const handleNotificationClick = notif => {
-    // Aquí podrías navegar al chat o prenda relacionada
     if (notif.prenda_id) {
-      // Busca la prenda en el estado o haz fetch si es necesario
       const prenda = prendas.find(p => p.id === notif.prenda_id);
-      if (prenda) {
-        navigate('/prenda-publica', { state: { prenda } });
+      if (prenda) {        // Si el usuario actual es el donante, navega al chat de donante
+        if (currentUser && prenda.donante && prenda.donante.id === currentUser.id) {
+          navigate('/chat-donante', { state: { prenda } });
+        } else {          // Si es solicitante, navega al chat donde es receptor
+          navigate('/solicitacion-prenda', { state: { prenda } });
+        }
       }
     }
     // Opcional: marcar como leída en Supabase
