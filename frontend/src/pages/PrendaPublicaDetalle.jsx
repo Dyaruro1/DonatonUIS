@@ -10,6 +10,7 @@ function PrendaPublicaDetalle() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [motivo, setMotivo] = useState('');
   const [confirmMsg, setConfirmMsg] = useState('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   if (!prenda) {
     navigate('/feed');
@@ -41,14 +42,30 @@ function PrendaPublicaDetalle() {
   // Obtener nombre del donante
   const nombreDonante = prenda.donante?.username || prenda.donante?.nombre || prenda.usuario_nombre || 'Usuario';
 
-  // Función para enviar la denuncia (conectar a tu backend aquí)
+  // Función para enviar la denuncia (conecta con el backend Django)
   const handleReport = async () => {
     try {
-      // Aquí deberías llamar a tu API/backend para enviar la denuncia
-      // await donatonService.reportarPrenda(prenda.id, motivo);
-      setShowReportModal(false);
-      setMotivo('');
-      setConfirmMsg('¡Denuncia enviada! Los administradores han sido notificados.');
+      // Cambia la URL para apuntar al backend Django (por ejemplo, puerto 8000)
+      const response = await fetch('http://localhost:8000/api/denunciar-prenda/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prendaId: prenda.id,
+          motivo,
+          prendaNombre: prenda.nombre,
+          prendaTalla: prenda.talla,
+          prendaSexo: prenda.sexo,
+          prendaEstado: prenda.status,
+        }),
+      });
+      if (response.ok) {
+        setShowReportModal(false);
+        setMotivo('');
+        setConfirmMsg('¡Denuncia enviada! Los administradores han sido notificados.');
+      } else {
+        setShowReportModal(false);
+        setConfirmMsg('Error al enviar la denuncia. Intenta de nuevo.');
+      }
     } catch (e) {
       setShowReportModal(false);
       setConfirmMsg('Error al enviar la denuncia. Intenta de nuevo.');
@@ -78,15 +95,76 @@ function PrendaPublicaDetalle() {
         <button
           className="feed-navbar-btn feed-navbar-btn-logout"
           style={{ background: 'transparent', color: '#ff6b6b', border: 'none', borderRadius: '50%', padding: '0.7rem', fontWeight: 600, fontSize: '1.55rem', marginLeft: '2.5rem', cursor: 'pointer' }}
-          onClick={() => {
-            localStorage.removeItem('token');
-            navigate('/login');
-          }}
+          onClick={() => setShowLogoutModal(true)}
           title="Cerrar sesión"
         >
           <i className="fa fa-sign-out-alt" style={{ fontSize: 28 }}></i>
         </button>
       </div>
+      {/* MODAL DE CONFIRMACIÓN LOGOUT */}
+      {showLogoutModal && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(24,25,43,0.55)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 200,
+          }}></div>
+          <div style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 201,
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 18,
+              boxShadow: '0 2px 32px 0 #0004',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 340,
+              maxWidth: 400,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}>
+              <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
+                ¿Seguro que deseas cerrar sesión?
+              </div>
+              <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
+                Se cerrará tu sesión y perderás el acceso temporal a tu cuenta. Puedes volver a iniciar sesión cuando lo necesites.
+              </div>
+              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
+                <button
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                  }}
+                >
+                  Sí
+                </button>
+                <button
+                  style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
+                  onClick={() => setShowLogoutModal(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       {/* Contenido principal */}
       <div style={{ display: 'flex', gap: '2.5rem', width: '90%', maxWidth: 1100, margin: '0 auto', background: 'transparent' }}>
         {/* Miniaturas */}
