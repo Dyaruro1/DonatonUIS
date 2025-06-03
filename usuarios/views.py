@@ -23,6 +23,8 @@ from supabase import create_client, Client
 import os
 from django.conf import settings
 from backend_django.supabase_settings import SUPABASE_URL, SUPABASE_KEY
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
 
 # Create your views here.
 
@@ -218,5 +220,74 @@ def sincronizar_contrasena_supabase(request):
     except Exception as e:
         print(f"Error sincronizando contraseña: {str(e)}")
         return Response({'detail': 'Error interno al sincronizar la contraseña.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def contactar_usuario(request):
+    """
+    Endpoint para que los administradores contacten usuarios por correo.
+    Requiere: usuarioDestinoId, mensaje, tipo (opcional)
+    """
+    # Verificar permisos: is_staff, is_superuser, o tipoUsuario='admin'
+    if not (request.user.is_staff or request.user.is_superuser or getattr(request.user, 'tipoUsuario', None) == 'admin'):
+        return Response({'detail': 'No tienes permisos para contactar usuarios.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    usuario_destino_id = request.data.get('usuarioDestinoId')
+    mensaje = request.data.get('mensaje')
+    tipo = request.data.get('tipo', 'contacto_admin')
+    
+    # Validaciones básicas
+    if not usuario_destino_id or not mensaje:
+        return Response({'error': 'Usuario destinatario y mensaje son requeridos.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Obtener usuario destinatario
+        usuario_destino = Usuario.objects.get(id=usuario_destino_id)
+        
+        # Obtener información del administrador remitente
+        admin_remitente = request.user
+        nombre_admin = f"{admin_remitente.nombre} {admin_remitente.apellido}".strip() or admin_remitente.username
+        correo_admin = admin_remitente.correo
+          # Crear el mensaje de correo
+        asunto = f"Mensaje del equipo de DonatonUIS"
+        
+        mensaje_correo = f"""
+Hola {usuario_destino.nombre} {usuario_destino.apellido},
+
+Has recibido un mensaje del equipo administrativo de DonatonUIS:
+
+{mensaje}
+
+---
+Este mensaje fue enviado por: {nombre_admin}
+Email de contacto: {correo_admin}
+
+Para responder a este mensaje, simplemente responde a este correo y tu respuesta llegará directamente a {nombre_admin}.
+
+Saludos,
+Equipo DonatonUIS
+"""# Enviar el correo
+        from django.core.mail import EmailMessage
+        
+        # Crear email con Reply-To personalizado
+        email = EmailMessage(
+            subject=asunto,
+            body=mensaje_correo,
+            from_email='daniel2220088@correo.uis.edu.co',  # Email del sistema (configurado)
+            to=[usuario_destino.correo],
+            reply_to=[correo_admin],  # Cuando el usuario responda, irá al admin
+        )
+        email.send(fail_silently=False)
+        
+        return Response({
+            'success': True, 
+            'message': f'Correo enviado exitosamente a {usuario_destino.nombre} {usuario_destino.apellido}'
+        }, status=status.HTTP_200_OK)
+        
+    except Usuario.DoesNotExist:
+        return Response({'error': 'Usuario destinatario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f'Error enviando correo de contacto: {e}')
+        return Response({'error': 'Error al enviar el correo. Intenta de nuevo.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None

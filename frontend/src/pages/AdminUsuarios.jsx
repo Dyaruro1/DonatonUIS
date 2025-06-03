@@ -8,12 +8,16 @@ import { AuthContext } from '../context/AuthContext';
 function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [now, setNow] = useState(Date.now());
+  const [error, setError] = useState("");  const [now, setNow] = useState(Date.now());
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const navigate = useNavigate();
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactConfirmMsg, setContactConfirmMsg] = useState('');  const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
+
+  // Debug: Log current user to see permissions
+  console.log('Current user in AdminUsuarios:', currentUser);
 
   // Actualiza el tiempo cada 30 segundos para refrescar el estado en línea
   useEffect(() => {
@@ -45,7 +49,6 @@ function UsuariosAdmin() {
     const last = new Date(lastActive).getTime();
     return now - last < 2 * 60 * 1000;
   };
-
   // Solo UI: mostrar confirmación
   const handleShowConfirm = (user) => {
     setSelectedUser(user);
@@ -54,7 +57,39 @@ function UsuariosAdmin() {
   const handleCloseConfirm = () => {
     setShowConfirm(false);
     setSelectedUser(null);
-  };  // Bloquear/Desbloquear usuario
+  };
+
+  // Mostrar modal de contacto
+  const handleShowContactModal = (user) => {
+    setSelectedUser(user);
+    setShowContactModal(true);
+  };  // Función para enviar correo de contacto (usando endpoint específico para admins)
+  const handleSendContactEmail = async () => {
+    if (!selectedUser || !contactMessage.trim() || !currentUser?.correo) return;
+    
+    try {
+      const response = await api.post('/api/contactar-usuario/', {
+        usuarioDestinoId: selectedUser.id, // ID del usuario destinatario
+        mensaje: contactMessage.trim(),
+        tipo: 'contacto_admin'
+      });
+      
+      if (response.status === 200) {
+        setShowContactModal(false);
+        setContactMessage('');
+        setSelectedUser(null);
+        setContactConfirmMsg('¡Correo enviado exitosamente!');
+        setTimeout(() => setContactConfirmMsg(''), 4000);
+      } else {
+        setContactConfirmMsg('Error al enviar el correo. Intenta de nuevo.');
+        setTimeout(() => setContactConfirmMsg(''), 4000);
+      }
+    } catch (e) {
+      console.error('Error sending contact email:', e);
+      setContactConfirmMsg('Error al enviar el correo. Intenta de nuevo.');
+      setTimeout(() => setContactConfirmMsg(''), 4000);
+    }
+  };// Bloquear/Desbloquear usuario
   const handleToggleUserStatus = async () => {
     if (!selectedUser) return;
     const newStatus = !selectedUser.is_active;
@@ -75,7 +110,8 @@ function UsuariosAdmin() {
       <AdminSidebar />
       <div style={{ flex: 1, marginLeft: 78 }}>
         <div className="admin-usuarios-container">
-          <h2 className="admin-usuarios-title">Usuarios activos</h2>          {loading ? <div style={{color:'#fff'}}>Cargando...</div> : error ? <div style={{color:'#ff6b6b'}}>{error}</div> : (          <table className="admin-usuarios-table">
+          <h2 className="admin-usuarios-title">Usuarios activos</h2>          {loading ? <div style={{color:'#fff'}}>Cargando...</div> : error ? <div style={{color:'#ff6b6b'}}>{error}</div> : (
+          <table className="admin-usuarios-table">
             <thead>
               <tr>
                 <th><input type="checkbox" disabled /></th>
@@ -86,28 +122,38 @@ function UsuariosAdmin() {
                 <th>Contactar</th>
                 <th>Action</th>
               </tr>
-            </thead>
-            <tbody>
+            </thead><tbody>
               {filteredUsuarios.map(u => (
-                <tr key={u.id}><td><input type="checkbox" /></td><td style={{display:'flex',alignItems:'center',gap:12}}>
+                <tr key={u.id}>
+                  <td>
+                    <input type="checkbox" />
+                  </td>
+                  <td style={{display:'flex',alignItems:'center',gap:12}}>
                     <img src={u.foto || '/logo-pequeno.svg'} alt="avatar" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',background:'#23233a'}} />
                     <span style={{fontWeight:600, cursor:'pointer', color:'#21e058'}} onClick={()=>navigate(`/admin/users/${u.id}`)}>{u.nombre} {u.apellido}</span>
-                  </td><td>{u.last_active ? new Date(u.last_active).toLocaleDateString() === new Date().toLocaleDateString() ? 'Hoy' : new Date(u.last_active).toLocaleDateString() : 'Desconocido'}</td><td>
+                  </td>
+                  <td>
+                    {u.last_active ? new Date(u.last_active).toLocaleDateString() === new Date().toLocaleDateString() ? 'Hoy' : new Date(u.last_active).toLocaleDateString() : 'Desconocido'}
+                  </td>
+                  <td>
                     <span style={{background:isOnline(u.last_active)?"#21e058":"#babcc4",color:isOnline(u.last_active)?"#fff":"#23233a",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
                       {isOnline(u.last_active) ? "En línea" : "Desconectado"}
                     </span>
-                  </td><td>
+                  </td>
+                  <td>
                     <span style={{background:u.is_active?"#21e058":"#ff6b6b",color:"#fff",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
                       {u.is_active ? "Activo" : "Bloqueado"}
                     </span>
-                  </td><td>
+                  </td>
+                  <td>
                     <button 
                       style={{background:'none',color:'#21e058',border:'none',fontWeight:600,cursor:'pointer'}}
-                      onClick={() => window.location.href = `/admin/contactar-usuario/${u.id}`}
+                      onClick={() => handleShowContactModal(u)}
                     >
                       Contactar usuario
                     </button>
-                  </td><td>
+                  </td>
+                  <td>
                     <button onClick={()=>handleShowConfirm(u)} className="admin-block-btn" title={u.is_active ? "Bloquear usuario" : "Desbloquear usuario"}>
                       {u.is_active ? (
                         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -122,7 +168,8 @@ function UsuariosAdmin() {
                           <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
                         </svg>
                       )}
-                    </button>                  </td>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -189,8 +236,185 @@ function UsuariosAdmin() {
                     </button>
                   </div>
                 </div>
+              </div>            </>
+          )}
+          
+          {/* MODAL DE CONTACTO */}
+          {showContactModal && (
+            <>
+              <div style={{
+                position: 'fixed',
+                left: 0, top: 0, width: '100vw', height: '100vh',
+                background: 'rgba(24,25,43,0.7)',
+                backdropFilter: 'blur(6px)',
+                zIndex: 200
+              }} />
+              <div style={{
+                position: 'fixed',
+                left: 0, top: 0, width: '100vw', height: '100vh',
+                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                zIndex: 201
+              }}>
+                <div style={{
+                  background: '#23233a',
+                  borderRadius: 18,
+                  boxShadow: '0 4px 32px 0 rgba(0,0,0,0.3)',
+                  padding: '2.2rem 2.5rem 2rem 2.5rem',
+                  minWidth: 450, maxWidth: 550, width: '90%',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center'
+                }}>
+                  {/* Información del usuario */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                    <img 
+                      src={selectedUser?.foto || '/logo-pequeno.svg'} 
+                      alt="Usuario" 
+                      style={{ 
+                        width: 60, 
+                        height: 60, 
+                        borderRadius: '50%', 
+                        objectFit: 'cover',
+                        background: '#fff'
+                      }} 
+                    />
+                    <div>
+                      <div style={{ 
+                        color: '#fff', 
+                        fontWeight: 700, 
+                        fontSize: '1.3rem', 
+                        marginBottom: 4
+                      }}>
+                        Contactar a {selectedUser?.nombre} {selectedUser?.apellido}
+                      </div>
+                      <div style={{ 
+                        color: '#babcc4', 
+                        fontSize: '0.95rem'
+                      }}>
+                        {selectedUser?.correo}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ 
+                    color: '#babcc4', 
+                    marginBottom: 20,
+                    textAlign: 'center',
+                    lineHeight: 1.5
+                  }}>
+                    Escribe tu mensaje para este usuario
+                  </div>
+                  
+                  {/* Campo de mensaje */}
+                  <textarea
+                    placeholder="Escribe tu mensaje aquí..."
+                    value={contactMessage}
+                    onChange={e => setContactMessage(e.target.value)}
+                    style={{
+                      width: '100%', 
+                      minHeight: 120, 
+                      borderRadius: 10, 
+                      border: '1px solid #444', 
+                      marginBottom: 20, 
+                      padding: '12px 16px', 
+                      fontSize: '1rem',
+                      background: '#fff',
+                      color: '#18192b',
+                      resize: 'vertical',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                  
+                  {/* Botones */}
+                  <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+                    <button
+                      style={{ 
+                        flex: 1, 
+                        background: '#8b1e1e', 
+                        color: '#fff', 
+                        border: 'none', 
+                        borderRadius: 10, 
+                        padding: '12px 0', 
+                        fontWeight: 600, 
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s'
+                      }}
+                      onClick={() => {
+                        setShowContactModal(false);
+                        setContactMessage('');
+                        setSelectedUser(null);
+                      }}
+                      onMouseOver={e => e.target.style.background = '#a32424'}
+                      onMouseOut={e => e.target.style.background = '#8b1e1e'}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      style={{ 
+                        flex: 1, 
+                        background: '#21e058', 
+                        color: '#18192b', 
+                        border: 'none', 
+                        borderRadius: 10, 
+                        padding: '12px 0', 
+                        fontWeight: 600, 
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        opacity: !contactMessage.trim() ? 0.6 : 1,
+                        transition: 'all 0.2s'
+                      }}
+                      onClick={handleSendContactEmail}
+                      disabled={!contactMessage.trim()}
+                      onMouseOver={e => {
+                        if (!e.target.disabled) {
+                          e.target.style.background = '#1ab84a';
+                        }
+                      }}
+                      onMouseOut={e => {
+                        if (!e.target.disabled) {
+                          e.target.style.background = '#21e058';
+                        }
+                      }}
+                    >
+                      Enviar correo
+                    </button>
+                  </div>
+                </div>
               </div>
             </>
+          )}
+          
+          {/* MENSAJE DE CONFIRMACIÓN DE CONTACTO */}
+          {contactConfirmMsg && (
+            <div style={{
+              position: 'fixed', 
+              top: 30, 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              background: '#23233a', 
+              color: '#fff', 
+              padding: '16px 24px', 
+              borderRadius: 12, 
+              zIndex: 300, 
+              fontWeight: 600,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              border: '1px solid #444'
+            }}>
+              {contactConfirmMsg}
+              <button 
+                style={{ 
+                  marginLeft: 16, 
+                  background: 'none', 
+                  color: '#fff', 
+                  border: 'none', 
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }} 
+                onClick={() => setContactConfirmMsg('')}
+              >
+                ×
+              </button>
+            </div>
           )}
         </div>
       </div>
