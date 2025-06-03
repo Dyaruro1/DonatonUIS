@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./AdminUsuarios.css";
-import api from '../services/api';
+import { getAdminService, getTokenService } from '../core/config.js';
 import AdminSidebar from '../components/AdminSidebar';
 import { useNavigate } from 'react-router-dom';
+// Añadido para obtener el usuario actual
+import { AuthContext } from '../context/AuthContext';
 
 function UsuariosAdmin() {
   const [usuarios, setUsuarios] = useState([]);
@@ -12,19 +14,37 @@ function UsuariosAdmin() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
+  const { currentUser } = useContext(AuthContext);
+
+  // Get services using dependency injection
+  const adminService = getAdminService();
+  const tokenService = getTokenService();
 
   // Actualiza el tiempo cada 30 segundos para refrescar el estado en línea
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(interval);
   }, []);
-
   useEffect(() => {
-    api.get('/api/usuarios/')
-      .then(res => setUsuarios(res.data))
+    adminService.getAllUsers()
+      .then(res => {
+        // Normaliza el valor de is_active: si viene undefined/null, asume true (activo)
+        const usuariosConActivo = res.data.map(u => ({
+          ...u,
+          is_active: u.is_active === undefined || u.is_active === null ? true : u.is_active
+        }));
+        setUsuarios(usuariosConActivo);
+      })
       .catch(() => setError("No se pudieron cargar los usuarios."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [adminService]);
+
+  // Filtrar usuarios para excluir al usuario actual y a admins/superusers
+  const filteredUsuarios = usuarios.filter(user => {
+    if (currentUser && user.id === currentUser.id) return false;
+    if (user.is_staff || user.is_superuser) return false;
+    return true;
+  });
 
   // Considera en línea si el usuario actualizó su actividad en los últimos 2 minutos
   const isOnline = (lastActive) => {
@@ -43,15 +63,19 @@ function UsuariosAdmin() {
     setSelectedUser(null);
   };
 
-  const handleDeleteUser = async () => {
+  // Bloquear/Desbloquear usuario (set is_active)
+  const handleToggleUserStatus = async () => {
     if (!selectedUser) return;
+    const newStatus = !selectedUser.is_active;
     try {
-      await api.delete(`/api/usuarios/${selectedUser.id}/`);
-      setUsuarios(usuarios.filter(u => u.id !== selectedUser.id));
+      // Cambia el estado activo del usuario en backend
+      await adminService.toggleUserStatusById(selectedUser.id, newStatus);
+      // Actualiza el estado local
+      setUsuarios(usuarios.map(u => u.id === selectedUser.id ? { ...u, is_active: newStatus } : u));
       setShowConfirm(false);
       setSelectedUser(null);
     } catch (err) {
-      setError("No se pudo eliminar el usuario. Intenta de nuevo.");
+      setError(`No se pudo ${newStatus ? 'desbloquear' : 'bloquear'} el usuario. Intenta de nuevo.`);
       setShowConfirm(false);
       setSelectedUser(null);
     }
@@ -70,13 +94,14 @@ function UsuariosAdmin() {
                 <th><input type="checkbox" disabled /></th>
                 <th>Lista de usuarios</th>
                 <th>Última vez activo</th>
-                <th>Estado</th>
+                <th>Estado conexión</th>
+                <th>Estado cuenta</th>
                 <th>Contactar</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {usuarios.map(u => (
+              {filteredUsuarios.map(u => (
                 <tr key={u.id}>
                   <td><input type="checkbox" /></td>
                   <td style={{display:'flex',alignItems:'center',gap:12}}>
@@ -90,6 +115,11 @@ function UsuariosAdmin() {
                     </span>
                   </td>
                   <td>
+                    <span style={{background:u.is_active?"#21e058":"#ff6b6b",color:"#fff",padding:'4px 16px',borderRadius:8,fontWeight:600}}>
+                      {u.is_active ? "Activo" : "Bloqueado"}
+                    </span>
+                  </td>
+                  <td>
                     <button 
                       style={{background:'none',color:'#21e058',border:'none',fontWeight:600,cursor:'pointer'}}
                       onClick={() => window.location.href = `/admin/contactar-usuario/${u.id}`}
@@ -98,13 +128,22 @@ function UsuariosAdmin() {
                     </button>
                   </td>
                   <td>
-                    <button onClick={()=>handleShowConfirm(u)} className="admin-block-btn" title="Bloquear usuario">
-                      {/* Ícono de candado cerrado */}
-                      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#ff6b6b" strokeWidth="2"/>
-                        <path d="M9 12V9a5 5 0 0 1 10 0v3" stroke="#ff6b6b" strokeWidth="2" fill="none"/>
-                        <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
-                      </svg>
+                    <button onClick={()=>handleShowConfirm(u)} className="admin-block-btn" title={u.is_active ? "Bloquear usuario" : "Desbloquear usuario"}>
+                      {u.is_active ? (
+                        // Icono desbloquear (verde)
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#21e058" strokeWidth="2"/>
+                          <path d="M9 12V9a5 5 0 0 1 10 0v2" stroke="#21e058" strokeWidth="2" fill="none"/>
+                          <circle cx="14" cy="18" r="2" fill="#21e058" />
+                        </svg>
+                      ) : (
+                        // Icono bloquear (rojo)
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="6" y="12" width="16" height="10" rx="3" fill="#23233a" stroke="#ff6b6b" strokeWidth="2"/>
+                          <path d="M9 12V9a5 5 0 0 1 10 0v3" stroke="#ff6b6b" strokeWidth="2" fill="none"/>
+                          <circle cx="14" cy="18" r="2" fill="#ff6b6b" />
+                        </svg>
+                      )}
                     </button>
                   </td>
                 </tr>
@@ -112,7 +151,7 @@ function UsuariosAdmin() {
             </tbody>
           </table>
           )}
-          {/* Modal de confirmación de bloqueo */}
+          {/* Modal de confirmación de bloqueo/desbloqueo */}
           {showConfirm && (
             <>
               <div style={{
@@ -150,10 +189,16 @@ function UsuariosAdmin() {
                   textAlign: 'center',
                 }}>
                   <div style={{ color: '#ff3b3b', fontWeight: 700, fontSize: '1.18rem', marginBottom: 10 }}>
-                    ¿Seguro que deseas bloquear a {selectedUser?.nombre} {selectedUser?.apellido}?
+                    {selectedUser?.is_active
+                      ? `¿Seguro que deseas bloquear a ${selectedUser?.nombre} ${selectedUser?.apellido}?`
+                      : `¿Seguro que deseas desbloquear a ${selectedUser?.nombre} ${selectedUser?.apellido}?`
+                    }
                   </div>
                   <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
-                    Esta acción impedirá que el usuario acceda a la plataforma hasta que sea desbloqueado.
+                    {selectedUser?.is_active
+                      ? "Esta acción impedirá que el usuario acceda a la plataforma hasta que sea desbloqueado."
+                      : "Esta acción permitirá que el usuario vuelva a acceder a la plataforma."
+                    }
                   </div>
                   <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
                     <button
@@ -164,9 +209,9 @@ function UsuariosAdmin() {
                     </button>
                     <button
                       style={{ flex: 1, background: '#0d1b36', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
-                      onClick={handleDeleteUser}
+                      onClick={handleToggleUserStatus}
                     >
-                      Bloquear
+                      {selectedUser?.is_active ? 'Bloquear' : 'Desbloquear'}
                     </button>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FeedPrendas.css';
-import { donatonService } from '../services/api';
+import { getPrendaService } from '../core/config.js';
 import { AuthContext } from '../context/AuthContext';
 import NotificationBell from '../components/NotificationBell';
 import { useNotifications } from '../hooks/use-notifications';
@@ -25,6 +25,9 @@ function FeedPrendas() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const notifications = useNotifications(username, 3);
 
+  // Get service using dependency injection
+  const prendaService = getPrendaService();
+
   const handleSidebarNav = (route) => {
     navigate(route);
   };
@@ -34,7 +37,7 @@ function FeedPrendas() {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const resp = await donatonService.getPrendasDisponibles(skip, limit);
+      const resp = await prendaService.getPrendasDisponibles(skip, limit);
       if (resp.data.length < limit) setHasMore(false);
       setPrendas(prev => [...prev, ...resp.data]);
       setSkip(prev => prev + limit);
@@ -43,7 +46,7 @@ function FeedPrendas() {
     } finally {
       setLoading(false);
     }
-  }, [skip, loading, hasMore]);
+  }, [skip, loading, hasMore, prendaService]);
 
   useEffect(() => {
     loadMore();
@@ -100,12 +103,11 @@ function FeedPrendas() {
     }
     return true;
   });
-
   const handleDetallePrenda = async (prenda) => {
     // Si el usuario está autenticado y no es el donante, incrementar visitas
     if (currentUser && prenda.donante && prenda.donante.id !== currentUser.id) {
       try {
-        await donatonService.incrementarVisitas(prenda.id);
+        await prendaService.incrementarVisitas(prenda.id);
       } catch (e) {
         // No hacer nada si falla
       }

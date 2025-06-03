@@ -1,8 +1,7 @@
-// Página temporal para contactar usuario
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
-import api from '../services/api';
+import { getAdminService } from '../core/config.js';
 
 function ContactarUsuario() {
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ function ContactarUsuario() {
   const params = new URLSearchParams(window.location.search);
   const userIdFromQuery = params.get('userId');
   const userId = userIdFromParams || location.state?.userId || userIdFromQuery || null;
-
   useEffect(() => {
     console.log('DEBUG ContactarUsuario: userIdFromParams=', userIdFromParams, 'location.state?.userId=', location.state?.userId, 'userIdFromQuery=', userIdFromQuery, 'userId=', userId);
     if (!userId) {
@@ -25,7 +23,8 @@ function ContactarUsuario() {
       setLoading(false);
       return;
     }
-    api.get(`/api/usuarios/${userId}/`)
+    const adminService = getAdminService();
+    adminService.getUsuario(userId)
       .then(res => setUser(res.data))
       .catch(() => setError('No se pudo cargar el usuario.'))
       .finally(() => setLoading(false));

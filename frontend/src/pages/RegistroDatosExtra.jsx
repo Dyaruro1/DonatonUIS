@@ -1,6 +1,6 @@
 import React, { useState, useRef, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../supabaseClient'; // Ensure supabase is imported
 import './RegistroDatosExtra.css';
@@ -10,6 +10,10 @@ function RegistroDatosExtra() {
   const location = useLocation();
   const { email: initialEmail, password: initialPassword } = location.state || {}; // Renamed to avoid conflict
   const { refreshUser } = useContext(AuthContext);
+
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
 
   const [nombres, setNombres] = useState('');
   const [apellidos, setApellidos] = useState('');

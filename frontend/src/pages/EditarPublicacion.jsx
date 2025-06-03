@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './EditarPublicacion.css';
-import { donatonService } from '../services/api'; // Asegúrate de importar tu servicio
+import { getPrendaService, getTokenService } from '../core/config.js';
 import { AuthContext } from '../context/AuthContext';
 
 function EditarPublicacion() {
@@ -9,6 +9,11 @@ function EditarPublicacion() {
   const location = useLocation();
   const prenda = location.state?.prenda;
   const { currentUser } = useContext(AuthContext);
+  
+  // Get services using dependency injection
+  const prendaService = getPrendaService();
+  const tokenService = getTokenService();
+  
   const [timeoutId, setTimeoutId] = useState(null);
   if (!prenda) {
     navigate('/feed');
@@ -98,7 +103,7 @@ function EditarPublicacion() {
       nuevasFotos.forEach((file) => {
         formData.append('imagenes', file);
       });
-      await donatonService.updatePrenda(prenda.id, formData);
+      await prendaService.updatePrenda(prenda.id, formData);
       setSuccess('¡Cambios guardados exitosamente!');
       const id = setTimeout(() => {
         navigate('/feed');
@@ -117,7 +122,7 @@ function EditarPublicacion() {
     setError('');
     setSuccess('');
     try {
-      await donatonService.deletePrenda(prenda.id);
+      await prendaService.deletePrenda(prenda.id);
       setSuccess('Publicación eliminada correctamente.');
       setTimeout(() => navigate('/feed'), 1200);
     } catch (err) {

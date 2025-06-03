@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 import { supabase } from '../supabaseClient';
 import './Login.css';
 
@@ -11,10 +11,14 @@ function RestablecerContrasena() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
+
   useEffect(() => {
-    // El flujo ahora es 100% Supabase, no necesitas CSRF ni llamada al backend
-    // Puedes eliminar esta función para evitar errores de red
-  }, []);
+    // Clear any existing tokens
+    tokenService.removeToken();
+  }, [tokenService]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

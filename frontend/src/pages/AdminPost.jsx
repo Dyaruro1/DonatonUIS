@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./AdminPost.css";
 import AdminSidebar from "../components/AdminSidebar";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from '../services/api'; // Importa tu helper de axios
+import { getPrendaService } from '../core/config.js';
 
 function AdminPost() {
   const [publicaciones, setPublicaciones] = useState([]);
@@ -10,18 +10,18 @@ function AdminPost() {
   const [tab, setTab] = useState("pendientes"); // 'pendientes' o 'disponibles'
   const navigate = useNavigate();
   const location = useLocation();
-
   useEffect(() => {
     async function fetchPublicaciones() {
       setLoading(true);
       try {
+        const prendaService = getPrendaService();
         let data;
         if (tab === "pendientes") {
-          const resp = await fetch("http://localhost:8000/api/prendas/admin-list/");
-          data = await resp.json();
+          const resp = await prendaService.getAdminList();
+          data = resp.data;
         } else {
-          // Usa axios autenticado para publicaciones disponibles
-          const resp = await api.get("/api/prendas/?upload_status=Cargado");
+          // Usa servicio inyectado para publicaciones disponibles
+          const resp = await prendaService.getPrendas({ upload_status: 'Cargado' });
           data = resp.data;
         }
         setPublicaciones(Array.isArray(data) ? data : []);

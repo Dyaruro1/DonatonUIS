@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 import '../pages/FeedPrendas.css'; // Para los estilos de la barra de navegación
 
 function Ajustes() {
@@ -14,6 +14,10 @@ function Ajustes() {
   const [showChangeUsernameModal, setShowChangeUsernameModal] = useState(false);
   const [pendingUsername, setPendingUsername] = useState('');
   const navigate = useNavigate();
+
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
 
   useEffect(() => {
     authService.getCurrentUser()
@@ -66,12 +70,11 @@ function Ajustes() {
       setErrorMsg(msg);
     }
   };
-
   const handleDeleteAccount = async () => {
     setDeleteMsg('');
     try {
       await authService.deleteAccount();
-      localStorage.removeItem('token');
+      tokenService.removeToken();
       navigate('/login');
     } catch (err) {
       setDeleteMsg('No se pudo eliminar la cuenta.');
@@ -127,11 +130,10 @@ function Ajustes() {
               <div style={{ color: '#fff', fontSize: '1.05rem', marginBottom: 22 }}>
                 Se cerrará tu sesión y perderás el acceso temporal a tu cuenta. Puedes volver a iniciar sesión cuando lo necesites.
               </div>
-              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
-                <button
+              <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>                <button
                   style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
                   onClick={() => {
-                    localStorage.removeItem('token');
+                    tokenService.removeToken();
                     navigate('/login');
                   }}
                 >

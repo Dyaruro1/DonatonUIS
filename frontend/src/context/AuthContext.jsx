@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 
 export const AuthContext = createContext();
 
@@ -7,8 +7,12 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
+  
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = tokenService.getToken();
     if (token) {
       // Cargar usuario actual desde el backend
       authService.getCurrentUser()
@@ -29,10 +33,10 @@ export function AuthProvider({ children }) {
   // Función para iniciar sesión
   const login = async (correo, contrasena) => {
     // Eliminar cualquier token previo antes de intentar login
-    localStorage.removeItem('token');
+    tokenService.removeToken();
     try {
       const response = await authService.login(correo, contrasena);
-      localStorage.setItem('token', response.data.token);
+      // Token is already stored by the authService
       // Fetch the current user from backend to ensure fresh data
       const userRes = await authService.getCurrentUser();
       setCurrentUser(userRes.data);
@@ -44,14 +48,13 @@ export function AuthProvider({ children }) {
   
   // Función para cerrar sesión
   const logout = () => {
-    localStorage.removeItem('token');
+    tokenService.removeToken();
     setCurrentUser(null);
   };
-  
-  // Función para registrar nuevo usuario
+    // Función para registrar nuevo usuario
   const register = async (userData) => {
     // Eliminar cualquier token previo antes de intentar registro
-    localStorage.removeItem('token');
+    tokenService.removeToken();
     try {
       const response = await authService.register(userData);
       return response.data;
@@ -80,11 +83,10 @@ export function AuthProvider({ children }) {
       setCurrentUser(null);
     }
   };
-
   // Función para cambiar la contraseña del usuario autenticado
   const cambiarContrasena = async (contrasena_anterior, contrasena_nueva) => {
     try {
-      const response = await authService.cambiarContrasena(contrasena_anterior, contrasena_nueva);
+      const response = await authService.changePassword(contrasena_anterior, contrasena_nueva);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: error.response?.data?.detail || 'Error al cambiar la contraseña.' };

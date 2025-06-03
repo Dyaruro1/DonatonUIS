@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from '../services/api';
+import { getAdminService, getTokenService } from '../core/config.js';
 import "./AdminUsuarioDetalle.css";
 import AdminSidebar from '../components/AdminSidebar';
 
@@ -14,8 +14,12 @@ function AdminUsuarioDetalle() {
   const [showDelete, setShowDelete] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
+  // Get services using dependency injection
+  const adminService = getAdminService();
+  const tokenService = getTokenService();
+
   useEffect(() => {
-    api.get(`/api/usuarios/${id}/`)
+    adminService.getUserById(id)
       .then(res => setUser(res.data))
       .catch(() => setError("No se pudo cargar el usuario."))
       .finally(() => setLoading(false));
@@ -95,12 +99,11 @@ function AdminUsuarioDetalle() {
                     Se eliminará su cuenta y todos sus datos de forma permanente. Esta acción no se puede deshacer
                   </div>
                   {deleteError && <div style={{color:'#ff6b6b',marginBottom:8}}>{deleteError}</div>}
-                  <div className="admin-user-modal-actions">
-                    <button className="admin-user-modal-btn admin-user-modal-btn-red" onClick={async()=>{
+                  <div className="admin-user-modal-actions">                    <button className="admin-user-modal-btn admin-user-modal-btn-red" onClick={async()=>{
                       setDeleteError("");
                       setSaving(true);
                       try {
-                        await api.delete(`/api/usuarios/${id}/`);
+                        await adminService.deleteUserById(id);
                         setShowDelete(false);
                         navigate('/admin/users');
                       } catch {

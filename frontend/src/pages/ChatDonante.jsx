@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RealtimeChat } from '../components/realtime-chat';
 import { useMessagesQuery } from '../hooks/use-messages-query';
-import { getProfileWithToken } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 
 function ChatDonante() {
   const location = useLocation();
   const navigate = useNavigate();
   const prenda = location.state?.prenda;
   const roomName = prenda?.id?.toString();
+
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
 
   // Mensajes iniciales para el chat
   const { data: messages } = useMessagesQuery(roomName);

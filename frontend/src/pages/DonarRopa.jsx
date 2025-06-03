@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { donatonService } from '../services/api';
+import { getPrendaService, getTokenService } from '../core/config.js';
 import './FeedPrendas.css';
 
 function DonarRopa() {
   const navigate = useNavigate();
+  
+  // Get services using dependency injection
+  const prendaService = getPrendaService();
+  const tokenService = getTokenService();
+  
   // Form state
   const [nombre, setNombre] = useState('');
   const [talla, setTalla] = useState('');
@@ -63,9 +68,8 @@ function DonarRopa() {
       // Subir cada imagen en su campo correspondiente (foto1, foto2, foto3)
       if (fotos.length > 0) formData.append('foto1', fotos[0]);
       if (fotos.length > 1) formData.append('foto2', fotos[1]);
-      if (fotos.length > 2) formData.append('foto3', fotos[2]);
-      // Llama a la API real
-      await donatonService.crearPrenda(formData);
+      if (fotos.length > 2) formData.append('foto3', fotos[2]);      // Llama a la API real
+      await prendaService.createPrenda(formData);
       setSuccess('¡Donación publicada exitosamente!');
       setTimeout(() => {
         navigate('/feed');
@@ -133,9 +137,8 @@ function DonarRopa() {
               </div>
               <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
                 <button
-                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
-                  onClick={() => {
-                    localStorage.removeItem('token');
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}                  onClick={() => {
+                    tokenService.removeToken();
                     navigate('/login');
                   }}
                 >

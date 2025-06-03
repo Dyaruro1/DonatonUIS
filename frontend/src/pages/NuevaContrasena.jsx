@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { getAuthService } from '../core/config.js';
 import './Login.css';
 
 function NuevaContrasena() {
@@ -76,10 +77,10 @@ function NuevaContrasena() {
       if (supabaseError) {
         console.error("Error updating password with Supabase:", supabaseError);
         setError(supabaseError.message || 'El enlace es inválido o ha expirado. Solicita un nuevo restablecimiento.');
-      } else {
-        // Sincronizar con Django
+      } else {        // Sincronizar con Django
         try {
-          await import('../services/api').then(({ authService }) => authService.sincronizarContrasenaSupabase(userEmail, password));
+          const authService = getAuthService();
+          await authService.sincronizarContrasenaSupabase(userEmail, password);
           setSuccess(true);
           setTimeout(() => navigate('/'), 3500);
         } catch (syncErr) {

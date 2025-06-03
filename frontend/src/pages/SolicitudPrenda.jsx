@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import '../pages/FeedPrendas.css';
 import { RealtimeChat } from '../components/realtime-chat';
 import { useMessagesQuery } from '../hooks/use-messages-query';
-import { getProfileWithToken } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 
 function SolicitudPrenda() {
   const location = useLocation();
@@ -13,6 +13,10 @@ function SolicitudPrenda() {
   const [donante, setDonante] = useState(prenda?.donante || null);
   const [now, setNow] = useState(Date.now());
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
 
   // Lógica para saber si el donante está en línea (última actividad < 2 minutos)
   const isOnline = (lastActive) => {
@@ -58,9 +62,8 @@ function SolicitudPrenda() {
     if (localUsername && localUsername !== 'Invitado') {
       setUsername(localUsername);
       setUserObj(localUserObj ? { name: localUserObj.username, ...localUserObj } : { name: localUsername });
-    } else {
-      // Si no hay username válido, pedirlo al backend usando el token
-      getProfileWithToken().then(res => {
+    } else {      // Si no hay username válido, pedirlo al backend usando el token
+      authService.getCurrentUser().then(res => {
         const data = res.data;
         if (data && data.username) {
           setUsername(data.username);
@@ -163,9 +166,8 @@ function SolicitudPrenda() {
               </div>
               <div style={{ display: 'flex', gap: 18, width: '100%', justifyContent: 'center' }}>
                 <button
-                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}
-                  onClick={() => {
-                    localStorage.removeItem('token');
+                  style={{ flex: 1, background: '#8b1e1e', color: '#fff', fontWeight: 600, fontSize: '1.08rem', border: 'none', borderRadius: 8, padding: '0.9rem 0', cursor: 'pointer', transition: 'background 0.18s' }}                  onClick={() => {
+                    tokenService.removeToken();
                     navigate('/login');
                   }}
                 >

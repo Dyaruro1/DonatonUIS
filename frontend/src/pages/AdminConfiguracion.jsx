@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import { AuthContext } from '../context/AuthContext';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 
 function AdminConfiguracion() {
   const { currentUser } = useContext(AuthContext);
@@ -16,13 +16,13 @@ function AdminConfiguracion() {
   const [showChangeUsernameModal, setShowChangeUsernameModal] = useState(false);
   const [pendingUsername, setPendingUsername] = useState('');
   const navigate = useNavigate();
-
   useEffect(() => {
     if (currentUser && currentUser.username) {
       setUsername(currentUser.username);
       setUsernameInput(currentUser.username);
     } else {
       // fallback: fetch from backend
+      const authService = getAuthService();
       authService.getCurrentUser()
         .then(res => {
           setUsername(res.data.username || '');
@@ -52,12 +52,12 @@ function AdminConfiguracion() {
     setPendingUsername(usernameInput);
     setShowChangeUsernameModal(true);
   };
-
   const confirmChangeUsername = async () => {
     setShowChangeUsernameModal(false);
     setUsernameMsg('');
     setErrorMsg('');
     try {
+      const authService = getAuthService();
       await authService.updateUsername(pendingUsername);
       setUsername(pendingUsername);
       setUsernameMsg('Nombre de usuario actualizado correctamente.');
@@ -71,13 +71,13 @@ function AdminConfiguracion() {
       }
       setErrorMsg(msg);
     }
-  };
-
-  const handleDeleteAccount = async () => {
+  };  const handleDeleteAccount = async () => {
     setDeleteMsg('');
     try {
+      const authService = getAuthService();
+      const tokenService = getTokenService();
       await authService.deleteAccount();
-      localStorage.removeItem('token');
+      tokenService.removeToken();
       navigate('/login');
     } catch (err) {
       setDeleteMsg('No se pudo eliminar la cuenta.');

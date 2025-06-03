@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
-import api from "../services/api";
+import { getPrendaService } from '../core/config.js';
 import "./AdminDetallePublicacion.css";
 
 function AdminDetallePublicacion() {
@@ -16,22 +16,16 @@ function AdminDetallePublicacion() {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState("");
-
   useEffect(() => {
     console.log('ID recibido en AdminDetallePublicacion:', id);
     async function fetchPrenda() {
       setLoading(true);
       setError("");
       try {
-        // Usa fetch directo para evitar problemas de baseURL
-        const resp = await fetch(`http://localhost:8000/api/prendas/${id}/`);
-        if (!resp.ok) {
-          const errText = await resp.text();
-          throw new Error(`HTTP ${resp.status}: ${errText}`);
-        }
-        const data = await resp.json();
-        console.log('Respuesta de la prenda:', data);
-        setPrenda(data);
+        const prendaService = getPrendaService();
+        const resp = await prendaService.getPrenda(id);
+        console.log('Respuesta de la prenda:', resp.data);
+        setPrenda(resp.data);
       } catch (e) {
         setError("No se pudo cargar la publicación: " + (e.message || e));
         console.error('Error al obtener la prenda:', e);
@@ -41,12 +35,11 @@ function AdminDetallePublicacion() {
     }
     if (id) fetchPrenda();
     else setError('ID de publicación no válido');
-  }, [id]);
-
-  const handleDelete = async () => {
+  }, [id]);  const handleDelete = async () => {
     setEliminando(true);
     try {
-      await api.delete(`/api/prendas/${id}/`); // Usa axios, envía el token
+      const prendaService = getPrendaService();
+      await prendaService.deletePrenda(id);
       navigate("/admin/posts");
     } catch (e) {
       setError("No se pudo eliminar la publicación. " + (e.message || e));
@@ -55,15 +48,15 @@ function AdminDetallePublicacion() {
       setShowConfirm(false);
     }
   };
-
   // Publicar handler
   const handlePublish = async () => {
     setPublishing(true);
     setPublishSuccess("");
     try {
-      await api.patch(`/api/prendas/${id}/`, { upload_status: "Cargado" });
+      const prendaService = getPrendaService();
+      await prendaService.updatePrenda(id, { upload_status: "Cargado" });
       // Refresca la prenda desde el backend para asegurar el estado real
-      const resp = await api.get(`/api/prendas/${id}/`);
+      const resp = await prendaService.getPrenda(id);
       setPrenda(resp.data);
       setPublishSuccess("¡Prenda publicada exitosamente!");
       setShowPublishModal(false);

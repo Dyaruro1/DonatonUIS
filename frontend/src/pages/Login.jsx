@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { AuthContext } from '../context/AuthContext';
 import './Login.css';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -17,9 +17,13 @@ function Login() {
   const { instance } = useMsal();
   const { login } = useContext(AuthContext);
 
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
+
   // Elimina tokens viejos al entrar a la pantalla de login
   useEffect(() => {
-    localStorage.removeItem('token');
+    tokenService.removeToken();
     localStorage.removeItem('username');
   }, []);
 

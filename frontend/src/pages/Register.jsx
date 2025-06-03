@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
-import { authService } from '../services/api';
+import { getAuthService, getTokenService } from '../core/config.js';
 import './Login.css';
 
 function Register() {
@@ -13,14 +13,17 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { instance } = useMsal();
-  const { login } = authService;
   const [error, setError] = useState('');
+
+  // Get services using dependency injection
+  const authService = getAuthService();
+  const tokenService = getTokenService();
 
   // Elimina tokens viejos al entrar a la pantalla de registro
   useEffect(() => {
-    localStorage.removeItem('token');
+    tokenService.removeToken();
     localStorage.removeItem('username');
-  }, []);
+  }, [tokenService]);
 
   const handleSubmit = async e => {
     e.preventDefault();
