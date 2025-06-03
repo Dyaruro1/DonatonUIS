@@ -111,17 +111,61 @@ function FeedPrendas() {
       }
     }
     navigate('/prenda-publica', { state: { prenda } });
-  };
-
-  // Maneja click en una notificación
-  const handleNotificationClick = notif => {
-    // Aquí podrías navegar al chat o prenda relacionada
-    if (notif.prenda_id) {
-      // Busca la prenda en el estado o haz fetch si es necesario
-      const prenda = prendas.find(p => p.id === notif.prenda_id);
-      if (prenda) {
-        navigate('/prenda-publica', { state: { prenda } });
+  };  // Maneja click en una notificación
+  const handleNotificationClick = async (notif) => {
+    try {
+      // Para notificaciones de mensajes, navegar directamente al chat
+      if (notif.prenda_id && notif.user_sender) {
+        // Buscar la prenda relacionada con la notificación
+        let prenda = prendas.find(p => p.id === notif.prenda_id);
+        
+        // Si no está en el estado local, intentar cargar desde la API
+        if (!prenda) {
+          try {
+            const response = await donatonService.getPrendaById(notif.prenda_id);
+            prenda = response.data;
+          } catch (error) {
+            console.error('Error cargando prenda:', error);
+            // Fallback: navegar a FeedPrendas si no se puede cargar la prenda
+            return;
+          }
+        }
+          if (prenda) {
+          // Verificar si el usuario actual es el donante de la prenda
+          // El donante es quien publicó la prenda (prenda.donante o prenda.usuario)
+          const esDonante = currentUser && (
+            (prenda.donante && 
+             (prenda.donante.id === currentUser.id || prenda.donante.username === currentUser.username)) ||
+            (prenda.usuario && 
+             (prenda.usuario.id === currentUser.id || prenda.usuario.username === currentUser.username))
+          );
+          
+          if (esDonante) {
+            // Si es el donante, ir a la interfaz de chat del donante
+            navigate('/donante/chat', { 
+              state: { 
+                prenda: prenda,
+                solicitante: notif.user_sender // El usuario que envió el mensaje
+              } 
+            });          } else {
+            // Si no es el donante (es el solicitante), ir a la interfaz de solicitud de prenda
+            navigate('/solicitacion-prenda', { 
+              state: { 
+                prenda: prenda
+              } 
+            });
+          }
+        }
       }
+      // Fallback para otros tipos de notificaciones
+      else if (notif.prenda_id) {
+        const prenda = prendas.find(p => p.id === notif.prenda_id);
+        if (prenda) {
+          navigate('/prenda-publica', { state: { prenda } });
+        }
+      }
+    } catch (error) {
+      console.error('Error manejando click de notificación:', error);
     }
     // Opcional: marcar como leída en Supabase
     // ...
