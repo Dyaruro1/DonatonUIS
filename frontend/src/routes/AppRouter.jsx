@@ -24,6 +24,7 @@ import SolicitudPrenda from '../pages/SolicitudPrenda';
 import AdminDetallePublicacion from '../pages/AdminDetallePublicacion';
 import ChatDonante from '../pages/ChatDonante';
 import NuevaContrasena from '../pages/NuevaContrasena';
+import DonanteChats from '../pages/DonanteChats';
 
 function AppContent() {
   const location = useLocation();
@@ -61,7 +62,8 @@ function AppContent() {
           <Route path="/admin/users/:id" element={<AdminUsuarioDetalle />} />
           <Route path="/admin/posts/:id" element={<AdminDetallePublicacion />} />
           <Route path="/solicitacion-prenda" element={<SolicitudPrenda />} />
-          <Route path="/chat-donante" element={<ChatDonante />} />
+          <Route path="/donante/chats" element={<DonanteChats />} />
+          <Route path="/donante/chat" element={<ChatDonante />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

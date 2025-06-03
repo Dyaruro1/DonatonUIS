@@ -9,7 +9,6 @@ function SolicitudPrenda() {
   const location = useLocation();
   const navigate = useNavigate();
   const prenda = location.state?.prenda;
-  const roomName = prenda?.id?.toString();
   const [donante, setDonante] = useState(prenda?.donante || null);
   const [now, setNow] = useState(Date.now());
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -32,12 +31,17 @@ function SolicitudPrenda() {
     window.donanteId = donante?.id;
     window.prendaNombre = prenda?.nombre;
   }, [prenda, donante]);
-
-  // Mensajes iniciales para el chat
-  const { data: messages } = useMessagesQuery(roomName);
   // Obtener username actual y username del donante
   let [username, setUsername] = useState(undefined);
-  let [userObj, setUserObj] = useState(undefined);
+  let [userObj, setUserObj] = useState(undefined);  // El roomName se genera dinámicamente después de obtener el username
+  const roomName = prenda?.id && username ? `${prenda.id}${username}` : prenda?.id?.toString();
+    // Mensajes iniciales para el chat - usando parámetros actualizados
+  const { data: messages, loading: messagesLoading } = useMessagesQuery(
+    roomName, 
+    prenda?.id, 
+    username, 
+    prenda?.donante?.username || prenda?.donante?.nombre || ''
+  );
 
   useEffect(() => {
     let localUserObj;
@@ -191,8 +195,21 @@ function SolicitudPrenda() {
             <span style={{ background: isOnline(donante.last_active) ? '#21e058' : '#babcc4', color: isOnline(donante.last_active) ? '#fff' : '#23233a', fontWeight: 600, borderRadius: 6, padding: '2px 12px', fontSize: 15, width: 'fit-content', marginBottom: 2 }}>{isOnline(donante.last_active) ? 'En línea' : 'Desconectado'}</span>
             <span style={{ color: '#babcc4', fontSize: 16, marginTop: 2 }}>¡Bienvenido al chat!</span>
           </div>
-        </div>
-        <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.1rem', margin: '32px 0 18px 0' }}>{prenda.nombre}</h1>
+        </div>        <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.1rem', margin: '32px 0 18px 0' }}>{prenda.nombre}</h1>
+        
+        {/* Indicador de carga de mensajes */}
+        {messagesLoading && (
+          <div style={{ 
+            color: '#7ee787', 
+            fontSize: '1rem', 
+            textAlign: 'center', 
+            margin: '1rem 0',
+            fontWeight: 500 
+          }}>
+            Cargando conversación...
+          </div>
+        )}
+        
         {/* Espacio para chat */}
         <RealtimeChat
           roomName={roomName}

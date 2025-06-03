@@ -336,7 +336,13 @@ function FeedPrendas() {
                   {tab === 'mis' ? (
                     <>
                       <button className="feed-card-btn" onClick={() => navigate('/editar-publicacion', { state: { prenda } })}>Editar prenda</button>
-                      <button className="feed-card-btn" style={{ marginTop: 8, background: '#21e058', color: '#18192b' }} onClick={() => { console.log('DEBUG ChatDonante navigate prenda:', prenda); navigate('/chat-donante', { state: { prenda } }); }}>Ver chat</button>
+                      <button
+                        className="feed-card-btn"
+                        style={{ marginTop: 8, background: '#21e058', color: '#18192b' }}
+                        onClick={() => navigate('/donante/chats', { state: { prenda } })}
+                      >
+                        Ver chats
+                      </button>
                     </>
                   ) : (
                     <button className="feed-card-btn" onClick={() => handleDetallePrenda(prenda)}>Detalles de la prenda</button>

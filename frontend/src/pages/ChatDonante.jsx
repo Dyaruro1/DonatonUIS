@@ -8,11 +8,10 @@ function ChatDonante() {
   const location = useLocation();
   const navigate = useNavigate();
   const prenda = location.state?.prenda;
-  const roomName = prenda?.id?.toString();
-
-  // Mensajes iniciales para el chat
-  const { data: messages } = useMessagesQuery(roomName);
-  // console.log('DEBUG ChatDonante prenda:', roomName);
+  const solicitante = location.state?.solicitante;
+  const roomName = prenda?.id && solicitante ? `${prenda.id}${solicitante}` : prenda?.id?.toString();  // Mensajes iniciales para el chat - ahora con parámetros adicionales para mejor búsqueda
+  const donanteUsername = prenda?.donante?.username || prenda?.donante?.nombre || prenda?.usuario?.username || prenda?.usuario?.nombre || '';
+  const { data: messages, loading: messagesLoading } = useMessagesQuery(roomName, prenda?.id, solicitante, donanteUsername);
 
   // Obtener username actual y username del donante
   let [username, setUsername] = useState();
@@ -63,9 +62,9 @@ function ChatDonante() {
   }, []);  // Para el campo user, pasar el objeto userObj si existe, si no, solo el username
   const user = userObj ? userObj : { name: username };
   // El userDestino debe ser el username del otro participante del chat (no el propio)
-  // Si el usuario actual es el donante, el destino es el username del último solicitante en los mensajes
-  let userDestino = '';
-  if (messages && messages.length > 0) {
+  // Si viene el solicitante desde la navegación, usarlo; si no, buscar en los mensajes
+  let userDestino = solicitante || '';
+  if (!userDestino && messages && messages.length > 0) {
     // Buscar el username más reciente distinto al actual
     const lastOtherMsg = [...messages].reverse().find(m => m.username && m.username !== username);
     if (lastOtherMsg) {
@@ -80,21 +79,20 @@ function ChatDonante() {
       </div>
     );
   }
-
-  if (loading) {
+  if (loading || messagesLoading) {
     return <div style={{ color: '#fff', background: '#18192b', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><h2>Cargando chat...</h2></div>;
   }
-
   return (
     <div style={{ minHeight: '100vh', background: '#18192b', color: '#fff', padding: 0 }}>
       <div style={{ maxWidth: 900, margin: '0 auto', marginTop: 24 }}>
-        <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.1rem', margin: '32px 0 18px 0' }}>Chat de la publicación: {prenda.nombre}</h1>
-        <RealtimeChat
+        <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.1rem', margin: '32px 0 18px 0' }}>Chat de la publicación: {prenda.nombre}</h1>        <RealtimeChat
           roomName={roomName}
           username={username}
+          user={user}
           userDestino={userDestino}
           messages={messages}
-          actualPrendaId = {prenda.id}
+          actualPrendaId={prenda.id}
+          donanteUsername={prenda.donante?.username || prenda.donante?.nombre || prenda.usuario?.username || prenda.usuario?.nombre || ''}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 24 }}>
           <button style={{ background: '#23244a', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 600, fontSize: '0.98rem', cursor: 'pointer', minWidth: 80 }} onClick={() => navigate(-1)}>

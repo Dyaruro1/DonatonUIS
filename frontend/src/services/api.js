@@ -5,7 +5,7 @@ const API_URL = 'http://localhost:8000'; // URL de tu backend Django
 
 const api = axios.create({
   baseURL: API_URL,
-  // No pongas headers aquí, axios los gestiona por request
+  withCredentials: true, // <--- Esto asegura que todas las peticiones incluyan credenciales
 });
 
 // Interceptor para añadir token de autenticación si existe y configurar CSRF
@@ -15,9 +15,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Token ${token}`;
     }
-    // Asegurar que withCredentials se establece para todas las solicitudes relevantes
-    config.withCredentials = true;
-
+    // No es necesario volver a poner config.withCredentials aquí, ya está en la instancia
     // Obtener el token CSRF de las cookies
     const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
     if (csrfToken) {

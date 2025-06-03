@@ -1,0 +1,39 @@
+/* Animaciones para el chat en tiempo real */
+@keyframes fadeInMessage {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message-animation {
+  animation: fadeInMessage 0.3s ease-in-out;
+}
+
+/* Transición suave para el contenedor del chat */
+.chat-container-smooth {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Scroll suavizado para el contenedor de mensajes */
+.chat-messages-container {
+  scroll-behavior: smooth;
+}
+
+/* Animación para indicadores de carga */
+@keyframes pulseLoading {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.chat-loading-indicator {
+  animation: pulseLoading 1.5s ease-in-out infinite;
+}

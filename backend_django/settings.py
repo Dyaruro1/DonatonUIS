@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-2e73_zb89ma4c36^hd1lo_&)hawuwrzi1j$*tc(%)emp=58$!p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -150,6 +150,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # CORS_ALLOW_ALL_ORIGINS = True
 
+# CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -177,17 +178,29 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'cache-control',
+    'pragma',
 ]
 
-# CSRF Settings
-CSRF_COOKIE_HTTPONLY = False
+# Force preflight for all requests
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+# Session and CSRF cookie settings for CORS
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
 ]
+
+# Add localhost to ALLOWED_HOSTS for development
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Configuración de email para envío de denuncias con Outlook/Office 365 institucional UIS
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

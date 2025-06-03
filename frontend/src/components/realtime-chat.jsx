@@ -1,49 +1,127 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
+import '../styles/chat-animations.css';
 
-export function RealtimeChat({ roomName, username, user, userDestino, messages: initialMessages = [], onMessage, actualPrendaId }) {
-  const [messages, setMessages] = useState(initialMessages);
+export function RealtimeChat({ roomName, username, user, userDestino, messages: initialMessages = [], onMessage, actualPrendaId, donanteUsername }) {
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
-  // console.log('DEBUG RealtimeChat roomName:', roomName, 'username:', username, 'userDestino:', userDestino, 'actualPrendaId:', actualPrendaId);
-  // Load initial messages if not provided
+  // Memoizar mensajes para evitar re-renders innecesarios
+  const memoizedMessages = useMemo(() => {
+    // Si hay initialMessages y tenemos mensajes locales, combinarlos inteligentemente
+    if (initialMessages.length > 0 && messages.length > 0) {
+      // Crear un Map para evitar duplicados basado en ID
+      const messagesMap = new Map();
+      
+      // Agregar initialMessages primero
+      initialMessages.forEach(msg => {
+        messagesMap.set(msg.id || `init-${msg.created_at}-${msg.content}`, msg);
+      });
+      
+      // Agregar mensajes locales (nuevos) que no estén ya
+      messages.forEach(msg => {
+        const key = msg.id || `local-${msg.created_at}-${msg.content}`;
+        if (!messagesMap.has(key)) {
+          messagesMap.set(key, msg);
+        }
+      });
+      
+      // Convertir a array y ordenar por fecha
+      return Array.from(messagesMap.values()).sort((a, b) => 
+        new Date(a.created_at) - new Date(b.created_at)
+      );
+    }
+    
+    // Si solo hay initialMessages, usarlos
+    if (initialMessages.length > 0) {
+      return initialMessages;
+    }
+    
+    // Si solo hay mensajes locales, usarlos
+    return messages;
+  }, [initialMessages, messages]);
+
+  // Solo actualizar cuando initialMessages cambien significativamente
   useEffect(() => {
-    if (initialMessages.length === 0) {
+    if (initialMessages.length > 0 && messages.length === 0) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages.length]);// Solo cuando cambia la longitud
+
+  // Cargar mensajes solo si no hay initialMessages y tenemos roomName
+  useEffect(() => {
+    if (initialMessages.length === 0 && roomName && messages.length === 0) {
       supabase
         .from('messages')
         .select('*')
         .eq('room', roomName)
         .order('created_at', { ascending: true })
-        .then(({ data }) => {
-          if (data) setMessages(data);
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('Error cargando mensajes:', error);
+          } else if (data) {
+            const filteredData = data.filter(msg => 
+              msg.room === roomName && (
+                msg.username === userDestino || 
+                msg.username === username ||
+                msg.username === donanteUsername
+              )
+            );
+            setMessages(filteredData);
+          }
         });
     }
-  }, [roomName, initialMessages]);
-
-  // Subscribe to realtime messages
+  }, [roomName, userDestino, username, donanteUsername, initialMessages.length]);
+  // Suscripción en tiempo real optimizada
   useEffect(() => {
+    if (!roomName) return;
+    
     const channel = supabase
-      .channel('realtime:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room=eq.${roomName}` }, (payload) => {
-        setMessages((msgs) => [...msgs, payload.new]);
-        if (onMessage) onMessage([...messages, payload.new]);
+      .channel('realtime:messages-room-' + roomName)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'messages',
+        filter: `room=eq.${roomName}`
+      }, (payload) => {
+        // Solo agregar el mensaje si pertenece a este room específico
+        if (payload.new.room === roomName) {
+          // Actualizar el estado local siempre para mantener sincronización
+          setMessages((msgs) => {
+            // Evitar duplicados
+            const exists = msgs.some(msg => msg.id === payload.new.id);
+            if (exists) return msgs;
+            return [...msgs, payload.new];
+          });
+          
+          // Notificar al componente padre si tiene callback
+          if (onMessage) {
+            onMessage(payload.new);
+          }
+        }
       })
-      .subscribe();
+      .subscribe();      
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomName, onMessage, messages]);
+  }, [roomName, onMessage]);
 
-  // Scroll to bottom on new message
+  // Scroll suave optimizado
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (bottomRef.current) {
+      const scrollTimeout = setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100); // Pequeño delay para evitar múltiples scrolls
+      
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [memoizedMessages.length]);
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // Ya no se deriva prendaId de roomName. Se usa la prop 'actualPrendaId'.
-    // Validar que actualPrendaId sea un número válido.
+    // Validar actualPrendaId
     if (actualPrendaId === null || actualPrendaId === undefined || isNaN(parseInt(String(actualPrendaId), 10))) {
       console.error(
         'Error crítico: actualPrendaId no es un número válido o no fue proporcionado. ' +
@@ -53,40 +131,61 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
         'Error: No se pudo asociar este chat con una prenda específica (ID de prenda inválido). El mensaje no fue enviado. ' +
         'Por favor, verifica que la información de la prenda sea correcta.'
       );
-      return; // Detener la ejecución si actualPrendaId no es válido
+      return;
     }
-      const messagePayload = {
-      room: roomName, // roomName es la cadena que identifica la sala de chat
+
+    const messagePayload = {
+      room: roomName,
       content: input,
-      username: username, // nombre real del usuario (sender)
-      user_destino: userDestino, // recipient
-      prenda_id: parseInt(String(actualPrendaId), 10), // Usar la prop directa, asegurando que sea un entero
+      username: username,
+      user_destino: userDestino,
+      prenda_id: parseInt(String(actualPrendaId), 10),
     };
     
-    // console.log('💬 MESSAGE DEBUG: Enviando mensaje con payload:', messagePayload);
-    
-    // Solo insertar el mensaje en Supabase
-    const { data, error } = await supabase
+    // Insertar mensaje en Supabase
+    const { error } = await supabase
       .from('messages')
       .insert(messagePayload)
       .select();
       
-    // console.log('💬 MESSAGE DEBUG: Resultado de inserción en messages:', { data, error });
     if (error) {
       alert('Error al enviar mensaje: ' + error.message);
       return;
     }
+    
     setInput('');
   };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 320, background: '#e3e3e3', borderRadius: 24, boxShadow: '0 2px 16px #0002', position: 'relative', padding: 0 }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2.2rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {messages.map((msg, idx) => {
+    <div 
+      className="chat-container-smooth"
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: 320, 
+        background: '#e3e3e3', 
+        borderRadius: 24, 
+        boxShadow: '0 2px 16px #0002', 
+        position: 'relative', 
+        padding: 0,
+        opacity: memoizedMessages.length >= 0 ? 1 : 0.8
+      }}
+    >
+      <div 
+        className="chat-messages-container"
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '1.5rem 2.2rem', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 8
+        }}
+      >
+        {memoizedMessages.map((msg, idx) => {
           const isOwn = (msg.user?.name || msg.username) === username;
           return (
             <div
-              key={msg.id || idx}
+              key={msg.id || `msg-${idx}-${msg.created_at}`}
               style={{
                 display: 'flex',
                 justifyContent: isOwn ? 'flex-end' : 'flex-start',
@@ -94,6 +193,7 @@ export function RealtimeChat({ roomName, username, user, userDestino, messages: 
               }}
             >
               <div
+                className="chat-message-animation"
                 style={{
                   background: isOwn ? '#21e058' : '#fff',
                   color: isOwn ? '#fff' : '#23233a',
