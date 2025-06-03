@@ -9,12 +9,15 @@ function Register() {
   const [password, setPassword] = useState('');
   const [captchaChecked, setCaptchaChecked] = useState(false);
   const [msalError, setMsalError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { instance } = useMsal();
   const { login } = authService;
   const [error, setError] = useState('');
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
+  const [supportConfirmMsg, setSupportConfirmMsg] = useState('');
 
   // Elimina tokens viejos al entrar a la pantalla de registro
   useEffect(() => {
@@ -79,11 +82,39 @@ function Register() {
       }
       // Redirige a la página de datos extra pasando el email y una contraseña especial
       navigate('/registro-datos-extra', { state: { email, password: 'MICROSOFT_AUTH' } });
-    } catch (err) {
-      setMsalError('Error al registrar con Microsoft');
+    } catch (err) {      setMsalError('Error al registrar con Microsoft');
       // Solo en caso de error real tras autenticación, cerrar sesión Microsoft
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para enviar solicitud de soporte
+  const handleSupportRequest = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/soporte/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          correoUsuario: supportEmail.trim(),
+          mensaje: supportMessage.trim(),
+          tipo: 'registro_ayuda'
+        }),
+      });
+      
+      if (response.ok) {
+        setShowSupportModal(false);
+        setSupportMessage('');
+        setSupportEmail('');
+        setSupportConfirmMsg('¡Solicitud enviada! Te responderemos pronto a tu correo.');
+        setTimeout(() => setSupportConfirmMsg(''), 4000);
+      } else {
+        setSupportConfirmMsg('Error al enviar la solicitud. Intenta de nuevo.');
+        setTimeout(() => setSupportConfirmMsg(''), 4000);
+      }
+    } catch (e) {
+      setSupportConfirmMsg('Error al enviar la solicitud. Intenta de nuevo.');
+      setTimeout(() => setSupportConfirmMsg(''), 4000);
     }
   };
 
@@ -152,9 +183,17 @@ function Register() {
           <button className="login-btn" type="submit" disabled={!captchaChecked || loading}>
             {loading ? 'Cargando...' : 'Continuar'}
           </button>
-        </form>
-        <div className="login-links" style={{ textAlign: 'center', width: '100%' }}>
-          <a href="#" className="login-link">¿Necesitas ayuda?</a>
+        </form>        <div className="login-links" style={{ textAlign: 'center', width: '100%' }}>
+          <a 
+            href="#" 
+            className="login-link" 
+            onClick={(e) => {
+              e.preventDefault();
+              setShowSupportModal(true);
+            }}
+          >
+            ¿Necesitas ayuda?
+          </a>
         </div>
         <div className="login-register-row">
           <span>¿Ya tienes una cuenta?</span>
@@ -172,11 +211,197 @@ function Register() {
         {msalError && <div style={{ color: 'red', margin: '0.5rem 0', textAlign: 'center', fontSize: '0.98rem' }}>{msalError}</div>}
         <div className="login-back-row">
           <a href="/" className="login-link">Volver a la página principal</a>
-        </div>
-        <div className="login-terms-row">
+        </div>        <div className="login-terms-row">
           <a href="#" className="login-link">Términos de uso</a> <span>|</span> <a href="#" className="login-link">Política de privacidad</a>
         </div>
       </div>
+      
+      {/* MODAL DE SOPORTE */}
+      {showSupportModal && (
+        <>
+          <div style={{
+            position: 'fixed',
+            left: 0, top: 0, width: '100vw', height: '100vh',
+            background: 'rgba(24,25,43,0.7)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 200
+          }} />
+          <div style={{
+            position: 'fixed',
+            left: 0, top: 0, width: '100vw', height: '100vh',
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+            zIndex: 201
+          }}>
+            <div style={{
+              background: '#23233a',
+              borderRadius: 18,
+              boxShadow: '0 4px 32px 0 rgba(0,0,0,0.3)',
+              padding: '2.2rem 2.5rem 2rem 2.5rem',
+              minWidth: 400, maxWidth: 500, width: '90%',
+              display: 'flex', flexDirection: 'column', alignItems: 'center'
+            }}>
+              {/* Logo y título */}
+              <img 
+                src="/logo-pequeno.svg" 
+                alt="Donaton UIS" 
+                style={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  background: '#fff',
+                  marginBottom: 16,
+                  padding: 8
+                }} 
+              />
+              <div style={{ 
+                color: '#fff', 
+                fontWeight: 700, 
+                fontSize: '1.4rem', 
+                marginBottom: 8,
+                textAlign: 'center'
+              }}>
+                ¿Necesitas ayuda?
+              </div>
+              <div style={{ 
+                color: '#babcc4', 
+                marginBottom: 20,
+                textAlign: 'center',
+                lineHeight: 1.5
+              }}>
+                Envíanos tu consulta y te responderemos lo antes posible
+              </div>
+              
+              {/* Campo de correo */}
+              <input
+                type="email"
+                placeholder="Tu correo electrónico"
+                value={supportEmail}
+                onChange={e => setSupportEmail(e.target.value)}
+                style={{
+                  width: '100%', 
+                  borderRadius: 10, 
+                  border: '1px solid #444', 
+                  marginBottom: 16, 
+                  padding: '12px 16px', 
+                  fontSize: '1rem',
+                  background: '#fff',
+                  color: '#18192b'
+                }}
+              />
+              
+              {/* Campo de mensaje */}
+              <textarea
+                placeholder="Describe tu consulta o problema..."
+                value={supportMessage}
+                onChange={e => setSupportMessage(e.target.value)}
+                style={{
+                  width: '100%', 
+                  minHeight: 100, 
+                  borderRadius: 10, 
+                  border: '1px solid #444', 
+                  marginBottom: 20, 
+                  padding: '12px 16px', 
+                  fontSize: '1rem',
+                  background: '#fff',
+                  color: '#18192b',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+              
+              {/* Botones */}
+              <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+                <button
+                  style={{ 
+                    flex: 1, 
+                    background: '#0d1b36', 
+                    color: '#fff', 
+                    border: 'none', 
+                    borderRadius: 10, 
+                    padding: '12px 0', 
+                    fontWeight: 600, 
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s'
+                  }}
+                  onClick={() => {
+                    setShowSupportModal(false);
+                    setSupportMessage('');
+                    setSupportEmail('');
+                  }}
+                  onMouseOver={e => e.target.style.background = '#1a2a4a'}
+                  onMouseOut={e => e.target.style.background = '#0d1b36'}
+                >
+                  Cancelar
+                </button>
+                <button
+                  style={{ 
+                    flex: 1, 
+                    background: '#21e058', 
+                    color: '#18192b', 
+                    border: 'none', 
+                    borderRadius: 10, 
+                    padding: '12px 0', 
+                    fontWeight: 600, 
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    opacity: (!supportMessage.trim() || !supportEmail.trim()) ? 0.6 : 1,
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={handleSupportRequest}
+                  disabled={!supportMessage.trim() || !supportEmail.trim()}
+                  onMouseOver={e => {
+                    if (!e.target.disabled) {
+                      e.target.style.background = '#1ab84a';
+                    }
+                  }}
+                  onMouseOut={e => {
+                    if (!e.target.disabled) {
+                      e.target.style.background = '#21e058';
+                    }
+                  }}
+                >
+                  Enviar solicitud
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      
+      {/* MENSAJE DE CONFIRMACIÓN */}
+      {supportConfirmMsg && (
+        <div style={{
+          position: 'fixed', 
+          top: 30, 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          background: '#23233a', 
+          color: '#fff', 
+          padding: '16px 24px', 
+          borderRadius: 12, 
+          zIndex: 300, 
+          fontWeight: 600,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          border: '1px solid #444'
+        }}>
+          {supportConfirmMsg}
+          <button 
+            style={{ 
+              marginLeft: 16, 
+              background: 'none', 
+              color: '#fff', 
+              border: 'none', 
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }} 
+            onClick={() => setSupportConfirmMsg('')}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }

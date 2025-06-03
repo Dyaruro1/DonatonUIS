@@ -41,8 +41,8 @@ def denunciar_prenda(request):
     except Exception:
         nombre_donante = "(desconocido)"
 
-    print('DEBUG - Correos admin:', admin_emails)
-    print('DEBUG - Mensaje de denuncia:', f'Se ha denunciado la prenda {prenda_nombre} (ID: {prenda_id})\nTalla: {prenda_talla}\nSexo: {prenda_sexo}\nEstado: {prenda_estado}\nDonante: {nombre_donante}\nMotivo: {motivo}')
+    # print('DEBUG - Correos admin:', admin_emails)
+    # print('DEBUG - Mensaje de denuncia:', f'Se ha denunciado la prenda {prenda_nombre} (ID: {prenda_id})\nTalla: {prenda_talla}\nSexo: {prenda_sexo}\nEstado: {prenda_estado}\nDonante: {nombre_donante}\nMotivo: {motivo}')
     mensaje = f"""
 ¡Atención Administrador!
 
@@ -67,3 +67,64 @@ Motivo de la denuncia:
         fail_silently=False,
     )
     return Response({'success': True})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def soporte_registro(request):
+    from datetime import datetime
+    from django.utils import timezone
+    
+    correo_usuario = request.data.get('correoUsuario')
+    mensaje = request.data.get('mensaje')
+    tipo = request.data.get('tipo', 'consulta_general')
+
+    # Validaciones básicas
+    if not correo_usuario or not mensaje:
+        return Response({'error': 'Faltan datos requeridos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Obtener el correo del admin específico para soporte
+    admin_email = 'julio2220089@correo.uis.edu.co'
+
+    # Obtener fecha actual en formato legible
+    fecha_actual = timezone.now().strftime('%d de %B de %Y a las %H:%M')
+    # Traducir meses al español
+    meses = {
+        'January': 'enero', 'February': 'febrero', 'March': 'marzo', 'April': 'abril',
+        'May': 'mayo', 'June': 'junio', 'July': 'julio', 'August': 'agosto',
+        'September': 'septiembre', 'October': 'octubre', 'November': 'noviembre', 'December': 'diciembre'
+    }
+    for mes_en, mes_es in meses.items():
+        fecha_actual = fecha_actual.replace(mes_en, mes_es)
+
+    # print('DEBUG - Solicitud de soporte:', f'Usuario: {correo_usuario}, Tipo: {tipo}')
+    # print('DEBUG - Mensaje:', mensaje)
+    
+    # Crear el mensaje de correo
+    mensaje_correo = f"""
+¡Nueva solicitud de soporte en DonatonUIS!
+
+Detalles de la solicitud:
+  • Correo del usuario: {correo_usuario}
+  • Tipo de consulta: {tipo}
+  • Fecha: {fecha_actual}
+
+Mensaje del usuario:
+{mensaje}
+
+Por favor, responde directamente al correo del usuario lo antes posible.
+
+— Sistema DonatonUIS
+"""
+
+    try:
+        send_mail(
+            subject='Nueva solicitud de soporte - DonatonUIS',
+            message=mensaje_correo,
+            from_email='daniel2220088@correo.uis.edu.co',
+            recipient_list=[admin_email],
+            fail_silently=False,
+        )
+        return Response({'success': True})
+    except Exception as e:
+        print(f'Error enviando correo de soporte: {e}')
+        return Response({'error': 'Error al enviar la solicitud.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
